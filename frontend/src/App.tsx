@@ -1,8 +1,16 @@
-import { Admin } from 'react-admin';
-import simpleRestProvider from 'ra-data-simple-rest';
+import { Admin, Resource } from 'react-admin';
+import { dataProvider } from './dataProvider';
+import { authProvider } from './authProvider';
 
-const dataProvider = simpleRestProvider('http://localhost:3000');
+// przykladowy komponent listy — zastąp swoimi
+const ProductList = () => <div>Lista produktów</div>;
 
-export default function App() {
-  return <Admin dataProvider={dataProvider} />;
+function App() {
+  return (
+    <Admin dataProvider={dataProvider} authProvider={authProvider}>
+      <Resource name="products" list={ProductList} />
+    </Admin>
+  );
 }
+
+export default App;
