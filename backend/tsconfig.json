@@ -20,6 +20,14 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "noFallthroughCasesInSwitch": false,
+    "types": ["node"],
+    "typeRoots": ["./node_modules/@types", "./.prisma"],
+    "paths": {
+      "@prisma/client": [".prisma/client"],
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src", ".prisma/client"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../.prisma/client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  BLOGGER
+  VIEWER
+}
+
+model User {
+  id       String @id @default(uuid())
+  role     Role
+  login    String @unique
+  password String
+}
+
+model Category {
+  id       String    @id @default(uuid())
+  name     String
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String          @id @default(uuid())
+  name        String
+  description String
+  price       Float
+  isSeasonal  Boolean
+  isActive    Boolean?
+  images      ProductImages[]
+  category    Category        @relation(fields: [categoryId], references: [id])
+  categoryId  String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProductImages {
+  id        String  @id @default(uuid())
+  imgUrl    String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+}
+
+model Location {
+  id            String      @id @default(uuid())
+  name          String?
+  address       String
+  googleMapsUrl String
+  openingHours  String
+  contact       ContactInfo @relation(fields: [contactId], references: [id])
+  contactId     String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BreadVanLocation {
+  id            String @id @default(uuid())
+  address       String
+  googleMapsUrl String
+  dayOfTheWeek  String
+  startTime     String
+  endTime       String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ContactInfo {
+  id        String     @id @default(uuid())
+  phone     String
+  email     String
+  media     Media[]
+  locations Location[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Media {
+  id        String      @id @default(uuid())
+  url       String
+  name      String
+  contact   ContactInfo @relation(fields: [contactId], references: [id])
+  contactId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ArticleImages {
+  id        String   @id @default(uuid())
+  imgUrl    String
+  article   BlogItem @relation(fields: [articleId], references: [id])
+  articleId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BlogItem {
+  id               String          @id @default(uuid())
+  title            String
+  shortDescription String
+  content          String
+  images           ArticleImages[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
