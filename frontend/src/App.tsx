@@ -1,9 +1,7 @@
 import { Admin, Resource } from 'react-admin';
 import { dataProvider } from './dataProvider';
 import { authProvider } from './authProvider';
-
-// przykladowy komponent listy — zastąp swoimi
-const ProductList = () => <div>Lista produktów</div>;
+import { ProductList } from './admin/products';
 
 function App() {
   return (
