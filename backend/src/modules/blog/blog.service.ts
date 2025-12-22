@@ -37,8 +37,11 @@ export class BlogService {
   }
 
   //ARTICLE IMAGE
-  addImage(dto: CreateArticleImageDto): Prisma.PrismaPromise<ArticleImages> {
-    return this.prisma.articleImages.create({ data: dto });
+  addImage(
+    articleId: string,
+    dto: CreateArticleImageDto,
+  ): Prisma.PrismaPromise<ArticleImages> {
+    return this.prisma.articleImages.create({ data: { ...dto, articleId } });
   }
 
   removeImage(id: string): Prisma.PrismaPromise<ArticleImages> {

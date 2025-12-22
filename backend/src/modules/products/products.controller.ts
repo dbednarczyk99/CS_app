@@ -65,7 +65,7 @@ export class ProductsController {
   }
 
   // Images
-  @Post('images')
+  @Post(':productId/images')
   addProductImage(@Body() dto: CreateProductImageDto) {
     return this.service.addImage(dto);
   }

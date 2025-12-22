@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma, ContactInfo, Location, Media } from '@prisma/client';
-
-import { CreateContactInfoDto } from './dto/create-contact-info.dto';
 import { UpdateContactInfoDto } from './dto/update-contact-info.dto';
 import { CreateLocationDto } from './dto/create-location.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
@@ -13,6 +11,10 @@ import { UpdateMediaDto } from './dto/update-media.dto';
 export class ContactInfoService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getSingletonId(): string {
+    return process.env.STATIC_CONTACT_ID || 'STATIC_CONTACT_ID';
+  }
+
   // CONTACT INFO
   findAll(): Prisma.PrismaPromise<ContactInfo[]> {
     return this.prisma.contactInfo.findMany({
@@ -20,19 +22,11 @@ export class ContactInfoService {
     });
   }
 
-  createContact(data: CreateContactInfoDto): Prisma.PrismaPromise<ContactInfo> {
-    return this.prisma.contactInfo.create({ data });
-  }
-
-  updateContact(
-    id: string,
-    data: UpdateContactInfoDto,
-  ): Prisma.PrismaPromise<ContactInfo> {
-    return this.prisma.contactInfo.update({ where: { id }, data });
-  }
-
-  deleteContact(id: string): Prisma.PrismaPromise<ContactInfo> {
-    return this.prisma.contactInfo.delete({ where: { id } });
+  updateContact(data: UpdateContactInfoDto): Prisma.PrismaPromise<ContactInfo> {
+    return this.prisma.contactInfo.update({
+      where: { id: this.getSingletonId() },
+      data,
+    });
   }
 
   // LOCATION

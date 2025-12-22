@@ -1,18 +1,17 @@
 import {
   Controller,
   Get,
-  Post,
-  Delete,
-  Body,
   Patch,
+  Body,
+  Post,
   Param,
+  Delete,
 } from '@nestjs/common';
 import { ContactInfoService } from './contact-info.service';
-import { CreateLocationDto } from './dto/create-location.dto';
-import { CreateContactInfoDto } from './dto/create-contact-info.dto';
-import { CreateMediaDto } from './dto/create-media.dto';
 import { UpdateContactInfoDto } from './dto/update-contact-info.dto';
+import { CreateLocationDto } from './dto/create-location.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
+import { CreateMediaDto } from './dto/create-media.dto';
 import { UpdateMediaDto } from './dto/update-media.dto';
 
 @Controller('contact')
@@ -25,19 +24,9 @@ export class ContactInfoController {
   }
 
   // CONTACT INFO
-  @Post()
-  create(@Body() body: CreateContactInfoDto) {
-    return this.service.createContact(body);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() body: UpdateContactInfoDto) {
-    return this.service.updateContact(id, body);
-  }
-
-  @Delete(':id')
-  delete(@Param('id') id: string) {
-    return this.service.deleteContact(id);
+  @Patch()
+  update(@Body() body: UpdateContactInfoDto) {
+    return this.service.updateContact(body);
   }
 
   // LOCATION

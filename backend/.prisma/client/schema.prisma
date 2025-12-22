@@ -85,7 +85,7 @@ model BreadVanLocation {
 }
 
 model ContactInfo {
-  id        String     @id @default(uuid())
+  id        String     @id
   phone     String
   email     String
   media     Media[]

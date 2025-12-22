@@ -42,9 +42,12 @@ export class BlogController {
   }
 
   // ARTICLE IMAGE
-  @Post('images')
-  addArticleImage(@Body() dto: CreateArticleImageDto) {
-    return this.service.addImage(dto);
+  @Post(':articleId/images')
+  addArticleImage(
+    @Param('articleId') articleId: string,
+    @Body() dto: CreateArticleImageDto,
+  ) {
+    return this.service.addImage(articleId, dto);
   }
 
   @Delete('images/:id')

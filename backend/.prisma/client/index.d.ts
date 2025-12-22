@@ -12487,7 +12487,7 @@ export namespace Prisma {
   }
 
   export type ContactInfoCreateInput = {
-    id?: string
+    id: string
     phone: string
     email: string
     createdAt?: Date | string
@@ -12497,7 +12497,7 @@ export namespace Prisma {
   }
 
   export type ContactInfoUncheckedCreateInput = {
-    id?: string
+    id: string
     phone: string
     email: string
     createdAt?: Date | string
@@ -12527,7 +12527,7 @@ export namespace Prisma {
   }
 
   export type ContactInfoCreateManyInput = {
-    id?: string
+    id: string
     phone: string
     email: string
     createdAt?: Date | string
@@ -14016,7 +14016,7 @@ export namespace Prisma {
   }
 
   export type ContactInfoCreateWithoutLocationsInput = {
-    id?: string
+    id: string
     phone: string
     email: string
     createdAt?: Date | string
@@ -14025,7 +14025,7 @@ export namespace Prisma {
   }
 
   export type ContactInfoUncheckedCreateWithoutLocationsInput = {
-    id?: string
+    id: string
     phone: string
     email: string
     createdAt?: Date | string
@@ -14182,7 +14182,7 @@ export namespace Prisma {
   }
 
   export type ContactInfoCreateWithoutMediaInput = {
-    id?: string
+    id: string
     phone: string
     email: string
     createdAt?: Date | string
@@ -14191,7 +14191,7 @@ export namespace Prisma {
   }
 
   export type ContactInfoUncheckedCreateWithoutMediaInput = {
-    id?: string
+    id: string
     phone: string
     email: string
     createdAt?: Date | string
