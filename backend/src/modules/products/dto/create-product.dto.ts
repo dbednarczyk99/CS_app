@@ -1,21 +1,42 @@
-import { IsString, IsNumber, IsBoolean, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsUUID,
+  IsBoolean,
+  MinLength,
+  ValidateNested,
+  IsArray,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+class CreateProductImageInlineDto {
+  @IsString()
+  imgUrl: string;
+}
 
 export class CreateProductDto {
   @IsString()
+  @MinLength(3)
   name: string;
-
-  @IsString()
-  description: string;
 
   @IsNumber()
   price: number;
 
-  @IsBoolean()
-  isSeasonal: boolean;
+  @IsString()
+  @MinLength(5)
+  description: string;
 
   @IsBoolean()
-  isActive: boolean;
+  isSeasonal: boolean; // wymagane
+
+  @IsBoolean()
+  isActive: boolean; // wymagane
 
   @IsUUID()
   categoryId: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateProductImageInlineDto)
+  images: CreateProductImageInlineDto[]; // wymagane
 }

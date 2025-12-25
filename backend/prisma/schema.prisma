@@ -41,8 +41,8 @@ model Product {
   name        String
   description String
   price       Float
-  isSeasonal  Boolean
-  isActive    Boolean?
+  isSeasonal  Boolean   @default(false)
+  isActive    Boolean   @default(true)
   images      ProductImages[]
   category    Category @relation(fields: [categoryId], references: [id])
   categoryId  String

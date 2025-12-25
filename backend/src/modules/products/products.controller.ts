@@ -28,6 +28,11 @@ export class ProductsController {
     return this.service.findAllCategories();
   }
 
+  @Get('categories/:id')
+  getCategory(@Param('id') id: string) {
+    return this.service.getCategoryById(id);
+  }
+
   @Patch('categories/:id')
   updateCategory(@Param('id') id: string, @Body() dto: CreateCategoryDto) {
     return this.service.updateCategory(id, dto);
@@ -64,10 +69,13 @@ export class ProductsController {
     return this.service.deleteProduct(id);
   }
 
-  // Images
+  // Product Images
   @Post(':productId/images')
-  addProductImage(@Body() dto: CreateProductImageDto) {
-    return this.service.addImage(dto);
+  addProductImage(
+    @Param('productId') productId: string,
+    @Body() dto: CreateProductImageDto,
+  ) {
+    return this.service.addImage({ ...dto, productId });
   }
 
   @Delete('images/:id')
