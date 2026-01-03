@@ -1,10 +1,9 @@
-import { PrismaClient, Role } from '@prisma/client';
+import { PrismaClient, Role, ContactType } from '@prisma/client';
 import 'dotenv/config';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const STATIC_ID = process.env.STATIC_CONTACT_ID || 'STATIC-CONTACT-ID';
   console.log('🌱 Seeding full database...');
 
   // USERS
@@ -20,7 +19,6 @@ async function main() {
   console.log('👤 Users created');
 
   // CATEGORIES + PRODUCTS
-  // Usuń dane w odpowiedniej kolejności (images → products → categories)
   await prisma.productImages.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
@@ -57,40 +55,81 @@ async function main() {
   console.log('🍞 Categories & products created');
 
   // CONTACTINFO + LOCATIONS + MEDIA
-  await prisma.media.deleteMany();
   await prisma.location.deleteMany();
-  await prisma.contactInfo.upsert({
-    where: { id: STATIC_ID },
-    update: {},
-    create: {
-      id: STATIC_ID,
-      phone: '123-456-789',
-      email: 'kontakt@chlebasmak.pl',
-      locations: {
-        create: [
-          {
-            name: 'Piekarnia Główna',
-            address: 'ul. Mączna 12, Warszawa',
-            googleMapsUrl: 'https://maps.google.com/?q=Mączna+12+Warszawa',
-            openingHours: 'Pon–Pt: 8:00–18:00',
-          },
-          {
-            name: 'Stoisko w galerii',
-            address: 'Galeria Centrum, ul. Handlowa 5',
-            googleMapsUrl: 'https://maps.google.com/?q=Galeria+Centrum',
-            openingHours: 'Pon–Nd: 10:00–20:00',
-          },
-        ],
+  await prisma.contactInfo.deleteMany();
+  await prisma.media.deleteMany();
+
+  await prisma.contactInfo.createMany({
+    data: [
+      {
+        type: ContactType.PHONE,
+        label: 'Telefon komórkowy',
+        value: '123-456-789',
       },
-      media: {
-        create: [
-          { name: 'Facebook', url: 'https://facebook.com/chlebasmak' },
-          { name: 'Instagram', url: 'https://instagram.com/chlebasmak' },
-        ],
+      {
+        type: ContactType.EMAIL,
+        label: 'Email ogólny',
+        value: 'kontakt@chlebasmak.pl',
+      },
+      {
+        type: ContactType.PHONE,
+        label: 'Telefon stacjonarny',
+        value: '22 123 45 67',
+      },
+    ],
+  });
+
+  // LOKALIZACJE + GODZINY OTWARCIA (jako JSON)
+  await prisma.location.create({
+    data: {
+      name: 'Piekarnia Główna',
+      address: 'ul. Mączna 12, Warszawa',
+      googleMapsUrl: 'https://maps.google.com/?q=Mączna+12+Warszawa',
+      openingHours: {
+        MONDAY: { openFrom: '08:00', openTo: '18:00' },
+        TUESDAY: { openFrom: '08:00', openTo: '18:00' },
+        WEDNESDAY: { openFrom: '08:00', openTo: '18:00' },
+        THURSDAY: { openFrom: '08:00', openTo: '18:00' },
+        FRIDAY: { openFrom: '08:00', openTo: '18:00' },
+        SATURDAY: { openFrom: '09:00', openTo: '14:00' },
+        SUNDAY: { openFrom: '00:00', openTo: '00:00' },
       },
     },
   });
-  console.log('📞 ContactInfo, locations & media created');
+
+  await prisma.location.create({
+    data: {
+      name: 'Stoisko w galerii',
+      address: 'Galeria Centrum, ul. Handlowa 5',
+      googleMapsUrl: 'https://maps.google.com/?q=Galeria+Centrum',
+      openingHours: {
+        MONDAY: { openFrom: '10:00', openTo: '20:00' },
+        TUESDAY: { openFrom: '10:00', openTo: '20:00' },
+        WEDNESDAY: { openFrom: '10:00', openTo: '20:00' },
+        THURSDAY: { openFrom: '10:00', openTo: '20:00' },
+        FRIDAY: { openFrom: '10:00', openTo: '21:00' },
+        SATURDAY: { openFrom: '10:00', openTo: '21:00' },
+        SUNDAY: { openFrom: '10:00', openTo: '20:00' },
+      },
+    },
+  });
+
+  await prisma.media.createMany({
+    data: [
+      {
+        name: 'Facebook',
+        url: 'https://facebook.com/chlebasmak',
+        icon: 'facebook',
+      },
+      {
+        name: 'Instagram',
+        url: 'https://instagram.com/chlebasmak',
+        icon: 'instagram',
+      },
+    ],
+  });
+
+  console.log('📞 ContactInfo, locations, opening hours & media created');
 
   // BREAD VAN LOCATIONS
   await prisma.breadVanLocation.deleteMany();

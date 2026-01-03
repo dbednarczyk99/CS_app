@@ -13,6 +13,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+// USER & AUTH 
 enum Role {
   ADMIN
   EDITOR
@@ -27,6 +29,8 @@ model User {
   password    String
 }
 
+
+// PRODUCTS
 model Category {
   id          String  @id @default(uuid())
   name        String
@@ -58,17 +62,18 @@ model ProductImages {
   productId   String
 }
 
+
+// CONTACT INFO
+
 model Location {
-  id              String  @id @default(uuid())
+  id              String    @id @default(uuid())
   name            String?
   address         String
   googleMapsUrl   String
-  openingHours    String
-  contact         ContactInfo @relation(fields: [contactId], references: [id])
-  contactId       String
+  openingHours    Json?
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model BreadVanLocation {
@@ -83,12 +88,17 @@ model BreadVanLocation {
   updatedAt       DateTime @updatedAt
 }
 
+enum ContactType  {
+  PHONE
+  EMAIL
+  OTHER
+}
+
 model ContactInfo {
-  id          String @id
-  phone       String
-  email       String
-  media       Media[]
-  locations   Location[]
+  id          String @id @default(uuid())
+  type        ContactType
+  label       String?
+  value       String
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -98,12 +108,14 @@ model Media {
   id          String @id @default(uuid())
   url         String
   name        String
-  contact     ContactInfo @relation(fields: [contactId], references: [id])
-  contactId   String
+  icon        String
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+
+// BLOG
 
 model ArticleImages {
   id          String @id @default(uuid())

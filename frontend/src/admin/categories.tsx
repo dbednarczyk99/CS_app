@@ -10,10 +10,11 @@ import {
     SaveButton,
     DeleteButton,
     useRecordContext,
+    useRedirect,
     Edit,
     required,
 } from 'react-admin';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Button} from '@mui/material';
 
 import type { ToolbarProps } from '@mui/material';
 type CategoryRecord = {
@@ -43,9 +44,30 @@ const CategoryEditToolbar = (props: ToolbarProps) => {
   return (
     <Toolbar {...props}>
       <SaveButton />
-      {/* pokaż DELETE tylko gdy brak produktów */}
       {!hasProducts && <DeleteButton sx={{ ml: 2 }} />}
     </Toolbar>
+  );
+};
+
+const AddProductButton = () => {
+  const record = useRecordContext<{ id: string }>();
+  const redirect = useRedirect();
+
+  if (!record) return null;
+
+  const handleClick = () => {
+    redirect('create', 'products', undefined, { categoryId: record.id });
+  };
+
+  return (
+    <Button
+      variant="contained"
+      size="small"
+      sx={{ mx: 2 }}
+      onClick={handleClick}
+    >
+      Create product
+    </Button>
   );
 };
 
@@ -56,9 +78,12 @@ export const CategoryEdit = () => (
     </SimpleForm>
 
     <Box sx={{ mt: 4 }}>
-      <Typography variant="h6" gutterBottom sx={{ ml: 2 }}>
-        Products in this category
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', ml: 2, my: 2, mt: 6 }}>
+        <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>
+          Products in this category
+        </Typography>
+        <AddProductButton />
+      </Box>
 
       <ArrayField source="products">
         <Datagrid

@@ -1,4 +1,4 @@
-import { IsString, IsUUID } from 'class-validator';
+import { IsString } from 'class-validator';
 
 export class CreateMediaDto {
   @IsString()
@@ -7,6 +7,6 @@ export class CreateMediaDto {
   @IsString()
   name: string;
 
-  @IsUUID()
-  contactId: string;
+  @IsString()
+  icon: string;
 }
