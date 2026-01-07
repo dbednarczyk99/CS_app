@@ -117,14 +117,12 @@ async function main() {
   await prisma.media.createMany({
     data: [
       {
-        name: 'Facebook',
+        name: 'FACEBOOK',
         url: 'https://facebook.com/chlebasmak',
-        icon: 'facebook',
       },
       {
-        name: 'Instagram',
+        name: 'INSTAGRAM',
         url: 'https://instagram.com/chlebasmak',
-        icon: 'instagram',
       },
     ],
   });

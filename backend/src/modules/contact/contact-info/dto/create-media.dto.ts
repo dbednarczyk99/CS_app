@@ -1,3 +1,4 @@
+import { MediaName } from '@prisma/client';
 import { IsString } from 'class-validator';
 
 export class CreateMediaDto {
@@ -5,8 +6,5 @@ export class CreateMediaDto {
   url: string;
 
   @IsString()
-  name: string;
-
-  @IsString()
-  icon: string;
+  name: MediaName;
 }
