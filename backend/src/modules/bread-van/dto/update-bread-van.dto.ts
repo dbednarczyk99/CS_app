@@ -1,4 +1,13 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { CreateBreadVanDto } from './create-bread-van.dto';
+import {
+  CreateBreadVanDescriptionDto,
+  CreateBreadVanLocationDto,
+} from './create-bread-van.dto';
 
-export class UpdateBreadVanDto extends PartialType(CreateBreadVanDto) {}
+export class UpdateBreadVanDescriptionDto extends PartialType(
+  CreateBreadVanDescriptionDto,
+) {}
+
+export class UpdateBreadVanLocationDto extends PartialType(
+  CreateBreadVanLocationDto,
+) {}

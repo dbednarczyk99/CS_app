@@ -104,6 +104,12 @@ export const dataProvider: DataProvider = {
 
   // POJEDYNCZY
   async getOne(resource, params) {
+    // 🔴 SPECJALNY CASE – singleton bread-van/description
+    if (resource === 'bread-van/description') {
+      const { json } = await httpClient(`${apiUrl}/bread-van/description`);
+      return { data: json };
+    }
+
     if (resource === 'locations') {
       const { json } = await httpClient(
         `${apiUrl}/contact/location/${params.id}`,
@@ -149,10 +155,12 @@ export const dataProvider: DataProvider = {
       return { data: json };
     }
 
-    const { json } = await httpClient(`${apiUrl}/${resource}`, {
-      method: 'POST',
-      body: JSON.stringify(params.data),
-    });
+    const { json } = await httpClient(`${apiUrl}/${resource}`,
+      {
+        method: 'POST',
+        body: JSON.stringify(params.data),
+      },
+    );
     return { data: json };
   },
 
@@ -181,7 +189,8 @@ export const dataProvider: DataProvider = {
       return { data: json };
     }
 
-    const { json } = await httpClient(`${apiUrl}/${resource}/${params.id}`,
+    const { json } = await httpClient(
+      `${apiUrl}/${resource}/${params.id}`,
       {
         method: 'PATCH',
         body: JSON.stringify(params.data),
@@ -202,7 +211,8 @@ export const dataProvider: DataProvider = {
       return { data: json };
     }
 
-    const { json } = await httpClient(`${apiUrl}/${resource}/${params.id}`,
+    const { json } = await httpClient(
+      `${apiUrl}/${resource}/${params.id}`,
       {
         method: 'DELETE',
       },

@@ -10,6 +10,8 @@ import { CategoryList, CategoryCreate, CategoryEdit } from './admin/components/c
 import { ContactInfoList, ContactInfoEdit, ContactInfoCreate } from './admin/components/contact';
 import { LocationList, LocationCreate, LocationEdit } from './admin/components/locations';
 import { MediaList, MediaCreate, MediaEdit } from './admin/components/socialmedia';
+import { BreadVanDescriptionShow } from './admin/components/breadVan';
+
 import HomePage from './admin/pages/HomePage';
 import HelpPage from './admin/pages/HelpPage';
 
@@ -24,6 +26,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import HelpIcon from '@mui/icons-material/Help';
 import ImageIcon from '@mui/icons-material/Image';
 import UsersIcon from '@mui/icons-material/Group';
+import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 
 const MyMenu = () => {
   const [open] = useSidebarState();
@@ -79,10 +82,27 @@ const MyMenu = () => {
         primaryText="Locations"
         leftIcon={<LocationOnIcon />}
       />
+
+      {open && <Divider sx={{ my: 1 }} />}
+
+      {open && (
+        <Box sx={{ px: 2, pt: 0.5, pb: 0.5 }}>
+          <Typography variant="subtitle2" color="text.secondary">
+            Bread-van
+          </Typography>
+        </Box>
+      )}
+
       <Menu.Item
-        to="/bread-van"
-        primaryText="Bread van schedule"
+        to="/bread-van/description/b0fdfb94-7f07-47cd-8771-3fe21b17137a/show"
+        primaryText="Description"
         leftIcon={<DirectionsBusFilledIcon />}
+      />
+
+      <Menu.Item
+        to="/bread-van/schedule"
+        primaryText="Schedule"
+        leftIcon={<EditCalendarIcon />}
       />
 
       {open && <Divider sx={{ my: 1 }} />}
@@ -172,6 +192,17 @@ function App() {
         list={MediaList}
         create={MediaCreate}
         edit={MediaEdit}
+      />
+      <Resource
+        name="bread-van/locations"
+        options={{ label: 'Bread-van schedule' }}
+        //list={BreadVanScheduleList}
+        // create, edit kiedy dopiszesz
+      />
+      <Resource
+        name="bread-van/description"
+        options={{ label: 'Bread-van description' }}
+        show={BreadVanDescriptionShow}
       />
     </Admin>
   );

@@ -8,30 +8,59 @@ import {
   Patch,
 } from '@nestjs/common';
 import { BreadVanService } from './bread-van.service';
-import { UpdateBreadVanDto } from './dto/update-bread-van.dto';
-import { CreateBreadVanDto } from './dto/create-bread-van.dto';
+import {
+  CreateBreadVanLocationDto,
+  //CreateBreadVanDescriptionDto, opcjonalnie, jeśli kiedyś jednak będziesz chciał POST
+} from './dto/create-bread-van.dto';
+import {
+  UpdateBreadVanLocationDto,
+  UpdateBreadVanDescriptionDto,
+} from './dto/update-bread-van.dto';
 
 @Controller('bread-van')
 export class BreadVanController {
   constructor(private readonly service: BreadVanService) {}
 
-  @Get()
-  findAll() {
-    return this.service.findAll();
+  // ===== LOCATIONS =====
+
+  // wszystkie lokalizacje busa (max 7 – po jednym na dzień tygodnia)
+  @Get('locations')
+  findAllLocations() {
+    return this.service.findAllLocations();
   }
 
-  @Post()
-  create(@Body() body: CreateBreadVanDto) {
-    return this.service.create(body);
+  // nowa lokalizacja busa na konkretny dzień tygodnia
+  @Post('locations')
+  createLocation(@Body() body: CreateBreadVanLocationDto) {
+    return this.service.createLocation(body);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.service.remove(id);
+  // edycja istniejącej lokalizacji (np. zmiana godzin / adresu / dnia tygodnia)
+  @Patch('locations/:id')
+  editLocation(
+    @Param('id') id: string,
+    @Body() body: UpdateBreadVanLocationDto,
+  ) {
+    return this.service.editLocation(id, body);
   }
 
-  @Patch(':id')
-  edit(@Param('id') id: string, @Body() body: UpdateBreadVanDto) {
-    return this.service.edit(id, body);
+  // usunięcie lokalizacji busa (np. już nie jeździ w dany dzień)
+  @Delete('locations/:id')
+  removeLocation(@Param('id') id: string) {
+    return this.service.removeLocation(id);
+  }
+
+  // ===== DESCRIPTION (JEDEN REKORD) =====
+
+  // pobranie JEDYNEGO opisu busa (z obrazkami)
+  @Get('description')
+  getDescription() {
+    return this.service.getDescription();
+  }
+
+  // edycja istniejącego opisu (bez tworzenia/usuwania)
+  @Patch('description')
+  updateDescription(@Body() body: UpdateBreadVanDescriptionDto) {
+    return this.service.updateDescription(body);
   }
 }
