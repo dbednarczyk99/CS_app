@@ -13,14 +13,22 @@ export class BlogService {
   //ARTICLE
   findAll(): Prisma.PrismaPromise<BlogItem[]> {
     return this.prisma.blogItem.findMany({
-      include: { images: true },
+      include: {
+        images: {
+          orderBy: { order: 'asc' },
+        },
+      },
     });
   }
 
   findOne(id: string): Prisma.PrismaPromise<BlogItem | null> {
     return this.prisma.blogItem.findUnique({
       where: { id },
-      include: { images: true },
+      include: {
+        images: {
+          orderBy: { order: 'asc' },
+        },
+      },
     });
   }
 
@@ -37,11 +45,24 @@ export class BlogService {
   }
 
   //ARTICLE IMAGE
-  addImage(
+  async addImage(
     articleId: string,
     dto: CreateArticleImageDto,
-  ): Prisma.PrismaPromise<ArticleImages> {
-    return this.prisma.articleImages.create({ data: { ...dto, articleId } });
+  ): Promise<ArticleImages> {
+    const last = await this.prisma.articleImages.aggregate({
+      where: { articleId },
+      _max: { order: true },
+    });
+
+    const nextOrder = (last._max.order ?? -1) + 1;
+
+    return this.prisma.articleImages.create({
+      data: {
+        imgUrl: dto.imgUrl,
+        articleId,
+        order: nextOrder,
+      },
+    });
   }
 
   removeImage(id: string): Prisma.PrismaPromise<ArticleImages> {

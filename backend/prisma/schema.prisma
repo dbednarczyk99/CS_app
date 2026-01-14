@@ -58,8 +58,13 @@ model Product {
 model ProductImages {
   id          String @id @default(uuid())
   imgUrl      String
+  order       Int
   product     Product @relation(fields: [productId], references: [id])
   productId   String
+
+  @@unique([productId, order])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 
@@ -109,7 +114,7 @@ model BreadVanLocation {
   id              String @id @default(uuid())
   address         String
   googleMapsUrl   String
-  dayOfTheWeek    Weekday  
+  dayOfTheWeek    Weekday @unique
   startTime       String
   endTime         String
 
@@ -118,7 +123,7 @@ model BreadVanLocation {
 }
 
 model BreadVanDescription {
-  id               String @id @default(uuid())
+  id               String @id @default("singleton")
   shortDescription String
   longDescription  String @db.VarChar(500)
   images           BreadVanImages[]
@@ -130,10 +135,11 @@ model BreadVanDescription {
 model BreadVanImages {
   id                        String @id @default(uuid())
   imgUrl                    String
-  isMain                    Boolean @default(false)
+  order                     Int
   breadVanDescription       BreadVanDescription @relation(fields: [descriptionId], references: [id] )
   descriptionId             String
 
+  @@unique([descriptionId, order])
   createdAt                 DateTime @default(now())
   updatedAt                 DateTime @updatedAt
 }
@@ -165,10 +171,12 @@ model Media {
 
 model ArticleImages {
   id          String @id @default(uuid())
-  imgUrl         String
+  imgUrl      String
+  order       Int
   article     BlogItem @relation(fields: [articleId], references: [id])
   articleId   String
 
+  @@unique([articleId, order])  
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }

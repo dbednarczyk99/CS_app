@@ -29,6 +29,11 @@ export class BreadVanController {
     return this.service.findAllLocations();
   }
 
+  @Get('locations/:id')
+  findOneLocation(@Param('id') id: string) {
+    return this.service.findOneLocation(id);
+  }
+
   // nowa lokalizacja busa na konkretny dzień tygodnia
   @Post('locations')
   createLocation(@Body() body: CreateBreadVanLocationDto) {

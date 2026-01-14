@@ -12,10 +12,11 @@ import {
   ReferenceInput,
   SelectInput,
   ImageInput,
-  ImageField,
   required,
   BooleanField,
+  ImageField,
 } from 'react-admin';
+import { ImagePreview } from '../common/ImagePreview';
 
 export const ProductList = () => (
   <List>
@@ -34,26 +35,27 @@ export const ProductList = () => (
 export const ProductCreate = () => (
   <Create>
     <SimpleForm>
+
       <TextInput source="name" validate={[required()]} />
       <NumberInput source="price" validate={[required()]} />
       <TextInput source="description" validate={[required()]} />
 
       <BooleanInput
         source="isSeasonal"
-        label="Czy sezonowy?"
+        label="Is it seasonal?"
         defaultValue={false}
         validate={[required()]}
       />
 
       <BooleanInput
         source="isActive"
-        label="Aktywny produkt"
+        label="Is it active?"
         defaultValue={true}
         validate={[required()]}
       />
 
       <ReferenceInput
-        label="Kategoria"
+        label="Category"
         source="categoryId"
         reference="products/categories"
       >
@@ -62,13 +64,17 @@ export const ProductCreate = () => (
 
       <ImageInput
         source="images"
-        label="Zdjęcia"
+        label="Images"
         multiple
+        accept={{ 'image/*': ['.png', '.jpg', '.jpeg'] }}
+        maxSize={5000000} // 5MB
         validate={[required()]}
       >
         {/* RA używa src dla podglądu; src dodajemy w dataProviderze z imgUrl */}
+        {/*<ImageField source="src" title="title" />*/}
         <ImageField source="src" title="title" />
       </ImageInput>
+      
     </SimpleForm>
   </Create>
 );
@@ -76,15 +82,15 @@ export const ProductCreate = () => (
 export const ProductEdit = () => (
   <Edit>
     <SimpleForm>
+
       <TextInput source="name" validate={[required()]} />
       <NumberInput source="price" validate={[required()]} />
       <TextInput source="description" validate={[required()]} />
-
-      <BooleanInput source="isSeasonal" />
-      <BooleanInput source="isActive" />
+      <BooleanInput source="isSeasonal" label="Is it Seasonal?" />
+      <BooleanInput source="isActive" label="Is it Active?" />
 
       <ReferenceInput
-        label="Kategoria"
+        label="Category"
         source="categoryId"
         reference="products/categories"
       >
@@ -93,11 +99,18 @@ export const ProductEdit = () => (
 
       <ImageInput
         source="images"
-        label="Zdjęcia"
+        label="Images"
         multiple
+        accept={{ 'image/*': ['.png', '.jpg', '.jpeg'] }}
+        maxSize={5000000} // 5MB
+        validate={[required()]}
       >
-        <ImageField source="src" title="title" />
+        <ImagePreview>
+          <ImageField source="src" title="title" />
+        </ImagePreview>
+
       </ImageInput>
+
     </SimpleForm>
   </Edit>
 );

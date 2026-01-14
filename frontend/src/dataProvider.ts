@@ -19,7 +19,7 @@ const httpClient = (url: string, options: fetchUtils.Options = {}) => {
   return fetchUtils.fetchJson(url, { ...options, headers });
 };
 
-interface ProductImageFormValue {
+interface ImageFormValue {
   id?: string;
   src?: string;
   title?: string;
@@ -44,9 +44,9 @@ const uploadFile = async (file: File): Promise<string> => {
   return json.url as string;
 };
 
-const prepareProductPayload = async (data: any) => {
-  const images: ProductImageFormValue[] = Array.isArray(data.images)
-    ? (data.images as ProductImageFormValue[])
+const preparePayload = async (data: any) => {
+  const images: ImageFormValue[] = Array.isArray(data.images)
+    ? (data.images as ImageFormValue[])
     : [];
 
   const existingImages = images.filter((img) => !img.rawFile);
@@ -104,10 +104,20 @@ export const dataProvider: DataProvider = {
 
   // POJEDYNCZY
   async getOne(resource, params) {
-    // 🔴 SPECJALNY CASE – singleton bread-van/description
+    // SPECJALNY CASE – singleton bread-van/description
     if (resource === 'bread-van/description') {
       const { json } = await httpClient(`${apiUrl}/bread-van/description`);
-      return { data: json };
+      const description = json as any;
+      const mapped = {
+        ...description,
+        images: Array.isArray(description.images)
+          ? (description.images as any[]).map((img: any) => ({
+              ...img,
+              src: img.imgUrl ?? img.src,
+            }))
+          : [],
+      };
+      return { data: mapped };
     }
 
     if (resource === 'locations') {
@@ -139,7 +149,7 @@ export const dataProvider: DataProvider = {
   // CREATE
   async create(resource, params) {
     if (resource === 'products') {
-      const payload = await prepareProductPayload(params.data);
+      const payload = await preparePayload(params.data);
       const { json } = await httpClient(`${apiUrl}/${resource}`, {
         method: 'POST',
         body: JSON.stringify(payload),
@@ -166,8 +176,17 @@ export const dataProvider: DataProvider = {
 
   // UPDATE
   async update(resource, params) {
+    if (resource === 'bread-van/description') {
+      const payload = await preparePayload(params.data);
+      const { json } = await httpClient(`${apiUrl}/bread-van/description`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+      return { data: json };
+    }
+
     if (resource === 'products') {
-      const payload = await prepareProductPayload(params.data);
+      const payload = await preparePayload(params.data);
       const { json } = await httpClient(
         `${apiUrl}/${resource}/${params.id}`,
         {

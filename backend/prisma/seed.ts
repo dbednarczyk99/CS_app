@@ -42,8 +42,14 @@ async function main() {
             isActive: true,
             images: {
               create: [
-                { imgUrl: 'https://example.com/chleb-zytni-1.jpg' },
-                { imgUrl: 'https://example.com/chleb-zytni-2.jpg' },
+                {
+                  imgUrl: 'https://example.com/chleb-zytni-1.jpg',
+                  order: 0,
+                },
+                {
+                  imgUrl: 'https://example.com/chleb-zytni-2.jpg',
+                  order: 1,
+                },
               ],
             },
           },
@@ -88,7 +94,12 @@ async function main() {
             isSeasonal: false,
             isActive: true,
             images: {
-              create: [{ imgUrl: 'https://example.com/chleb-ziarna-1.jpg' }],
+              create: [
+                {
+                  imgUrl: 'https://example.com/chleb-ziarna-1.jpg',
+                  order: 0,
+                },
+              ],
             },
           },
         ],
@@ -129,7 +140,7 @@ async function main() {
 
   console.log('✅ Categories & products seeded');
 
-  // --- LOCATIONS (stacjonarne) ---
+  // --- LOCATIONS ---
   await prisma.location.deleteMany();
 
   await prisma.location.createMany({
@@ -215,12 +226,17 @@ async function main() {
         'Nasz pieczywobus – świeże pieczywo prosto pod Twoje drzwi.',
       longDescription:
         'Codziennie rano ruszamy z pieczywem prosto z pieca i przyjeżdżamy w kilka punktów miasta. ' +
-        'W ofercie mamy klasyczne chleby, bułki, pieczywo pełnoziarniste oraz słodkie wypieki. ' +
-        'Śledź nasz rozkład jazdy, żeby wiedzieć, kiedy będziemy najbliżej Ciebie.',
+        'W ofercie mamy klasyczne chleby, bułki, pieczywo pełnoziarniste oraz słodkie wypieki.',
       images: {
         create: [
-          { imgUrl: 'https://example.com/breadvan-1.jpg' },
-          { imgUrl: 'https://example.com/breadvan-2.jpg' },
+          {
+            imgUrl: 'https://example.com/breadvan-1.jpg',
+            order: 0,
+          },
+          {
+            imgUrl: 'https://example.com/breadvan-2.jpg',
+            order: 1,
+          },
         ],
       },
     },
@@ -280,16 +296,19 @@ async function main() {
       title: 'Jak powstaje nasz chleb na zakwasie',
       shortDescription: 'Krótka historia naszego zakwasu i procesu wypieku.',
       content:
-        'Tutaj możesz wstawić dłuższy tekst o procesie powstawania chleba, ' +
-        'fermentacji, mąkach i całej filozofii piekarni.',
+        'Tutaj możesz wstawić dłuższy tekst o procesie powstawania chleba.',
       images: {
-        create: [{ imgUrl: 'https://example.com/blog-chleb-1.jpg' }],
+        create: [
+          {
+            imgUrl: 'https://example.com/blog-chleb-1.jpg',
+            order: 0,
+          },
+        ],
       },
     },
   });
 
   console.log('✅ Blog seeded');
-
   console.log('✅ All seed data created');
 }
 

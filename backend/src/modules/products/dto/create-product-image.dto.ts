@@ -1,4 +1,4 @@
-import { IsString, IsUUID } from 'class-validator';
+import { IsNumber, IsString, IsUUID } from 'class-validator';
 
 export class CreateProductImageDto {
   @IsString()
@@ -6,4 +6,7 @@ export class CreateProductImageDto {
 
   @IsUUID()
   productId: string;
+
+  @IsNumber()
+  order: number;
 }

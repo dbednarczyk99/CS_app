@@ -6,8 +6,12 @@ import {
   MinLength,
   MaxLength,
   IsNotEmpty,
+  ValidateNested,
+  IsArray,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { Weekday } from '@prisma/client';
+import { CreateBreadVanImageDto } from './create-bread-van-image.dto';
 
 export class CreateBreadVanLocationDto {
   @IsString()
@@ -46,4 +50,9 @@ export class CreateBreadVanDescriptionDto {
   @MinLength(200)
   @MaxLength(500)
   longDescription: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateBreadVanImageDto)
+  images: CreateBreadVanImageDto[];
 }

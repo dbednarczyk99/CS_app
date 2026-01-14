@@ -1,45 +1,17 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Prisma, Category, Product, ProductImages } from '@prisma/client';
-import * as fs from 'fs/promises';
-import { URL } from 'url';
-import { join } from 'path';
+import { Prisma, Category, Product } from '@prisma/client';
+import deleteImageFiles from './../../scripts/imageHandler';
 
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
-import { CreateProductImageDto } from './dto/create-product-image.dto';
+import { UpdateProductImagesOrderDto } from './dto/update-product-image.dto';
+//import { CreateProductImageDto } from './dto/create-product-image.dto';
 
 @Injectable()
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
-
-  // helper – wyciągnięcie nazwy pliku z imgUrl
-  private extractFilenameFromUrl(imgUrl: string): string | null {
-    try {
-      const url = new URL(imgUrl);
-      const pathname = url.pathname; // np. /uploads/abc.jpg
-      const parts = pathname.split('/');
-      return parts[parts.length - 1] || null;
-    } catch {
-      return null;
-    }
-  }
-
-  private async deleteImageFiles(imgUrls: string[]): Promise<void> {
-    await Promise.all(
-      imgUrls.map(async (url) => {
-        const filename = this.extractFilenameFromUrl(url);
-        if (!filename) return;
-        const fullPath = join(process.cwd(), 'uploads', filename);
-        try {
-          await fs.unlink(fullPath);
-        } catch {
-          // ignorujemy, jeśli pliku już nie ma
-        }
-      }),
-    );
-  }
 
   // CATEGORY
   createCategory(dto: CreateCategoryDto): Prisma.PrismaPromise<Category> {
@@ -95,9 +67,12 @@ export class ProductsService {
   createProduct(dto: CreateProductDto): Prisma.PrismaPromise<Product> {
     const { images, ...productData } = dto as any;
 
-    const imagesData = (images || []).map((img: { imgUrl: string }) => ({
-      imgUrl: img.imgUrl,
-    }));
+    const imagesData = (images || []).map(
+      (img: { imgUrl: string; order: number }, index: number) => ({
+        imgUrl: img.imgUrl,
+        order: img.order ?? index,
+      }),
+    );
 
     return this.prisma.product.create({
       data: {
@@ -134,21 +109,52 @@ export class ProductsService {
     let urlsToDelete: string[] = [];
 
     if (Array.isArray(images)) {
-      const newUrls = images
-        .filter((img) => img && img.imgUrl)
-        .map((img) => img.imgUrl as string);
+      const incoming = images.map(
+        (img: { id?: string; imgUrl: string; order: number }) => img,
+      );
 
-      const oldUrls = existing?.images?.map((img) => img.imgUrl) ?? [];
+      const existingImages = existing?.images ?? [];
 
-      // URL-e, których już nie ma w nowej liście – pliki do skasowania
-      urlsToDelete = oldUrls.filter((url) => !newUrls.includes(url));
+      const incomingUrls = incoming.map((i) => i.imgUrl);
+      const existingUrls = existingImages.map((i) => i.imgUrl);
 
-      const imagesData = newUrls.map((url) => ({ imgUrl: url }));
+      // 🗑 do usunięcia
+      const toDelete = existingImages.filter(
+        (img) => !incomingUrls.includes(img.imgUrl),
+      );
+
+      // ➕ nowe
+      const toCreate = incoming.filter(
+        (img) => !existingUrls.includes(img.imgUrl),
+      );
+
+      // 🔁 do aktualizacji (order)
+      const toUpdate = incoming.filter((img) =>
+        existingUrls.includes(img.imgUrl),
+      );
+
+      const baseOrder = existingImages.length;
 
       data.images = {
-        deleteMany: {},
-        create: imagesData,
+        deleteMany: {
+          imgUrl: { in: toDelete.map((i) => i.imgUrl) },
+        },
+        create: toCreate.map((img, idx) => ({
+          imgUrl: img.imgUrl,
+          order: img.order ?? baseOrder + idx,
+        })),
+        updateMany: toUpdate.map((img) => ({
+          where: { imgUrl: img.imgUrl },
+          data: {
+            order:
+              img.order ??
+              existingImages.find((e) => e.imgUrl === img.imgUrl)?.order ??
+              0,
+          },
+        })),
       };
+
+      urlsToDelete = toDelete.map((i) => i.imgUrl);
     }
 
     const updated = await this.prisma.product.update({
@@ -158,10 +164,26 @@ export class ProductsService {
     });
 
     if (urlsToDelete.length > 0) {
-      await this.deleteImageFiles(urlsToDelete);
+      await deleteImageFiles(urlsToDelete);
     }
 
     return updated;
+  }
+
+  async updateProductImagesOrder(
+    productId: string,
+    dto: UpdateProductImagesOrderDto,
+  ) {
+    await this.prisma.$transaction(
+      dto.images.map((img) =>
+        this.prisma.productImages.update({
+          where: { id: img.id },
+          data: { order: img.order },
+        }),
+      ),
+    );
+
+    return { success: true };
   }
 
   async deleteProduct(id: string): Promise<Product> {
@@ -196,18 +218,9 @@ export class ProductsService {
     });
 
     if (imgUrls.length > 0) {
-      await this.deleteImageFiles(imgUrls);
+      await deleteImageFiles(imgUrls);
     }
 
     return deleted;
-  }
-
-  // PRODUCT IMAGE – zostawiam, jeśli chcesz używać osobno
-  addImage(dto: CreateProductImageDto): Prisma.PrismaPromise<ProductImages> {
-    return this.prisma.productImages.create({ data: dto });
-  }
-
-  removeImage(id: string): Prisma.PrismaPromise<ProductImages> {
-    return this.prisma.productImages.delete({ where: { id } });
   }
 }

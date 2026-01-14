@@ -15,6 +15,8 @@ import {
   UpdateBreadVanDescriptionDto,
 } from './dto/update-bread-van.dto';
 
+import deleteImageFiles from './../../scripts/imageHandler';
+
 @Injectable()
 export class BreadVanService {
   constructor(private prisma: PrismaService) {}
@@ -25,6 +27,16 @@ export class BreadVanService {
     return this.prisma.breadVanLocation.findMany({
       orderBy: { dayOfTheWeek: 'asc' },
     });
+  }
+
+  async findOneLocation(id: string): Promise<BreadVanLocation> {
+    const location = await this.prisma.breadVanLocation.findUnique({
+      where: { id },
+    });
+    if (!location) {
+      throw new NotFoundException('Lokalizacja busa nie istnieje.');
+    }
+    return location;
   }
 
   async createLocation(
@@ -81,7 +93,7 @@ export class BreadVanService {
       include: {
         images: {
           orderBy: [
-            { isMain: 'desc' }, // najpierw główne
+            { order: 'desc' }, // najpierw główne
             { createdAt: 'asc' }, // potem po dacie
           ],
         },
@@ -96,10 +108,45 @@ export class BreadVanService {
   }
 
   async updateDescription(
-    data: UpdateBreadVanDescriptionDto,
+    dto: UpdateBreadVanDescriptionDto,
   ): Promise<BreadVanDescription> {
     // WYMAGANIE 1: dokładnie jeden rekord – edytujemy TEN istniejący
-    const existing = await this.prisma.breadVanDescription.findFirst();
+    const existing = await this.prisma.breadVanDescription.findFirst({
+      include: { images: true },
+    });
+    console.log('working...');
+    const { images, ...rest } = dto as any;
+
+    const data: Prisma.BreadVanDescriptionUpdateInput = {
+      ...(rest.shortDescription !== undefined
+        ? { shortDescription: rest.shortDescription }
+        : {}),
+      ...(rest.longDescription !== undefined
+        ? { longDescription: rest.longDescription }
+        : {}),
+    };
+
+    let urlsToDelete: string[] = [];
+
+    if (Array.isArray(images)) {
+      const newUrls = images
+        .filter((img) => img && img.imgUrl)
+        .map((img) => img.imgUrl as string);
+
+      const oldUrls = existing?.images?.map((img) => img.imgUrl) ?? [];
+
+      urlsToDelete = oldUrls.filter((url) => !newUrls.includes(url));
+
+      const imagesData = newUrls.map((url, index) => ({
+        imgUrl: url,
+        order: index,
+      }));
+
+      data.images = {
+        deleteMany: {},
+        create: imagesData,
+      };
+    }
 
     if (!existing) {
       throw new NotFoundException(
@@ -107,9 +154,16 @@ export class BreadVanService {
       );
     }
 
-    return this.prisma.breadVanDescription.update({
+    const updated = await this.prisma.breadVanDescription.update({
       where: { id: existing.id },
       data,
+      include: { images: true },
     });
+
+    if (urlsToDelete.length > 0) {
+      await deleteImageFiles(urlsToDelete);
+    }
+
+    return updated;
   }
 }
