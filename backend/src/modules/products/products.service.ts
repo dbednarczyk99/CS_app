@@ -53,14 +53,24 @@ export class ProductsService {
   // PRODUCT
   findAllProducts(): Prisma.PrismaPromise<Product[]> {
     return this.prisma.product.findMany({
-      include: { images: true, category: true },
+      include: {
+        images: {
+          orderBy: { order: 'asc' },
+        },
+        category: true,
+      },
     });
   }
 
   findProduct(id: string): Prisma.PrismaPromise<Product | null> {
     return this.prisma.product.findUnique({
       where: { id },
-      include: { images: true, category: true },
+      include: {
+        images: {
+          orderBy: { order: 'asc' },
+        },
+        category: true,
+      },
     });
   }
 
@@ -109,52 +119,23 @@ export class ProductsService {
     let urlsToDelete: string[] = [];
 
     if (Array.isArray(images)) {
-      const incoming = images.map(
-        (img: { id?: string; imgUrl: string; order: number }) => img,
-      );
+      const newUrls = images
+        .filter((img) => img && img.imgUrl)
+        .map((img) => img.imgUrl as string);
 
-      const existingImages = existing?.images ?? [];
+      const oldUrls = existing?.images?.map((img) => img.imgUrl) ?? [];
 
-      const incomingUrls = incoming.map((i) => i.imgUrl);
-      const existingUrls = existingImages.map((i) => i.imgUrl);
+      urlsToDelete = oldUrls.filter((url) => !newUrls.includes(url));
 
-      // 🗑 do usunięcia
-      const toDelete = existingImages.filter(
-        (img) => !incomingUrls.includes(img.imgUrl),
-      );
-
-      // ➕ nowe
-      const toCreate = incoming.filter(
-        (img) => !existingUrls.includes(img.imgUrl),
-      );
-
-      // 🔁 do aktualizacji (order)
-      const toUpdate = incoming.filter((img) =>
-        existingUrls.includes(img.imgUrl),
-      );
-
-      const baseOrder = existingImages.length;
+      const imagesData = newUrls.map((url, index) => ({
+        imgUrl: url,
+        order: index,
+      }));
 
       data.images = {
-        deleteMany: {
-          imgUrl: { in: toDelete.map((i) => i.imgUrl) },
-        },
-        create: toCreate.map((img, idx) => ({
-          imgUrl: img.imgUrl,
-          order: img.order ?? baseOrder + idx,
-        })),
-        updateMany: toUpdate.map((img) => ({
-          where: { imgUrl: img.imgUrl },
-          data: {
-            order:
-              img.order ??
-              existingImages.find((e) => e.imgUrl === img.imgUrl)?.order ??
-              0,
-          },
-        })),
+        deleteMany: {},
+        create: imagesData,
       };
-
-      urlsToDelete = toDelete.map((i) => i.imgUrl);
     }
 
     const updated = await this.prisma.product.update({

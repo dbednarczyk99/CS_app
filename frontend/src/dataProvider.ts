@@ -25,6 +25,7 @@ interface ImageFormValue {
   title?: string;
   imgUrl?: string;
   rawFile?: File;
+  order?: number;
 }
 
 const uploadFile = async (file: File): Promise<string> => {
@@ -53,15 +54,14 @@ const preparePayload = async (data: any) => {
   const newImages = images.filter((img) => !!img.rawFile);
 
   const existingImagesPayload = existingImages
-    .map((img) => img.imgUrl || img.src || '')
-    .filter((url) => url.length > 0)
-    .map((url) => ({ imgUrl: url }));
+    .map((img, idx) => ({ imgUrl: img.imgUrl || img.src || '', order: img.order ?? idx }))
+    .filter((obj) => obj.imgUrl.length > 0);
 
   const uploadedUrls = await Promise.all(
     newImages.map((img) => uploadFile(img.rawFile as File)),
   );
 
-  const uploadedImagesPayload = uploadedUrls.map((url) => ({ imgUrl: url }));
+  const uploadedImagesPayload = uploadedUrls.map((url, idx) => ({ imgUrl: url, order: newImages[idx]?.order ?? (existingImages.length + idx) }));
 
   return {
     ...data,

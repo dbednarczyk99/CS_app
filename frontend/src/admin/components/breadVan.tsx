@@ -18,9 +18,9 @@ import {
   Create,
   SelectInput,
   type RaRecord,
-  ImageInput,
 } from 'react-admin';
 import { ImagePreview } from '../common/ImagePreview';
+import SortableImageInput from '../common/SortableImageInput';
 
 export const BreadVanDescriptionShow = () => (
   <Show resource="bread-van/description" id="singleton">
@@ -42,20 +42,19 @@ export const BreadVanDescriptionShow = () => (
 export const BreadVanDescriptionEdit = () => (
   <Edit resource="bread-van/description" id="singleton">
     <SimpleForm>
-      <TextInput source="shortDescription" fullWidth multiline  />
-      <TextInput source="longDescription" fullWidth multiline />
-      <ImageInput
-        source="images"
-        label="Images"
-        multiple
-        accept={{ 'image/*': ['.png', '.jpg', '.jpeg'] }}
-        maxSize={5000000} // 5MB
+      <TextInput 
+        source="shortDescription"
+        fullWidth
+        multiline
         validate={[required()]}
-      >
-        <ImagePreview>
-          <ImageField source="src" title="title" />
-        </ImagePreview>
-      </ImageInput>
+      />
+      <TextInput
+        source="longDescription"
+        fullWidth
+        multiline
+        validate={[required()]}
+      />
+      <SortableImageInput source="images" />
     </SimpleForm>
   </Edit>
 );

@@ -93,7 +93,7 @@ export class BreadVanService {
       include: {
         images: {
           orderBy: [
-            { order: 'desc' }, // najpierw główne
+            { order: 'asc' }, // niższe order najpierw
             { createdAt: 'asc' }, // potem po dacie
           ],
         },

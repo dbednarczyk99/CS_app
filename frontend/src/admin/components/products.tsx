@@ -11,12 +11,10 @@ import {
   BooleanInput,
   ReferenceInput,
   SelectInput,
-  ImageInput,
   required,
   BooleanField,
-  ImageField,
 } from 'react-admin';
-import { ImagePreview } from '../common/ImagePreview';
+import SortableImageInput from '../common/SortableImageInput';
 
 export const ProductList = () => (
   <List>
@@ -35,7 +33,6 @@ export const ProductList = () => (
 export const ProductCreate = () => (
   <Create>
     <SimpleForm>
-
       <TextInput source="name" validate={[required()]} />
       <NumberInput source="price" validate={[required()]} />
       <TextInput source="description" validate={[required()]} />
@@ -62,19 +59,7 @@ export const ProductCreate = () => (
         <SelectInput optionText="name" validate={[required()]} />
       </ReferenceInput>
 
-      <ImageInput
-        source="images"
-        label="Images"
-        multiple
-        accept={{ 'image/*': ['.png', '.jpg', '.jpeg'] }}
-        maxSize={5000000} // 5MB
-        validate={[required()]}
-      >
-        {/* RA używa src dla podglądu; src dodajemy w dataProviderze z imgUrl */}
-        {/*<ImageField source="src" title="title" />*/}
-        <ImageField source="src" title="title" />
-      </ImageInput>
-      
+      <SortableImageInput source="images" />
     </SimpleForm>
   </Create>
 );
@@ -82,7 +67,6 @@ export const ProductCreate = () => (
 export const ProductEdit = () => (
   <Edit>
     <SimpleForm>
-
       <TextInput source="name" validate={[required()]} />
       <NumberInput source="price" validate={[required()]} />
       <TextInput source="description" validate={[required()]} />
@@ -97,20 +81,7 @@ export const ProductEdit = () => (
         <SelectInput optionText="name" validate={[required()]} />
       </ReferenceInput>
 
-      <ImageInput
-        source="images"
-        label="Images"
-        multiple
-        accept={{ 'image/*': ['.png', '.jpg', '.jpeg'] }}
-        maxSize={5000000} // 5MB
-        validate={[required()]}
-      >
-        <ImagePreview>
-          <ImageField source="src" title="title" />
-        </ImagePreview>
-
-      </ImageInput>
-
+      <SortableImageInput source="images" />
     </SimpleForm>
   </Edit>
 );
