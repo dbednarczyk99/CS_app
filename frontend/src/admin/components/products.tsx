@@ -59,7 +59,7 @@ export const ProductCreate = () => (
         <SelectInput optionText="name" validate={[required()]} />
       </ReferenceInput>
 
-      <SortableImageInput source="images" />
+      <SortableImageInput source="images" validate={true} maxQty={3} />
     </SimpleForm>
   </Create>
 );
@@ -81,7 +81,7 @@ export const ProductEdit = () => (
         <SelectInput optionText="name" validate={[required()]} />
       </ReferenceInput>
 
-      <SortableImageInput source="images" />
+      <SortableImageInput source="images" validate={true} maxQty={3} />
     </SimpleForm>
   </Edit>
 );

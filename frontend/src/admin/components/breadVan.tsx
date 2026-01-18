@@ -54,7 +54,7 @@ export const BreadVanDescriptionEdit = () => (
         multiline
         validate={[required()]}
       />
-      <SortableImageInput source="images" />
+      <SortableImageInput source="images" validate={true} maxQty={5} />
     </SimpleForm>
   </Edit>
 );

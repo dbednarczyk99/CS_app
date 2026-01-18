@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, type JSX } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useInput } from 'react-admin';
 import { IconButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ImageIcon from '@mui/icons-material/Image';
@@ -21,16 +21,30 @@ type ImageItem = {
   order?: number;
 };
 
-export const SortableImageInput = ({ source, validate }: { source: string; validate?: (value: ImageItem[] | undefined) => string | undefined }) => {
-  const { getValues, setValue, watch, register } = useFormContext();
+export const SortableImageInput = ({
+  source,
+  validate = true,
+  maxQty = 10,
+}: {
+  source: string;
+  validate?: boolean;
+  maxQty?: number;
+}) => {
+  const {
+    field,
+    fieldState,
+  } = useInput({
+    source,
+    validate: (value: ImageItem[] | undefined) => {
+      if (!validate) return undefined;
+      if (!value || value.length === 0) return 'At least one image is required';
+      if (maxQty && value.length > maxQty) return `Max ${maxQty} images allowed`;
+      return undefined;
+    },
+    defaultValue: [],
+  });
 
-  // register field for validation
-  React.useEffect(() => {
-    register(source, { 
-      validate: (value: ImageItem[] | undefined) => (value && value.length > 0) ? undefined : 'At least one image is required'
-    });
-  }, [register, source]);
-  const values = watch(source) as ImageItem[] | undefined;
+  const values = field.value as ImageItem[] | undefined;
   const itemsRef = useRef<Record<string, ImageItem>>({});
 
   // initialize itemsRef for stable ids
@@ -46,12 +60,12 @@ export const SortableImageInput = ({ source, validate }: { source: string; valid
     (arr: ImageItem[]) => {
       try {
         const ordered = arr.map((it, idx) => ({ ...it, order: idx }));
-        setValue(source, ordered, { shouldValidate: false, shouldDirty: true });
+        field.onChange(ordered);
       } catch (e) {
         console.error('Error in setOrdered:', e);
       }
     },
-    [setValue, source],
+    [field],
   );
 
   // Ensure images have order set on first load or when length changes
@@ -67,18 +81,30 @@ export const SortableImageInput = ({ source, validate }: { source: string; valid
     (files: FileList | null) => {
       if (!files || files.length === 0) return;
       const arr = values ? [...values] : [];
+
+      // Ogranicz ilość zdjęć
+      if (maxQty && arr.length + files.length > maxQty) {
+        alert(`Możesz dodać maksymalnie ${maxQty} zdjęć`);
+        files = Array.from(files).slice(0, maxQty - arr.length) as unknown as FileList;
+      }
+
       for (const f of Array.from(files)) {
-        if (f.size > 5_000_000) {
-          // simple client-side check
-          alert(`${f.name} is too big (max 5MB)`);
-          continue;
+        if (validate) {
+          if (f.size > 5_000_000) {
+            alert(`${f.name} jest za duży (max 5MB)`);
+            continue;
+          }
+          if (!f.type.startsWith('image/')) {
+            alert(`${f.name} nie jest obrazkiem`);
+            continue;
+          }
         }
         const src = URL.createObjectURL(f);
         arr.push({ rawFile: f, src, title: f.name });
       }
       setOrdered(arr);
     },
-    [values, setOrdered],
+    [values, setOrdered, validate, maxQty],
   );
 
   const onRemove = useCallback(
@@ -122,7 +148,7 @@ export const SortableImageInput = ({ source, validate }: { source: string; valid
   // cleanup object urls on unmount
   useEffect(() => {
     return () => {
-      const arr = getValues(source) as ImageItem[] | undefined;
+      const arr = values as ImageItem[] | undefined;
       (arr ?? []).forEach((it) => {
         if (it?.rawFile && it.src) {
           try {
@@ -133,10 +159,12 @@ export const SortableImageInput = ({ source, validate }: { source: string; valid
         }
       });
     };
-  }, [getValues, source]);
+  }, [values]);
 
-  const { formState: { errors } } = useFormContext();
-  const error = typeof errors[source] === 'string' ? errors[source] : (errors[source]?.message as string) || undefined;
+  let error = fieldState?.error?.message;
+  if (error && typeof error === 'string') {
+    error = error.replace(/^@@react-admin@@("|')?|("|')?$/g, '');
+  }
 
   if (!values || values.length === 0) {
     return (
