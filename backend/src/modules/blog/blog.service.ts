@@ -181,7 +181,12 @@ export class BlogService {
 
     const imgUrls = article.images.map((img) => img.imgUrl);
 
-    await this.prisma.article.delete({ where: { id } });
+    // powiązania (tagi, zdjęcia) muszą zniknąć przed artykułem – inaczej błąd FK
+    await this.prisma.$transaction([
+      this.prisma.tagOnArticle.deleteMany({ where: { articleId: id } }),
+      this.prisma.articleImages.deleteMany({ where: { articleId: id } }),
+      this.prisma.article.delete({ where: { id } }),
+    ]);
 
     if (imgUrls.length > 0) {
       await deleteImageFiles(imgUrls);

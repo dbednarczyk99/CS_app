@@ -14,6 +14,8 @@ import {
   Datagrid,
   TextField,
   required,
+  minLength,
+  maxLength,
   useRecordContext,
   Create,
   SelectInput,
@@ -46,13 +48,13 @@ export const BreadVanDescriptionEdit = () => (
         source="shortDescription"
         fullWidth
         multiline
-        validate={[required()]}
+        validate={[required(), minLength(20), maxLength(60)]}
       />
       <TextInput
         source="longDescription"
         fullWidth
         multiline
-        validate={[required()]}
+        validate={[required(), minLength(200), maxLength(500)]}
       />
       <SortableImageInput source="images" validate={true} maxQty={5} />
     </SimpleForm>

@@ -243,7 +243,8 @@ async function main() {
         'Nasz pieczywobus – świeże pieczywo prosto pod Twoje drzwi.',
       longDescription:
         'Codziennie rano ruszamy z pieczywem prosto z pieca i przyjeżdżamy w kilka punktów miasta. ' +
-        'W ofercie mamy klasyczne chleby, bułki, pieczywo pełnoziarniste oraz słodkie wypieki.',
+        'W ofercie mamy klasyczne chleby, bułki, pieczywo pełnoziarniste oraz słodkie wypieki. ' +
+        'Sprawdź harmonogram i znajdź przystanek najbliżej siebie.',
       images: {
         create: [
           {
