@@ -16,7 +16,7 @@ Project goals, scope, planned architecture (public Next.js storefront in `web/`,
 
 ## Commands
 
-Local infrastructure (MySQL 8 on host port :3307 — :3306 is taken by a separate local MySQL service with db `chleba_smak_dev`, user `dev`/`dev`; Adminer on :8080):
+Local infrastructure: MySQL 8 on host port **3307** (db `chleba_smak_dev`, user `dev`/`dev`; 3306 is taken by a separate local MySQL service on this machine) and Adminer on :8080.
 ```bash
 docker compose up -d
 ```
