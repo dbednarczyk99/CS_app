@@ -12,6 +12,7 @@ export class CreateLocationDto {
   @IsString()
   googleMapsUrl: string;
 
+  @IsOptional()
   @IsObject()
   openingHours: Record<string, { openFrom: string; openTo: string }>;
 }

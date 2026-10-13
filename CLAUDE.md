@@ -4,10 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Chleba Smak: the website and admin panel for a bakery. A monorepo with two independent npm packages (each has its own `package.json` and lockfiles; there is no root package):
+Chleba Smak: the website and admin panel for a bakery. A monorepo with three independent npm packages (each has its own `package.json` and lockfiles; there is no root package):
 
 - `backend/`: NestJS 11 REST API, Prisma 6 ORM, MySQL
 - `frontend/`: React 19 and Vite admin panel built on **react-admin** 5
+- `web/`: public website (Next.js 15 App Router, Tailwind 4), early stage; reads data server-side from the API
 
 Code comments and some UI strings are in Polish.
 
@@ -42,17 +43,26 @@ npm run build    # tsc -b && vite build
 npm run lint
 ```
 
+Public site (`cd web`), dev server on http://localhost:3001:
+```bash
+npm run dev
+npm run build
+npm run lint
+```
+
 ## Environment
 
-- `backend/.env`: `DATABASE_URL` (mysql), optional `PORT`, `JWT_SECRET` (falls back to a hardcoded default)
+- `backend/.env`: `DATABASE_URL` (mysql), optional `PORT`, `JWT_SECRET` (falls back to a dev-only default with a warning), `CORS_ORIGINS` (comma-separated; defaults to :5173 and :3001)
 - `frontend/.env`: `VITE_API_URL` (defaults to `http://localhost:3000`)
-- CORS in [backend/src/main.ts](backend/src/main.ts) is hardcoded to `http://localhost:5173`
+- `web/.env.local`: `API_URL` (defaults to `http://localhost:3000`)
+- Seeded staff accounts: `admin`/`admin123`, `editor`/`editor123`, `blogger`/`blogger123`, `viewer`/`viewer123`
 
 ## Backend architecture
 
 - Feature modules live in `backend/src/modules/<feature>/` (products and categories, blog and tags, bread-van, contact/contact-info, contact/locations, auth). Each module has a controller, a service and `dto/`. Nested features (e.g. `blog/tags`, `contact/*`) are separate Nest modules, and each one is registered directly in [app.module.ts](backend/src/app.module.ts).
 - There is no shared PrismaModule. Each feature module lists `PrismaService` in its own `providers`, so a new module must do the same.
-- **There are no auth guards on any route.** `AuthModule` only issues JWTs (`POST /auth/login` returns `access_token`, 1h expiry; passwords use bcrypt). There is no global `ValidationPipe` either, so class-validator decorators on DTOs are not enforced.
+- **Auth:** a global `AuthGuard` ([auth.guard.ts](backend/src/modules/auth/auth.guard.ts), registered as `APP_GUARD`) requires a staff JWT on every route. Mark read endpoints with `@Public()` and restrict writes with `@Roles(...)`, usually at class level with `CONTENT_ROLES` or `BLOG_ROLES` from [auth.decorators.ts](backend/src/modules/auth/auth.decorators.ts). Staff tokens carry `typ: 'staff'`; future customer tokens must use a different `typ`. `POST /auth/register` is ADMIN-only.
+- **Validation:** a global `ValidationPipe({ whitelist: true, transform: true })` strips any body field without a class-validator decorator. When the admin panel sends a new field, add it to the DTO or it will silently disappear.
 - **Image handling:** `POST /upload` ([upload.controller.ts](backend/src/modules/upload/upload.controller.ts)) uses multer to write files to `backend/uploads/` and returns an absolute URL. The files are served statically at `/uploads`. Entities store full image URLs (`imgUrl`) plus an `order` field in their own image tables (`ProductImages`, `ArticleImages`, `BreadVanImages`). When an image is removed or replaced, services call `deleteImageFiles()` from [scripts/imageHandler.ts](backend/src/scripts/imageHandler.ts) to unlink the files from disk.
 - `BreadVanDescription` is a singleton resource (`GET/PATCH /bread-van/description`, no id).
 - The Prisma schema is [backend/prisma/schema.prisma](backend/prisma/schema.prisma); migrations are in `prisma/migrations/`. The seed script uses `tsconfig.seed.json`.

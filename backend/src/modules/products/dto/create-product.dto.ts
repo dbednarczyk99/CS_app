@@ -6,12 +6,18 @@ import {
   MinLength,
   ValidateNested,
   IsArray,
+  IsInt,
+  IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class CreateProductImageInlineDto {
   @IsString()
   imgUrl: string;
+
+  @IsOptional()
+  @IsInt()
+  order?: number;
 }
 
 export class CreateProductDto {

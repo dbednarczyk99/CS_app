@@ -31,6 +31,13 @@ export const authProvider: AuthProvider = {
     return localStorage.getItem('token') ? Promise.resolve() : Promise.reject();
   },
 
-  checkError: () => Promise.resolve(),
+  // 401: token wygasł lub jest nieprawidłowy – wyloguj
+  checkError: (error) => {
+    if (error?.status === 401) {
+      localStorage.removeItem('token');
+      return Promise.reject();
+    }
+    return Promise.resolve();
+  },
   getPermissions: () => Promise.resolve(),
 };

@@ -16,7 +16,9 @@ import {
   UpdateBreadVanLocationDto,
   UpdateBreadVanDescriptionDto,
 } from './dto/update-bread-van.dto';
+import { Public, Roles, CONTENT_ROLES } from '../auth/auth.decorators';
 
+@Roles(...CONTENT_ROLES)
 @Controller('bread-van')
 export class BreadVanController {
   constructor(private readonly service: BreadVanService) {}
@@ -24,11 +26,13 @@ export class BreadVanController {
   // ===== LOCATIONS =====
 
   // wszystkie lokalizacje busa (max 7 – po jednym na dzień tygodnia)
+  @Public()
   @Get('locations')
   findAllLocations() {
     return this.service.findAllLocations();
   }
 
+  @Public()
   @Get('locations/:id')
   findOneLocation(@Param('id') id: string) {
     return this.service.findOneLocation(id);
@@ -58,6 +62,7 @@ export class BreadVanController {
   // ===== DESCRIPTION (JEDEN REKORD) =====
 
   // pobranie JEDYNEGO opisu busa (z obrazkami)
+  @Public()
   @Get('description')
   getDescription() {
     return this.service.getDescription();

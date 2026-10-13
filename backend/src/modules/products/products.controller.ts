@@ -11,7 +11,9 @@ import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { Public, Roles, CONTENT_ROLES } from '../auth/auth.decorators';
 
+@Roles(...CONTENT_ROLES)
 @Controller('products')
 export class ProductsController {
   constructor(private readonly service: ProductsService) {}
@@ -22,11 +24,13 @@ export class ProductsController {
     return this.service.createCategory(dto);
   }
 
+  @Public()
   @Get('categories')
   getCategories() {
     return this.service.findAllCategories();
   }
 
+  @Public()
   @Get('categories/:id')
   getCategory(@Param('id') id: string) {
     return this.service.getCategoryById(id);
@@ -43,11 +47,13 @@ export class ProductsController {
   }
 
   // Products
+  @Public()
   @Get()
   findAllProducts() {
     return this.service.findAllProducts();
   }
 
+  @Public()
   @Get(':id')
   findOneProduct(@Param('id') id: string) {
     return this.service.findProduct(id);

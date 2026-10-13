@@ -10,16 +10,20 @@ import {
 import { BlogService } from './blog.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
+import { Public, Roles, BLOG_ROLES } from '../auth/auth.decorators';
 
+@Roles(...BLOG_ROLES)
 @Controller('blog')
 export class BlogController {
   constructor(private readonly service: BlogService) {}
 
+  @Public()
   @Get()
   findAll() {
     return this.service.findAllArticles();
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.service.findOneArticle(id);

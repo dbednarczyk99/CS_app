@@ -11,19 +11,23 @@ import { ContactInfoService } from './contact-info.service';
 import { UpdateContactInfoDto } from './dto/update-contact-info.dto';
 import { CreateMediaDto } from './dto/create-media.dto';
 import { UpdateMediaDto } from './dto/update-media.dto';
+import { Public, Roles, CONTENT_ROLES } from '../../auth/auth.decorators';
 
+@Roles(...CONTENT_ROLES)
 @Controller('contact')
 export class ContactInfoController {
   constructor(private readonly service: ContactInfoService) {}
 
   /*   ------------------         CONTACT         ------------------   */
   // GET /contact
+  @Public()
   @Get('info')
   findAll() {
     return this.service.findAll();
   }
 
   // GET /contact/info/:id
+  @Public()
   @Get('info/:id')
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
@@ -49,12 +53,14 @@ export class ContactInfoController {
 
   /*   ------------------         SOCIAL MEDIA         ------------------   */
   // GET /contact/media
+  @Public()
   @Get('media')
   getAllMedia() {
     return this.service.getAllMedia();
   }
 
   // GET /contact/media/:id
+  @Public()
   @Get('media/:id')
   getMediaById(@Param('id') id: string) {
     return this.service.getMediaById(id);

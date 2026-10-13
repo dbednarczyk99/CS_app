@@ -1,12 +1,13 @@
-import { MinLength, IsString } from 'class-validator';
+import { MinLength, IsString, IsEnum, IsOptional } from 'class-validator';
+import { ContactType } from '@prisma/client';
 
 export class CreateContactInfoDto {
-  @IsString()
-  type: string;
+  @IsEnum(ContactType)
+  type: ContactType;
 
+  @IsOptional()
   @IsString()
-  @MinLength(5)
-  label: string;
+  label?: string;
 
   @MinLength(3)
   @IsString()

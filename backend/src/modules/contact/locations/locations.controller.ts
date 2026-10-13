@@ -10,16 +10,20 @@ import {
 import { LocationsService } from './locations.service';
 import { CreateLocationDto } from './dto/location.dto';
 import { UpdateLocationDto } from './dto/location.dto';
+import { Public, Roles, CONTENT_ROLES } from '../../auth/auth.decorators';
 
+@Roles(...CONTENT_ROLES)
 @Controller('contact/locations')
 export class LocationsController {
   constructor(private readonly service: LocationsService) {}
 
+  @Public()
   @Get()
   findAll() {
     return this.service.findAll();
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);

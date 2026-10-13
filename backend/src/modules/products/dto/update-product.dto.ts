@@ -7,12 +7,17 @@ import {
   IsOptional,
   ValidateNested,
   IsArray,
+  IsInt,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class UpdateProductImageDto {
   @IsString()
   imgUrl: string;
+
+  @IsOptional()
+  @IsInt()
+  order?: number;
 }
 
 export class UpdateProductDto {

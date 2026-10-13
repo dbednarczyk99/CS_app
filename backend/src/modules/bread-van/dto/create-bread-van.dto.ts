@@ -8,10 +8,11 @@ import {
   IsNotEmpty,
   ValidateNested,
   IsArray,
+  IsInt,
+  IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Weekday } from '@prisma/client';
-import { CreateBreadVanImageDto } from './create-bread-van-image.dto';
 
 export class CreateBreadVanLocationDto {
   @IsString()
@@ -40,6 +41,15 @@ export class CreateBreadVanLocationDto {
   endTime: string;
 }
 
+class BreadVanImageInlineDto {
+  @IsString()
+  imgUrl: string;
+
+  @IsOptional()
+  @IsInt()
+  order?: number;
+}
+
 export class CreateBreadVanDescriptionDto {
   @IsString()
   @MinLength(20)
@@ -53,6 +63,6 @@ export class CreateBreadVanDescriptionDto {
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CreateBreadVanImageDto)
-  images: CreateBreadVanImageDto[];
+  @Type(() => BreadVanImageInlineDto)
+  images: BreadVanImageInlineDto[];
 }

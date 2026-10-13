@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import type { StaffJwtPayload } from './auth.guard';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +16,7 @@ export class AuthService {
   async register(data: RegisterDto) {
     const hashedPassword = await bcrypt.hash(data.password, 10);
     return this.prisma.user.create({
+      select: { id: true, login: true, role: true },
       data: {
         login: data.login,
         password: hashedPassword,
@@ -38,7 +40,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { sub: user.id, role: user.role };
+    const payload: StaffJwtPayload = {
+      sub: user.id,
+      role: user.role,
+      typ: 'staff',
+    };
 
     return {
       access_token: this.jwtService.sign(payload),

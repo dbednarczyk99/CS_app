@@ -32,9 +32,11 @@ const uploadFile = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append('file', file);
 
+  const token = localStorage.getItem('token');
   const response = await fetch(`${apiUrl}/upload`, {
     method: 'POST',
     body: formData,
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
 
   if (!response.ok) {

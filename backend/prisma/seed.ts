@@ -6,6 +6,7 @@ import {
   MediaName,
 } from '@prisma/client';
 import 'dotenv/config';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -16,10 +17,26 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.user.createMany({
     data: [
-      { login: 'admin', password: 'admin123', role: Role.ADMIN },
-      { login: 'editor', password: 'editor123', role: Role.EDITOR },
-      { login: 'blogger', password: 'blogger123', role: Role.BLOGGER },
-      { login: 'viewer', password: 'viewer123', role: Role.VIEWER },
+      {
+        login: 'admin',
+        password: bcrypt.hashSync('admin123', 10),
+        role: Role.ADMIN,
+      },
+      {
+        login: 'editor',
+        password: bcrypt.hashSync('editor123', 10),
+        role: Role.EDITOR,
+      },
+      {
+        login: 'blogger',
+        password: bcrypt.hashSync('blogger123', 10),
+        role: Role.BLOGGER,
+      },
+      {
+        login: 'viewer',
+        password: bcrypt.hashSync('viewer123', 10),
+        role: Role.VIEWER,
+      },
     ],
   });
 

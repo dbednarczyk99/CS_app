@@ -9,12 +9,14 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import type { Request } from 'express';
+import { Roles, BLOG_ROLES } from '../auth/auth.decorators';
 
 interface UploadedFileInfo {
   filename: string;
   originalname: string;
 }
 
+@Roles(...BLOG_ROLES)
 @Controller('upload')
 export class UploadController {
   @Post()
