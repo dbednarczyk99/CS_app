@@ -158,51 +158,39 @@ async function main() {
   console.log('✅ Categories & products seeded');
 
   // --- LOCATIONS ---
+  // Prawdziwe sklepy (dane z pierwszej wersji strony). Godziny otwarcia do uzupełnienia w panelu.
   await prisma.location.deleteMany();
 
-  await prisma.location.createMany({
-    data: [
-      {
-        name: 'Piekarnia – Centrum',
-        address: 'ul. Kwiatowa 10, 00-001 Miasto',
-        googleMapsUrl: 'https://maps.google.com/?q=Kwiatowa+10+Miasto',
-        openingHours: {
-          monday: '06:30–18:00',
-          tuesday: '06:30–18:00',
-          wednesday: '06:30–18:00',
-          thursday: '06:30–18:00',
-          friday: '06:30–19:00',
-          saturday: '07:00–14:00',
-        },
-      },
-      {
-        name: 'Piekarnia – Rynek',
-        address: 'Rynek 1, 00-002 Miasto',
-        googleMapsUrl: 'https://maps.google.com/?q=Rynek+1+Miasto',
-        openingHours: {
-          monday: '07:00–19:00',
-          tuesday: '07:00–19:00',
-          wednesday: '07:00–19:00',
-          thursday: '07:00–19:00',
-          friday: '07:00–20:00',
-          saturday: '08:00–14:00',
-        },
-      },
-      {
-        name: 'Piekarnia – Osiedle',
-        address: 'ul. Lipowa 5, 00-003 Miasto',
-        googleMapsUrl: 'https://maps.google.com/?q=Lipowa+5+Miasto',
-        openingHours: {
-          monday: '06:30–17:00',
-          tuesday: '06:30–17:00',
-          wednesday: '06:30–17:00',
-          thursday: '06:30–17:00',
-          friday: '06:30–17:00',
-          saturday: '07:00–13:00',
-        },
-      },
-    ],
-  });
+  // po kolei, żeby createdAt (kolejność na stronie) odpowiadał kolejności poniżej
+  const locations = [
+    {
+      name: 'Piekarnia Rzemieślnicza Chleba Smak',
+      address: 'ul. Wileńska 4, 31-413 Kraków',
+      phone: '+48 699 904 702',
+      googleMapsUrl: 'https://maps.app.goo.gl/9aptQDq2nb7YSq2N6',
+    },
+    {
+      name: 'Piekarnia Rzemieślnicza Chleba Smak',
+      address: 'ul. Józefa Chełmońskiego 116, 31-348 Kraków',
+      phone: '+48 793 864 282',
+      googleMapsUrl: 'https://maps.app.goo.gl/98DExGCTfB3Un9Tp8',
+    },
+    {
+      name: 'Piekarnia Rzemieślnicza Chleba Smak',
+      address: 'ul. Zygmunta Glogera 21, 31-222 Kraków',
+      phone: '+48 573 834 870',
+      googleMapsUrl: 'https://maps.app.goo.gl/jpN4Q9MyQa1hGZ8j8',
+    },
+    {
+      name: 'Piekarnia Rzemieślnicza Chleba Smak',
+      address: 'ul. Stańczyka 3A, 30-126 Kraków',
+      phone: '+48 571 990 584',
+      googleMapsUrl: 'https://maps.app.goo.gl/UPFw44G4KymnWZkL7',
+    },
+  ];
+  for (const data of locations) {
+    await prisma.location.create({ data });
+  }
 
   console.log('✅ Locations seeded');
 
@@ -268,19 +256,9 @@ async function main() {
   await prisma.contactInfo.createMany({
     data: [
       {
-        type: ContactType.PHONE,
-        label: 'Sklep – centrum',
-        value: '+48 123 456 789',
-      },
-      {
         type: ContactType.EMAIL,
-        label: 'Kontakt ogólny',
-        value: 'kontakt@piekarnia-przyklad.pl',
-      },
-      {
-        type: ContactType.OTHER,
-        label: 'Bread van – zapytania',
-        value: 'breadvan@piekarnia-przyklad.pl',
+        label: 'E-mail',
+        value: 'piekarnia@chlebasmak.pl',
       },
     ],
   });
@@ -293,12 +271,16 @@ async function main() {
   await prisma.media.createMany({
     data: [
       {
-        name: MediaName.FACEBOOK,
-        url: 'https://facebook.com/piekarnia-przyklad',
+        name: MediaName.INSTAGRAM,
+        url: 'https://www.instagram.com/chlebasmak/',
       },
       {
-        name: MediaName.INSTAGRAM,
-        url: 'https://instagram.com/piekarnia-przyklad',
+        name: MediaName.FACEBOOK,
+        url: 'https://www.facebook.com/chlebasmak',
+      },
+      {
+        name: MediaName.TIKTOK,
+        url: 'https://www.tiktok.com/@chlebasmak',
       },
     ],
   });

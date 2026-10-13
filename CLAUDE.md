@@ -8,7 +8,7 @@ Chleba Smak: the website and admin panel for a bakery. A monorepo with three ind
 
 - `backend/`: NestJS 11 REST API, Prisma 6 ORM, MySQL
 - `frontend/`: React 19 and Vite admin panel built on **react-admin** 5
-- `web/`: public website (Next.js 15 App Router, Tailwind 4), early stage; reads data server-side from the API
+- `web/`: public website (Next.js 15 App Router, Tailwind 4), early stage; reads data server-side from the API. Its look deliberately recreates the first static version of the site (`C:git-reposchleba-smak_1v`): dark graphite (#212529) panels over a fixed photo background, white logo, Lato/Oswald. Brand images live in `web/public/images` (resized from that repo)
 
 Code comments and some UI strings are in Polish.
 

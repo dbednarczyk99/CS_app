@@ -9,6 +9,10 @@ export class CreateLocationDto {
   @IsString()
   address: string;
 
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
   @IsString()
   googleMapsUrl: string;
 

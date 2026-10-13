@@ -1,21 +1,38 @@
 @import "tailwindcss";
 
+/* Kolory i czcionki z pierwszej wersji strony (chleba-smak_1v) */
 @theme {
-  --color-flour: #fbf7f0;
-  --color-crust: #8a4b1f;
-  --color-wheat: #e9d8b8;
-  --color-ink: #2b2118;
-  --font-serif: var(--font-serif), Georgia, serif;
-  --font-sans: var(--font-sans), system-ui, sans-serif;
-}
-
-body {
-  background: var(--color-flour);
-  color: var(--color-ink);
-  font-family: var(--font-sans);
+  --color-graphite: rgb(33 37 41);
+  --color-graphite-darker: rgb(28 31 35);
+  --color-panel: rgb(33 37 41 / 0.4);
+  --color-panel-strong: rgb(33 37 41 / 0.6);
+  --color-muted: rgb(255 255 255 / 0.55);
+  --color-soft: rgb(255 255 255 / 0.75);
+  --font-sans: var(--font-lato), system-ui, sans-serif;
+  --font-display: var(--font-oswald), var(--font-lato), sans-serif;
 }
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 5rem;
+  /* miejsce na przyklejony pasek nawigacji przy przewijaniu do kotwic */
+  scroll-padding-top: 6rem;
+}
+
+body {
+  background-color: var(--color-graphite);
+  color: white;
+  font-family: var(--font-sans);
+}
+
+/* Biała linia pod nagłówkami sekcji */
+.bar {
+  height: 2px;
+  max-width: 70%;
+  margin-inline: auto;
+  background: white;
+}
+
+/* Ukrycie domyślnego trójkąta w <summary> */
+summary::-webkit-details-marker {
+  display: none;
 }

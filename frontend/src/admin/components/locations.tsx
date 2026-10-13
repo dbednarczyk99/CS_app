@@ -30,6 +30,7 @@ export const LocationList = () => (
     <Datagrid rowClick="edit">
       <RATextField source="name" />
       <RATextField source="address" />
+      <RATextField source="phone" />
       <RATextField source="googleMapsUrl" />
     </Datagrid>
   </List>
@@ -40,6 +41,7 @@ export const LocationCreate = () => (
     <SimpleForm>
       <TextInput source="name" label="Name" />
       <TextInput source="address" label="Address" validate={[required()]} />
+      <TextInput source="phone" label="Phone" />
       <TextInput source="googleMapsUrl" label="Google Maps URL" validate={[required()]} />
       <h3 style={{ marginLeft: 16 }}>Opening Hours</h3>
       {weekdayOrder.map((day) => (
@@ -70,6 +72,7 @@ export const LocationEdit = () => (
     <SimpleForm>
       <TextInput source="name" label="Name" />
       <TextInput source="address" label="Address" validate={[required()]} />
+      <TextInput source="phone" label="Phone" />
       <TextInput source="googleMapsUrl" label="Google Maps URL" validate={[required()]} />
       <h3 style={{ marginLeft: 16 }}>Opening Hours</h3>
       {weekdayOrder.map((day) => (

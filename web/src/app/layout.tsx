@@ -1,60 +1,54 @@
 import type { Metadata } from 'next';
-import { Lora, Inter } from 'next/font/google';
-import Link from 'next/link';
+import { Lato, Oswald } from 'next/font/google';
+import { Navbar } from '@/components/Navbar';
+import { SocialLinks } from '@/components/SocialLinks';
+import { api, orFallback } from '@/lib/api';
 import './globals.css';
 
-const serif = Lora({
-  variable: '--font-serif',
+const lato = Lato({
+  variable: '--font-lato',
+  weight: ['300', '400', '700'],
+  style: ['normal', 'italic'],
   subsets: ['latin', 'latin-ext'],
 });
 
-const sans = Inter({
-  variable: '--font-sans',
+const oswald = Oswald({
+  variable: '--font-oswald',
+  weight: ['300', '500', '700'],
   subsets: ['latin', 'latin-ext'],
 });
 
 export const metadata: Metadata = {
-  title: 'Chleba Smak – piekarnia',
+  title: 'Chleba Smak – piekarnia rzemieślnicza w Krakowie',
   description:
-    'Chleb na zakwasie, bułki i wypieki prosto z pieca. Sprawdź nasze sklepy i trasę busa z pieczywem.',
+    'Piekarnia rzemieślnicza Chleba Smak – chleb na zakwasie i wypieki z czterech piekarni w Krakowie oraz z naszego chlebowozu.',
+  icons: { icon: '/images/icon.png' },
 };
 
-const NAV = [
-  { href: '/#oferta', label: 'Oferta' },
-  { href: '/#sklepy', label: 'Nasze sklepy' },
-  { href: '/#bus', label: 'Bus z pieczywem' },
-  { href: '/#kontakt', label: 'Kontakt' },
-];
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const media = await orFallback(api.media(), []);
+
   return (
     <html lang="pl">
-      <body className={`${serif.variable} ${sans.variable} antialiased`}>
-        <header className="sticky top-0 z-10 border-b border-crust/15 bg-flour/90 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-            <Link href="/" className="font-serif text-2xl font-semibold text-crust">
-              Chleba Smak
-            </Link>
-            <nav className="flex flex-wrap gap-x-5 gap-y-1 text-sm font-medium">
-              {NAV.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="text-ink/80 hover:text-crust"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-        </header>
+      <body className={`${lato.variable} ${oswald.variable} antialiased`}>
+        {/* Nieruchome zdjęcie w tle (warstwa fixed – działa też na iOS, w przeciwieństwie do background-attachment) */}
+        <div
+          aria-hidden
+          className="fixed inset-0 -z-10 bg-[url(/images/tlo.jpg)] bg-cover bg-center"
+        />
+        <Navbar />
         <main>{children}</main>
-        <footer className="mt-24 border-t border-crust/15 py-8 text-center text-sm text-ink/60">
-          © {new Date().getFullYear()} Chleba Smak
+        <footer className="mx-auto max-w-[90%] bg-graphite px-4 py-2">
+          <div className="flex flex-col items-center gap-1 md:flex-row-reverse md:justify-around">
+            <SocialLinks media={media} size={20} />
+            <p className="text-[11px]">
+              Wszelkie prawa zastrzeżone © {new Date().getFullYear()} Chleba Smak
+            </p>
+          </div>
         </footer>
       </body>
     </html>

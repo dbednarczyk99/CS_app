@@ -9,7 +9,7 @@ export class LocationsService {
   constructor(private readonly prisma: PrismaService) {}
 
   findAll(): Prisma.PrismaPromise<Location[]> {
-    return this.prisma.location.findMany();
+    return this.prisma.location.findMany({ orderBy: { createdAt: 'asc' } });
   }
 
   findOne(id: string): Prisma.PrismaPromise<Location | null> {
