@@ -26,6 +26,7 @@ import {
 import HomePage from './admin/pages/HomePage';
 import HelpPage from './admin/pages/HelpPage';
 import { CustomMenu } from './admin/common/CustomMenu';
+import { BlogCreate, BlogEdit, BlogList } from './admin/components/blog';
 
 const MyLayout = (props: LayoutProps) => <Layout {...props} menu={CustomMenu} />;
 
@@ -82,6 +83,14 @@ function App() {
         list={BreadVanScheduleList}
         create={BreadVanScheduleCreate}
         edit={BreadVanScheduleEdit}
+      />
+
+      <Resource
+        name="blog"
+        options={{ label: 'Blog articles' }}
+        list={BlogList}
+        create={BlogCreate}
+        edit={BlogEdit}
       />
     </Admin>
   );

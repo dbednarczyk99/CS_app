@@ -9,49 +9,34 @@ import {
 } from '@nestjs/common';
 import { BlogService } from './blog.service';
 import { CreateArticleDto } from './dto/create-article.dto';
-import { CreateArticleImageDto } from './dto/create-article-image.dto';
+import { UpdateArticleDto } from './dto/update-article.dto';
 
 @Controller('blog')
 export class BlogController {
   constructor(private readonly service: BlogService) {}
 
-  // ARTICLE
   @Get()
-  findAllArticles() {
-    return this.service.findAll();
+  findAll() {
+    return this.service.findAllArticles();
   }
 
   @Get(':id')
-  findOneArticle(@Param('id') id: string) {
-    return this.service.findOne(id);
+  findOne(@Param('id') id: string) {
+    return this.service.findOneArticle(id);
   }
 
   @Post()
-  createArticle(@Body() dto: CreateArticleDto) {
-    return this.service.create(dto);
+  create(@Body() dto: CreateArticleDto) {
+    return this.service.createArticle(dto);
   }
 
   @Patch(':id')
-  editArticle(@Param('id') id: string, @Body() dto: CreateArticleDto) {
-    return this.service.edit(id, dto);
+  update(@Param('id') id: string, @Body() dto: UpdateArticleDto) {
+    return this.service.updateArticle(id, dto);
   }
 
   @Delete(':id')
-  removeArticle(@Param('id') id: string) {
-    return this.service.remove(id);
-  }
-
-  // ARTICLE IMAGE
-  @Post(':articleId/images')
-  addArticleImage(
-    @Param('articleId') articleId: string,
-    @Body() dto: CreateArticleImageDto,
-  ) {
-    return this.service.addImage(articleId, dto);
-  }
-
-  @Delete('images/:id')
-  removeArticleImage(@Param('id') id: string) {
-    return this.service.removeImage(id);
+  remove(@Param('id') id: string) {
+    return this.service.deleteArticle(id);
   }
 }

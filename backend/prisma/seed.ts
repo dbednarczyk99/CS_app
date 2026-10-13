@@ -289,9 +289,19 @@ async function main() {
 
   // --- BLOG ---
   await prisma.articleImages.deleteMany();
-  await prisma.blogItem.deleteMany();
+  await prisma.tagOnArticle.deleteMany();
+  await prisma.articleTag.deleteMany();
+  await prisma.article.deleteMany();
 
-  await prisma.blogItem.create({
+  // --- CREATE TAGS ---
+  const [breadTag, recipesTag, sourdoughTag] = await prisma.$transaction([
+    prisma.articleTag.create({ data: { name: 'Pieczywo' } }),
+    prisma.articleTag.create({ data: { name: 'Przepisy' } }),
+    prisma.articleTag.create({ data: { name: 'Zakwas' } }),
+  ]);
+
+  // --- CREATE ARTICLES ---
+  const article1 = await prisma.article.create({
     data: {
       title: 'Jak powstaje nasz chleb na zakwasie',
       shortDescription: 'Krótka historia naszego zakwasu i procesu wypieku.',
@@ -308,7 +318,38 @@ async function main() {
     },
   });
 
-  console.log('✅ Blog seeded');
+  await prisma.tagOnArticle.createMany({
+    data: [
+      { articleId: article1.id, tagId: breadTag.id },
+      { articleId: article1.id, tagId: sourdoughTag.id },
+    ],
+  });
+
+  // --- OPTIONAL: Another article ---
+  const article2 = await prisma.article.create({
+    data: {
+      title: 'Przepisy na domowe bułki',
+      shortDescription: 'Łatwe przepisy na bułki w domu.',
+      content: 'Instrukcja przygotowania różnych rodzajów bułek.',
+      images: {
+        create: [
+          {
+            imgUrl: 'https://example.com/blog-bulki-1.jpg',
+            order: 0,
+          },
+        ],
+      },
+    },
+  });
+
+  await prisma.tagOnArticle.createMany({
+    data: [
+      { articleId: article2.id, tagId: breadTag.id },
+      { articleId: article2.id, tagId: recipesTag.id },
+    ],
+  });
+
+  console.log('✅ Articles & tags seeded');
   console.log('✅ All seed data created');
 }
 

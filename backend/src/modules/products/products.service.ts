@@ -6,8 +6,6 @@ import deleteImageFiles from './../../scripts/imageHandler';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateProductImagesOrderDto } from './dto/update-product-image.dto';
-//import { CreateProductImageDto } from './dto/create-product-image.dto';
 
 @Injectable()
 export class ProductsService {
@@ -149,22 +147,6 @@ export class ProductsService {
     }
 
     return updated;
-  }
-
-  async updateProductImagesOrder(
-    productId: string,
-    dto: UpdateProductImagesOrderDto,
-  ) {
-    await this.prisma.$transaction(
-      dto.images.map((img) =>
-        this.prisma.productImages.update({
-          where: { id: img.id },
-          data: { order: img.order },
-        }),
-      ),
-    );
-
-    return { success: true };
   }
 
   async deleteProduct(id: string): Promise<Product> {

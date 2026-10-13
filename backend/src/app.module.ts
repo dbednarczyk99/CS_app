@@ -8,6 +8,7 @@ import { UploadController } from './modules/upload/upload.controller';
 import { ProductsModule } from './modules/products/products.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BlogModule } from './modules/blog/blog.module';
+import { TagsModule } from './modules/blog/tags/tags.module';
 import { BreadVanModule } from './modules/bread-van/bread-van.module';
 import { ContactInfoModule } from './modules/contact/contact-info/contact-info.module';
 import { LocationsModule } from './modules/contact/locations/locations.module';
@@ -23,6 +24,7 @@ import { LocationsModule } from './modules/contact/locations/locations.module';
     ProductsModule,
     AuthModule,
     BlogModule,
+    TagsModule,
     BreadVanModule,
     ContactInfoModule,
     LocationsModule,

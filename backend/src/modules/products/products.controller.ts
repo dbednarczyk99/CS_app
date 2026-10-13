@@ -11,7 +11,6 @@ import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateProductImagesOrderDto } from './dto/update-product-image.dto';
 
 @Controller('products')
 export class ProductsController {
@@ -67,13 +66,5 @@ export class ProductsController {
   @Delete(':id')
   removeProduct(@Param('id') id: string) {
     return this.service.deleteProduct(id);
-  }
-
-  @Patch(':id/images/order')
-  updateImagesOrder(
-    @Param('id') id: string,
-    @Body() dto: UpdateProductImagesOrderDto,
-  ) {
-    return this.service.updateProductImagesOrder(id, dto);
   }
 }

@@ -169,11 +169,13 @@ model Media {
 
 // BLOG
 
+// BLOG
+
 model ArticleImages {
   id          String @id @default(uuid())
   imgUrl      String
   order       Int
-  article     BlogItem @relation(fields: [articleId], references: [id])
+  article     Article @relation(fields: [articleId], references: [id])
   articleId   String
 
   @@unique([articleId, order])  
@@ -181,13 +183,33 @@ model ArticleImages {
   updatedAt   DateTime  @updatedAt
 }
 
-model BlogItem {
+model Article {
   id                String  @id @default(uuid())
   title             String
   shortDescription  String
   content           String
   images            ArticleImages[]
+  tags              TagOnArticle[]
 
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+}
+
+model ArticleTag {
+  id          String @id @default(uuid())
+  name        String @unique
+  articles    TagOnArticle[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model TagOnArticle {
+  article       Article @relation(fields: [articleId], references: [id])
+  articleId     String
+
+  tag           ArticleTag @relation(fields: [tagId], references: [id])
+  tagId         String
+  
+  @@id([articleId, tagId])
 }
