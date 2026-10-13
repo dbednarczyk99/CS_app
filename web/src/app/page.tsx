@@ -1,276 +1,296 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { FaChevronDown, FaClock, FaEnvelope, FaLocationArrow, FaLocationDot, FaPhone } from 'react-icons/fa6';
-import { ContactForm } from '@/components/ContactForm';
-import { ProductsBrowser } from '@/components/ProductsBrowser';
-import { Section } from '@/components/Section';
-import { SocialLinks } from '@/components/SocialLinks';
-import { api, orFallback, type OpeningHours, type Weekday } from '@/lib/api';
+import { FaArrowRight, FaChevronDown, FaInstagram } from 'react-icons/fa6';
+import { LocationCard } from '@/components/LocationCard';
+import { ProductCard } from '@/components/ProductCard';
+import { Reveal } from '@/components/Reveal';
+import { SectionHeading } from '@/components/SectionHeading';
+import { api, orFallback } from '@/lib/api';
+import { formatDate, plural } from '@/lib/format';
 
-const WEEKDAYS: { key: Weekday; label: string }[] = [
-  { key: 'MONDAY', label: 'Poniedziałek' },
-  { key: 'TUESDAY', label: 'Wtorek' },
-  { key: 'WEDNESDAY', label: 'Środa' },
-  { key: 'THURSDAY', label: 'Czwartek' },
-  { key: 'FRIDAY', label: 'Piątek' },
-  { key: 'SATURDAY', label: 'Sobota' },
-  { key: 'SUNDAY', label: 'Niedziela' },
+const VALUES = [
+  {
+    title: 'Naturalny zakwas',
+    text: 'Bez polepszaczy i skrótów. Tylko mąka, woda, sól i czas potrzebny na dobrą fermentację.',
+  },
+  {
+    title: 'Ręczna praca',
+    text: 'Każdy bochenek formujemy ręcznie. Dlatego żaden nie jest identyczny – i dobrze.',
+  },
+  {
+    title: 'Codziennie świeże',
+    text: 'Pieczemy nocą i nad ranem, żeby rano na półkach czekało pieczywo prosto z pieca.',
+  },
 ];
 
-function hoursFor(hours: OpeningHours, day: Weekday): string {
-  const value = hours[day.toLowerCase()] ?? hours[day];
-  if (!value) return 'nieczynne';
-  return typeof value === 'string' ? value : `${value.openFrom}–${value.openTo}`;
-}
-
-const dateFormat = new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
+const GALLERY = ['01', '02', '03', '04', '05', '06', '07', '08'];
 
 export default async function HomePage() {
-  const [categories, locations, vanStops, vanDescription, contact, media, articles] =
-    await Promise.all([
-      orFallback(api.categories(), []),
-      orFallback(api.locations(), []),
-      orFallback(api.breadVanStops(), []),
-      orFallback(api.breadVanDescription(), null),
-      orFallback(api.contactInfo(), []),
-      orFallback(api.media(), []),
-      orFallback(api.articles(), []),
-    ]);
+  const [products, locations, articles, media] = await Promise.all([
+    orFallback(api.products(), []),
+    orFallback(api.locations(), []),
+    orFallback(api.articles(), []),
+    orFallback(api.media(), []),
+  ]);
 
-  const email = contact.find((c) => c.type === 'EMAIL')?.value;
-  const latestArticles = [...articles]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .slice(0, 3);
-
-  const aboutCards = [
-    {
-      title: 'Nasz zespół',
-      image: '/images/o-nas-zespol.jpg',
-      text: 'Piekarze, którzy każdej nocy wyrabiają ciasto ręcznie i pieką chleb na naturalnym zakwasie – bez polepszaczy i na długiej fermentacji.',
-      href: null,
-    },
-    {
-      title: 'Nasze lokalizacje',
-      image: '/images/o-nas-lokalizacje.jpg',
-      text: `Znajdziesz nas w ${locations.length || 'kilku'} ${locations.length === 1 ? 'piekarni' : 'piekarniach'} w Krakowie. Wpadnij po świeże pieczywo i wypieki prosto z pieca.`,
-      href: '#kontakt',
-    },
-    {
-      title: 'Chlebowóz',
-      image: '/images/o-nas-chlebowoz.jpg',
-      text:
-        vanDescription?.shortDescription ??
-        'Nasz chlebowóz dowozi świeże pieczywo w kolejne punkty miasta według stałego harmonogramu.',
-      href: '#chlebowoz',
-    },
-  ];
+  // na przemian z pierwszych kategorii (np. chleby i słodkie wypieki), tylko produkty ze zdjęciem
+  const withImages = products.filter((p) => p.isActive && p.images?.length);
+  const groups = new Map<string, typeof withImages>();
+  for (const p of withImages) groups.set(p.categoryId, [...(groups.get(p.categoryId) ?? []), p]);
+  const byCategory = [...groups.values()];
+  const featured = Array.from({ length: 4 }, (_, i) => byCategory[i % 2]?.[Math.floor(i / 2)])
+    .filter((p) => p !== undefined)
+    .concat(withImages)
+    .filter((p, i, all) => all.indexOf(p) === i)
+    .slice(0, 4);
+  const latestArticles = [...articles].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
+  const instagram = media.find((m) => m.name === 'INSTAGRAM');
 
   return (
     <>
       {/* HERO */}
-      <header id="start" className="flex min-h-svh items-center justify-center px-4 pt-24 pb-8">
-        <div className="w-full max-w-[90%] bg-panel px-4 py-10 text-center">
-          <Image
-            src="/images/logo-biale.png"
-            alt="Chleba Smak – piekarnia"
-            width={800}
-            height={512}
-            priority
-            className="mx-auto h-auto w-3/4 max-w-xl md:w-1/2"
+      <section className="relative flex min-h-svh items-end overflow-hidden pb-16 sm:items-center sm:pb-0">
+        <picture>
+          <source media="(min-width: 768px)" srcSet="/images/hero-desktop.jpg" />
+          {/* art direction: różne kadry na telefon i komputer */}
+          <img
+            src="/images/hero-mobile.jpg"
+            alt="Przekrojony chleb na zakwasie w lnianej ściereczce"
+            className="animate-slow-zoom absolute inset-0 size-full object-cover object-[70%_center]"
+            fetchPriority="high"
           />
-          <div className="bar my-6" />
-          {/* TODO: hasło reklamowe od właściciela */}
-          <p className="text-lg">Chleb na naturalnym zakwasie, wypiekany codziennie w Krakowie.</p>
-        </div>
-      </header>
+        </picture>
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/55 to-ink/20 md:bg-gradient-to-r md:from-ink/95 md:via-ink/60 md:to-transparent" />
 
-      {/* O PIEKARNI */}
-      <Section id="o-nas" title="O piekarni Chleba Smak">
-        <ul className="grid gap-4 lg:grid-cols-3">
-          {aboutCards.map((card) => (
-            <li key={card.title} className="flex flex-col text-center">
-              <Image
-                src={card.image}
-                alt={card.title}
-                width={900}
-                height={600}
-                className="h-[300px] w-full object-cover"
-              />
-              <div className="flex flex-1 flex-col bg-panel-strong p-4">
-                <h3 className="mb-2 text-3xl">{card.title}</h3>
-                <p className="flex-1 leading-relaxed">{card.text}</p>
-                {card.href && (
-                  <Link
-                    href={card.href}
-                    className="mt-4 block bg-graphite py-2 transition-colors hover:bg-graphite-darker"
-                  >
-                    Zobacz więcej
-                  </Link>
-                )}
-              </div>
-            </li>
+        <div className="relative mx-auto w-full max-w-7xl px-5 sm:px-8">
+          <div className="max-w-xl">
+            <p className="eyebrow">Piekarnia rzemieślnicza · Kraków</p>
+            <h1 className="heading mt-5 text-5xl sm:text-6xl lg:text-7xl">
+              Chleb,
+              <br />
+              który ma czas
+            </h1>
+            <p className="mt-6 max-w-md text-lg leading-relaxed text-cream/85">
+              Naturalny zakwas, długa fermentacja i ręczna praca. Codziennie od świtu w naszych
+              krakowskich piekarniach.
+            </p>
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+              <Link href="/oferta" className="btn btn-gold">
+                Zobacz ofertę
+              </Link>
+              <Link href="/piekarnie" className="btn btn-outline">
+                Znajdź piekarnię
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <a
+          href="#wartosci"
+          aria-label="Przewiń w dół"
+          className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 animate-bounce text-cream/60 transition-colors hover:text-gold sm:block"
+        >
+          <FaChevronDown size={20} />
+        </a>
+      </section>
+
+      {/* WARTOŚCI */}
+      <section id="wartosci" className="border-b border-line bg-coal">
+        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 md:grid-cols-3 md:gap-12 md:py-20">
+          {VALUES.map((value, i) => (
+            <Reveal key={value.title} delay={i * 120}>
+              <span className="font-display text-sm tracking-[0.3em] text-gold">0{i + 1}</span>
+              <h2 className="heading mt-3 text-2xl">{value.title}</h2>
+              <p className="mt-3 leading-relaxed text-stone">{value.text}</p>
+            </Reveal>
           ))}
-        </ul>
-      </Section>
+        </div>
+      </section>
+
+      {/* Z NASZEGO PIECA */}
+      {featured.length > 0 && (
+        <section className="mx-auto max-w-7xl px-5 py-24 sm:px-8 md:py-32">
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <SectionHeading eyebrow="Z naszego pieca" title="Wypieki, po które się wraca" />
+            <Link href="/oferta" className="link-arrow inline-flex items-center gap-3">
+              Cała oferta <FaArrowRight aria-hidden />
+            </Link>
+          </div>
+          <div className="mt-14 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4">
+            {featured.map((product, i) => (
+              <Reveal key={product.id} delay={i * 100}>
+                <ProductCard product={product} />
+              </Reveal>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* HISTORIA */}
+      <section className="bg-coal">
+        <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-24 sm:px-8 md:py-32 lg:grid-cols-2 lg:gap-20">
+          <Reveal className="relative">
+            <div className="relative aspect-[4/5] overflow-hidden sm:aspect-[3/2] lg:aspect-[4/5]">
+              <Image
+                src="/images/piekarz.jpg"
+                alt="Piekarz trzymający świeże bochenki chleba"
+                fill
+                sizes="(min-width: 1024px) 40vw, 100vw"
+                className="object-cover"
+              />
+            </div>
+            {locations.length > 0 && (
+              <div className="absolute -bottom-6 -right-4 hidden border border-gold/50 bg-ink px-6 py-5 sm:block lg:-right-8">
+                <p className="font-display text-4xl text-gold">{locations.length}</p>
+                <p className="eyebrow mt-1 text-[0.65rem] text-cream">
+                  {plural(locations.length, ['piekarnia', 'piekarnie', 'piekarni'])} w Krakowie
+                </p>
+              </div>
+            )}
+          </Reveal>
+          <Reveal delay={150}>
+            <SectionHeading eyebrow="O nas" title="Rzemiosło, które czuć w każdym kęsie">
+              <p>
+                Chleba Smak to piekarnia rzemieślnicza, w której chleb robi się tak jak kiedyś: na
+                naturalnym zakwasie, z dobrej mąki i bez pośpiechu.
+              </p>
+              <p className="mt-4">
+                Codziennie rano na nasze półki trafiają chrupiące bochenki, maślane drożdżówki i
+                sezonowe wypieki – w czterech piekarniach w Krakowie i w naszym chlebowozie.
+              </p>
+            </SectionHeading>
+            <Link href="/o-nas" className="link-arrow mt-10 inline-flex items-center gap-3">
+              Poznaj nas <FaArrowRight aria-hidden />
+            </Link>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* CYTAT NA ZDJĘCIU */}
+      <section className="relative overflow-hidden">
+        <Image src="/images/zakwas.jpg" alt="" fill sizes="100vw" className="object-cover" />
+        <div className="absolute inset-0 bg-ink/70" />
+        <div className="relative mx-auto max-w-4xl px-5 py-32 text-center sm:px-8 md:py-44">
+          <Reveal>
+            <p className="eyebrow">Nasza filozofia</p>
+            <blockquote className="heading mt-6 text-3xl leading-tight sm:text-4xl lg:text-5xl">
+              Mąka, woda, sól
+              <br />
+              <span className="text-gold">i czas.</span>
+            </blockquote>
+            <p className="mx-auto mt-6 max-w-xl text-lg text-cream/80">
+              Tyle potrzeba, żeby upiec dobry chleb. Resztę robi cierpliwość.
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* PIEKARNIE */}
+      {locations.length > 0 && (
+        <section className="mx-auto max-w-7xl px-5 py-24 sm:px-8 md:py-32">
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <SectionHeading eyebrow="Odwiedź nas" title="Nasze piekarnie" />
+            <Link href="/piekarnie" className="link-arrow inline-flex items-center gap-3">
+              Godziny i dojazd <FaArrowRight aria-hidden />
+            </Link>
+          </div>
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {locations.map((location, i) => (
+              <Reveal key={location.id} delay={i * 100} className="h-full">
+                <LocationCard location={location} index={i} showHours={false} />
+              </Reveal>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* CHLEBOWÓZ */}
+      <section className="bg-coal">
+        <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-24 sm:px-8 md:py-32 lg:grid-cols-2 lg:gap-20">
+          <Reveal className="lg:order-2">
+            <div className="relative aspect-[3/2] overflow-hidden">
+              <Image
+                src="/images/chlebowoz.jpg"
+                alt="Świeże bochenki na drewnianej łopacie"
+                fill
+                sizes="(min-width: 1024px) 45vw, 100vw"
+                className="object-cover"
+              />
+            </div>
+          </Reveal>
+          <Reveal delay={150} className="lg:order-1">
+            <SectionHeading eyebrow="Chlebowóz" title="Przyjeżdżamy z pieczywem do Ciebie">
+              <p>
+                Nasz chlebowóz w stałe dni tygodnia zatrzymuje się w kolejnych punktach miasta. Sprawdź
+                trasę i złap świeży chleb po drodze.
+              </p>
+            </SectionHeading>
+            <Link href="/chlebowoz" className="btn btn-outline mt-10">
+              Sprawdź trasę
+            </Link>
+          </Reveal>
+        </div>
+      </section>
 
       {/* AKTUALNOŚCI */}
       {latestArticles.length > 0 && (
-        <Section id="aktualnosci" title="Aktualności">
-          <ul className="grid gap-4 lg:grid-cols-3">
-            {latestArticles.map((article) => (
-              <li key={article.id} className="flex flex-col bg-panel-strong">
-                {article.images?.[0] && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={article.images[0].imgUrl}
-                    alt=""
-                    className="h-48 w-full object-cover"
-                    loading="lazy"
-                  />
-                )}
-                <div className="flex flex-1 flex-col p-4">
-                  <time className="text-xs uppercase tracking-wider text-muted" dateTime={article.createdAt}>
-                    {dateFormat.format(new Date(article.createdAt))}
+        <section className="mx-auto max-w-7xl px-5 py-24 sm:px-8 md:py-32">
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <SectionHeading eyebrow="Aktualności" title="Co słychać w piekarni" />
+            <Link href="/aktualnosci" className="link-arrow inline-flex items-center gap-3">
+              Wszystkie wpisy <FaArrowRight aria-hidden />
+            </Link>
+          </div>
+          <div className="mt-14 grid gap-10 md:grid-cols-3 md:gap-6">
+            {latestArticles.map((article, i) => (
+              <Reveal key={article.id} delay={i * 100}>
+                <Link href={`/aktualnosci/${article.id}`} className="group block border-t border-line pt-6">
+                  <time dateTime={article.createdAt} className="eyebrow text-[0.7rem] text-stone">
+                    {formatDate(article.createdAt)}
                   </time>
-                  <h3 className="mt-1 text-xl">{article.title}</h3>
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-soft">{article.shortDescription}</p>
-                  {article.tags.length > 0 && (
-                    <ul className="mt-3 flex flex-wrap gap-2">
-                      {article.tags.map(({ tag }) => (
-                        <li key={tag.id} className="border border-white/40 px-2 py-0.5 text-xs">
-                          {tag.name}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </li>
+                  <h3 className="heading mt-3 text-xl transition-colors group-hover:text-gold">
+                    {article.title}
+                  </h3>
+                  <p className="mt-3 line-clamp-3 leading-relaxed text-stone">{article.shortDescription}</p>
+                  <span className="link-arrow mt-5 inline-flex items-center gap-2 text-[0.75rem]">
+                    Czytaj <FaArrowRight aria-hidden />
+                  </span>
+                </Link>
+              </Reveal>
             ))}
-          </ul>
-        </Section>
+          </div>
+        </section>
       )}
 
-      {/* PRODUKTY */}
-      <Section id="produkty" title="Nasze produkty">
-        <ProductsBrowser categories={categories} />
-      </Section>
-
-      {/* CHLEBOWÓZ */}
-      {(vanDescription || vanStops.length > 0) && (
-        <Section id="chlebowoz" title="Chlebowóz">
-          <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
-            <div>
-              {vanDescription && (
-                <>
-                  <p className="text-xl">{vanDescription.shortDescription}</p>
-                  <p className="mt-3 leading-relaxed text-soft">{vanDescription.longDescription}</p>
-                </>
-              )}
-            </div>
-            {vanStops.length > 0 && (
-              <div>
-                <h3 className="mb-3 text-2xl">Harmonogram</h3>
-                <ul className="divide-y divide-white/10 bg-panel-strong">
-                  {WEEKDAYS.flatMap((day) =>
-                    vanStops
-                      .filter((stop) => stop.dayOfTheWeek === day.key)
-                      .map((stop) => (
-                        <li key={stop.id} className="px-4 py-3">
-                          <div className="flex justify-between gap-3">
-                            <span className="font-bold">{day.label}</span>
-                            <span className="tabular-nums text-soft">
-                              {stop.startTime}–{stop.endTime}
-                            </span>
-                          </div>
-                          <a
-                            href={stop.googleMapsUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-1 flex items-center gap-2 text-sm text-muted transition-colors hover:text-soft"
-                          >
-                            <FaLocationDot /> {stop.address}
-                          </a>
-                        </li>
-                      )),
-                  )}
-                </ul>
-              </div>
-            )}
-          </div>
-        </Section>
-      )}
-
-      {/* KONTAKT */}
-      <Section id="kontakt" title="Kontakt">
-        <div className="grid gap-8 lg:grid-cols-[7fr_5fr]">
-          <ContactForm email={email} />
-
-          <div>
-            <h3 className="text-2xl">Dane kontaktowe</h3>
-            <p className="pb-3 pt-2 text-sm leading-relaxed">
-              Zapraszamy do odwiedzenia naszych punktów. Poniżej znajdziesz aktualne dane kontaktowe.
-            </p>
-
-            <div className="space-y-px">
-              {locations.map((location, index) => (
-                // name="lokale" – otwarta jest tylko jedna zakładka naraz
-                <details key={location.id} name="lokale" open={index === 0} className="group">
-                  <summary className="flex cursor-pointer list-none items-center gap-3 bg-graphite px-4 py-3 transition-colors hover:bg-graphite-darker">
-                    <FaLocationDot className="shrink-0" />
-                    <span className="flex-1 text-sm">{location.address}</span>
-                    <FaChevronDown className="shrink-0 transition-transform group-open:rotate-180" />
-                  </summary>
-                  <div className="space-y-3 bg-panel px-4 py-3 text-sm">
-                    <div className="flex flex-wrap justify-around gap-3">
-                      {location.phone && (
-                        <a
-                          href={`tel:${location.phone.replace(/\s/g, '')}`}
-                          className="flex items-center gap-2 transition-colors hover:text-soft"
-                        >
-                          <FaPhone /> {location.phone}
-                        </a>
-                      )}
-                      <a
-                        href={location.googleMapsUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center gap-2 transition-colors hover:text-soft"
-                      >
-                        <FaLocationArrow /> Przejdź do Google Maps
-                      </a>
-                    </div>
-                    {location.openingHours && (
-                      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-0.5 text-soft">
-                        <dt className="col-span-2 mb-1 flex items-center gap-2 text-white">
-                          <FaClock /> Godziny otwarcia
-                        </dt>
-                        {WEEKDAYS.map((day) => (
-                          <div key={day.key} className="contents">
-                            <dt>{day.label}</dt>
-                            <dd className="tabular-nums">{hoursFor(location.openingHours!, day.key)}</dd>
-                          </div>
-                        ))}
-                      </dl>
-                    )}
-                  </div>
-                </details>
-              ))}
-            </div>
-
-            {email && (
-              <a
-                href={`mailto:${email}`}
-                className="mt-4 flex items-center gap-2 transition-colors hover:text-soft"
-              >
-                <FaEnvelope /> {email}
-              </a>
-            )}
-            <div className="mt-3">
-              <SocialLinks media={media} />
-            </div>
-          </div>
+      {/* GALERIA */}
+      <section className="border-t border-line pb-24 pt-20 md:pb-32">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-6 px-5 sm:px-8">
+          <SectionHeading eyebrow="Zajrzyj do nas" title="Prosto z piekarni" />
+          {instagram && (
+            <a
+              href={instagram.url}
+              target="_blank"
+              rel="noreferrer"
+              className="link-arrow inline-flex items-center gap-3"
+            >
+              <FaInstagram size={18} aria-hidden /> Obserwuj nas
+            </a>
+          )}
         </div>
-      </Section>
+        <ul className="mt-12 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-4 sm:px-8 [scrollbar-width:thin]">
+          {GALLERY.map((name, i) => (
+            <li key={name} className="relative aspect-[3/4] w-[70vw] shrink-0 snap-start overflow-hidden sm:w-[38vw] lg:w-[22vw]">
+              <Image
+                src={`/images/galeria/${name}.jpg`}
+                alt={`Wypieki Chleba Smak – zdjęcie ${i + 1}`}
+                fill
+                sizes="(min-width: 1024px) 22vw, (min-width: 640px) 38vw, 70vw"
+                className="object-cover transition-transform duration-700 hover:scale-105"
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
     </>
   );
 }

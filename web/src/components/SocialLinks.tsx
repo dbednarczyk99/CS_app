@@ -30,25 +30,29 @@ const LABELS: Record<MediaName, string> = {
   YOUTUBE: 'YouTube',
 };
 
+const ORDER = Object.keys(ICONS) as MediaName[];
+
 export function SocialLinks({ media, size = 30 }: { media: Media[]; size?: number }) {
   return (
     <ul className="flex flex-wrap items-center gap-2">
-      {media.map((item) => {
-        const Icon = ICONS[item.name];
-        return (
-          <li key={item.id}>
-            <a
-              href={item.url}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={LABELS[item.name]}
-              className="block p-1 text-white transition-colors hover:text-soft"
-            >
-              <Icon size={size} />
-            </a>
-          </li>
-        );
-      })}
+      {[...media]
+        .sort((a, b) => ORDER.indexOf(a.name) - ORDER.indexOf(b.name))
+        .map((item) => {
+          const Icon = ICONS[item.name];
+          return (
+            <li key={item.id}>
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={LABELS[item.name]}
+                className="block p-1 text-cream transition-colors hover:text-gold"
+              >
+                <Icon size={size} />
+              </a>
+            </li>
+          );
+        })}
     </ul>
   );
 }

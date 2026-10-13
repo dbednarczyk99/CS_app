@@ -8,7 +8,7 @@ Chleba Smak: the website and admin panel for a bakery. A monorepo with three ind
 
 - `backend/`: NestJS 11 REST API, Prisma 6 ORM, MySQL
 - `frontend/`: React 19 and Vite admin panel built on **react-admin** 5
-- `web/`: public website (Next.js 15 App Router, Tailwind 4), early stage; reads data server-side from the API. Its look deliberately recreates the first static version of the site (`C:/git-repos/chleba-smak_1v`): dark graphite (#212529) panels over a fixed photo background, white logo, Lato/Oswald. Brand images live in `web/public/images` (resized from that repo)
+- `web/`: public website (Next.js 15 App Router, Tailwind 4). Multi-page (/, /oferta, /oferta/[id], /piekarnie, /chlebowoz, /o-nas, /aktualnosci, /kontakt); server components fetch from the API with 60 s ISR via [web/src/lib/api.ts](web/src/lib/api.ts). Premium dark design derived from the first static site (`C:/git-repos/chleba-smak_1v`): graphite/ink backgrounds, cream text, gold accent, Oswald uppercase headings + Lato body; design tokens and `.btn`/`.eyebrow`/`.heading` classes live in [globals.css](web/src/app/globals.css). Site photos are in `web/public/images`; product/blog seed photos are in `backend/uploads/seed` (resized from that repo)
 
 Code comments and some UI strings are in Polish.
 
@@ -54,7 +54,8 @@ npm run lint
 
 - `backend/.env`: `DATABASE_URL` (mysql), optional `PORT`, `JWT_SECRET` (falls back to a dev-only default with a warning), `CORS_ORIGINS` (comma-separated; defaults to :5173 and :3001)
 - `frontend/.env`: `VITE_API_URL` (defaults to `http://localhost:3000`)
-- `web/.env.local`: `API_URL` (defaults to `http://localhost:3000`)
+- `web/.env.local`: `API_URL` (defaults to `http://localhost:3000`; also whitelisted for next/image in [next.config.ts](web/next.config.ts))
+- Seed: `API_PUBLIC_URL` (defaults to `http://localhost:3000`) is baked into seeded image URLs
 - Seeded staff accounts: `admin`/`admin123`, `editor`/`editor123`, `blogger`/`blogger123`, `viewer`/`viewer123`
 
 ## Backend architecture

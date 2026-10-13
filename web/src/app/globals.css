@@ -1,38 +1,134 @@
 @import "tailwindcss";
 
-/* Kolory i czcionki z pierwszej wersji strony (chleba-smak_1v) */
+/*
+ * Chleba Smak – system wizualny.
+ * Bazuje na pierwszej wersji strony (grafit #212529, biel, Lato/Oswald),
+ * z dodanym ciepłym akcentem „skórki chleba” i kremową bielą dla wrażenia premium.
+ */
 @theme {
-  --color-graphite: rgb(33 37 41);
-  --color-graphite-darker: rgb(28 31 35);
-  --color-panel: rgb(33 37 41 / 0.4);
-  --color-panel-strong: rgb(33 37 41 / 0.6);
-  --color-muted: rgb(255 255 255 / 0.55);
-  --color-soft: rgb(255 255 255 / 0.75);
+  --color-ink: #141618;
+  --color-coal: #1a1d20;
+  --color-graphite: #212529;
+  --color-graphite-light: #2b3035;
+  --color-cream: #f4efe6;
+  --color-stone: #b9b1a4;
+  --color-gold: #c9a36a;
+  --color-gold-light: #dcc095;
+  --color-line: rgb(244 239 230 / 0.12);
+
   --font-sans: var(--font-lato), system-ui, sans-serif;
   --font-display: var(--font-oswald), var(--font-lato), sans-serif;
+
+  --animate-slow-zoom: slow-zoom 24s ease-out both;
+  @keyframes slow-zoom {
+    from {
+      transform: scale(1.08);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
 }
 
 html {
   scroll-behavior: smooth;
-  /* miejsce na przyklejony pasek nawigacji przy przewijaniu do kotwic */
   scroll-padding-top: 6rem;
 }
 
 body {
-  background-color: var(--color-graphite);
-  color: white;
+  background-color: var(--color-ink);
+  color: var(--color-cream);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Biała linia pod nagłówkami sekcji */
-.bar {
-  height: 2px;
-  max-width: 70%;
-  margin-inline: auto;
-  background: white;
+::selection {
+  background: var(--color-gold);
+  color: var(--color-ink);
 }
 
-/* Ukrycie domyślnego trójkąta w <summary> */
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
 summary::-webkit-details-marker {
   display: none;
+}
+
+@layer components {
+  /* Mały nagłówek nad tytułem sekcji: OSWALD, rozstrzelony, złoty */
+  .eyebrow {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--color-gold);
+  }
+
+  .heading {
+    font-family: var(--font-display);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    min-height: 3rem;
+    padding: 0.75rem 1.75rem;
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    transition:
+      background-color 0.25s,
+      color 0.25s,
+      border-color 0.25s;
+  }
+
+  .btn-gold {
+    background: var(--color-gold);
+    color: var(--color-ink);
+  }
+  .btn-gold:hover {
+    background: var(--color-gold-light);
+  }
+
+  .btn-outline {
+    border: 1px solid rgb(244 239 230 / 0.5);
+    color: var(--color-cream);
+  }
+  .btn-outline:hover {
+    border-color: var(--color-gold);
+    color: var(--color-gold);
+  }
+
+  .link-arrow {
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-gold);
+    transition: color 0.2s;
+  }
+  .link-arrow:hover {
+    color: var(--color-gold-light);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

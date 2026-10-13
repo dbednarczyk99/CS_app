@@ -43,7 +43,7 @@ model Category {
 model Product {
   id          String   @id @default(uuid())
   name        String
-  description String
+  description String   @db.Text
   price       Float
   isSeasonal  Boolean   @default(false)
   isActive    Boolean   @default(true)
@@ -187,8 +187,8 @@ model ArticleImages {
 model Article {
   id                String  @id @default(uuid())
   title             String
-  shortDescription  String
-  content           String
+  shortDescription  String  @db.VarChar(500)
+  content           String  @db.Text
   images            ArticleImages[]
   tags              TagOnArticle[]
 

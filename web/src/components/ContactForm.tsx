@@ -3,7 +3,36 @@
 import { useState } from 'react';
 
 const fieldClass =
-  'w-full border-0 border-b-[3px] border-white bg-panel p-2 text-white placeholder:text-white focus:bg-panel-strong focus:outline-none';
+  'peer w-full border-0 border-b border-cream/30 bg-transparent px-0 pb-2 pt-6 text-cream placeholder-transparent transition-colors focus:border-gold focus:outline-none focus:ring-0';
+const labelClass =
+  'pointer-events-none absolute left-0 top-1 font-display text-[0.7rem] uppercase tracking-[0.25em] text-stone transition-all peer-placeholder-shown:top-6 peer-placeholder-shown:font-sans peer-placeholder-shown:text-base peer-placeholder-shown:normal-case peer-placeholder-shown:tracking-normal peer-focus:top-1 peer-focus:font-display peer-focus:text-[0.7rem] peer-focus:uppercase peer-focus:tracking-[0.25em] peer-focus:text-gold';
+
+function Field({
+  name,
+  label,
+  type = 'text',
+  required,
+  multiline,
+}: {
+  name: string;
+  label: string;
+  type?: string;
+  required?: boolean;
+  multiline?: boolean;
+}) {
+  return (
+    <div className="relative">
+      {multiline ? (
+        <textarea id={name} name={name} placeholder={label} required={required} rows={5} className={`${fieldClass} resize-none`} />
+      ) : (
+        <input id={name} name={name} type={type} placeholder={label} required={required} className={fieldClass} />
+      )}
+      <label htmlFor={name} className={labelClass}>
+        {label}
+      </label>
+    </div>
+  );
+}
 
 // TODO: wysyłka wiadomości – API nie ma jeszcze endpointu kontaktowego
 export function ContactForm({ email }: { email?: string }) {
@@ -15,27 +44,26 @@ export function ContactForm({ email }: { email?: string }) {
         event.preventDefault();
         setSent(true);
       }}
-      className="space-y-2"
+      className="space-y-6"
     >
-      <h3 className="text-2xl">Formularz kontaktowy</h3>
-      <p className="pb-2 text-sm leading-relaxed">
-        Wpadłeś na pomysł przepisu na nowy bochenek chleba? Chcesz zgłosić propozycję zmian
-        w naszych lokalach? Jesteś zainteresowany współpracą z nami? Napisz do nas, korzystając
-        z poniższego formularza kontaktowego.
-      </p>
-      <input className={fieldClass} type="text" name="name" placeholder="Twoje imię" required />
-      <input className={fieldClass} type="email" name="email" placeholder="Twój adres email" required />
-      <input className={fieldClass} type="text" name="subject" placeholder="Temat wiadomości" />
-      <textarea className={fieldClass} name="message" placeholder="Treść wiadomości" rows={5} required />
-      <div className="flex flex-wrap items-center justify-end gap-4 pt-2">
+      <div className="grid gap-6 sm:grid-cols-2">
+        <Field name="name" label="Imię" required />
+        <Field name="email" label="Adres e-mail" type="email" required />
+      </div>
+      <Field name="subject" label="Temat" />
+      <Field name="message" label="Wiadomość" required multiline />
+      <div className="flex flex-wrap items-center gap-6 pt-2">
+        <button type="submit" className="btn btn-gold">
+          Wyślij wiadomość
+        </button>
         {sent && (
-          <p className="text-sm text-soft" role="status">
+          <p className="text-sm text-stone" role="status">
             Formularz jeszcze nie wysyła wiadomości
             {email ? (
               <>
                 {' '}
                 – napisz do nas na{' '}
-                <a href={`mailto:${email}`} className="underline">
+                <a href={`mailto:${email}`} className="text-gold underline-offset-4 hover:underline">
                   {email}
                 </a>
               </>
@@ -43,12 +71,6 @@ export function ContactForm({ email }: { email?: string }) {
             .
           </p>
         )}
-        <button
-          type="submit"
-          className="w-1/2 bg-graphite px-4 py-2 transition-colors hover:bg-graphite-darker"
-        >
-          Wyślij
-        </button>
       </div>
     </form>
   );

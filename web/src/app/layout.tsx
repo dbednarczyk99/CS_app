@@ -1,8 +1,7 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Lato, Oswald } from 'next/font/google';
-import { Navbar } from '@/components/Navbar';
-import { SocialLinks } from '@/components/SocialLinks';
-import { api, orFallback } from '@/lib/api';
+import { Footer } from '@/components/Footer';
+import { Header } from '@/components/Header';
 import './globals.css';
 
 const lato = Lato({
@@ -14,42 +13,41 @@ const lato = Lato({
 
 const oswald = Oswald({
   variable: '--font-oswald',
-  weight: ['300', '500', '700'],
+  weight: ['300', '400', '500'],
   subsets: ['latin', 'latin-ext'],
 });
 
 export const metadata: Metadata = {
-  title: 'Chleba Smak – piekarnia rzemieślnicza w Krakowie',
+  title: {
+    default: 'Chleba Smak – piekarnia rzemieślnicza w Krakowie',
+    template: '%s · Chleba Smak',
+  },
   description:
-    'Piekarnia rzemieślnicza Chleba Smak – chleb na zakwasie i wypieki z czterech piekarni w Krakowie oraz z naszego chlebowozu.',
+    'Rzemieślnicza piekarnia z Krakowa: chleb na naturalnym zakwasie, słodkie wypieki i chlebowóz. Cztery piekarnie w Krakowie.',
   icons: { icon: '/images/icon.png' },
 };
 
-export default async function RootLayout({
+export const viewport: Viewport = {
+  themeColor: '#141618',
+};
+
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const media = await orFallback(api.media(), []);
-
   return (
     <html lang="pl">
-      <body className={`${lato.variable} ${oswald.variable} antialiased`}>
-        {/* Nieruchome zdjęcie w tle (warstwa fixed – działa też na iOS, w przeciwieństwie do background-attachment) */}
-        <div
-          aria-hidden
-          className="fixed inset-0 -z-10 bg-[url(/images/tlo.jpg)] bg-cover bg-center"
-        />
-        <Navbar />
-        <main>{children}</main>
-        <footer className="mx-auto max-w-[90%] bg-graphite px-4 py-2">
-          <div className="flex flex-col items-center gap-1 md:flex-row-reverse md:justify-around">
-            <SocialLinks media={media} size={20} />
-            <p className="text-[11px]">
-              Wszelkie prawa zastrzeżone © {new Date().getFullYear()} Chleba Smak
-            </p>
-          </div>
-        </footer>
+      <body className={`${lato.variable} ${oswald.variable}`}>
+        <a
+          href="#tresc"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:bg-gold focus:px-4 focus:py-2 focus:text-ink"
+        >
+          Przejdź do treści
+        </a>
+        <Header />
+        <main id="tresc">{children}</main>
+        <Footer />
       </body>
     </html>
   );

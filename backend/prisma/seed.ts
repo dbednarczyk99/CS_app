@@ -41,119 +41,180 @@ async function main() {
   });
 
   // --- PRODUCTS & CATEGORIES ---
+  // Asortyment na podstawie zdjęć z sesji (zdjęcia w uploads/seed). Ceny są przykładowe.
   await prisma.productImages.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
 
-  await prisma.category.create({
-    data: {
-      name: 'Pieczywo podstawowe',
-      products: {
-        create: [
-          {
-            name: 'Chleb żytni na zakwasie',
-            description:
-              'Tradycyjny chleb żytni na zakwasie, wypiekany codziennie rano.',
-            price: 7.5,
-            isSeasonal: false,
-            isActive: true,
-            images: {
-              create: [
-                {
-                  imgUrl: 'https://example.com/chleb-zytni-1.jpg',
-                  order: 0,
-                },
-                {
-                  imgUrl: 'https://example.com/chleb-zytni-2.jpg',
-                  order: 1,
-                },
-              ],
-            },
-          },
-          {
-            name: 'Chleb pszenno-żytni',
-            description:
-              'Delikatniejszy chleb pszenno-żytni, idealny na kanapki.',
-            price: 6.9,
-            isSeasonal: false,
-            isActive: true,
-          },
-          {
-            name: 'Bułka kajzerka',
-            description: 'Klasyczna, chrupiąca bułka pszenna.',
-            price: 1.2,
-            isSeasonal: false,
-            isActive: true,
-          },
-        ],
-      },
-    },
+  const API_PUBLIC_URL = process.env.API_PUBLIC_URL ?? 'http://localhost:3000';
+  const seedImage = (file: string) => ({
+    create: [{ imgUrl: `${API_PUBLIC_URL}/uploads/seed/${file}`, order: 0 }],
   });
 
-  await prisma.category.create({
-    data: {
-      name: 'Pieczywo specjalne',
-      products: {
-        create: [
-          {
-            name: 'Chleb orkiszowy',
-            description:
-              'Chleb z mąki orkiszowej, bogaty w błonnik i minerały.',
-            price: 8.5,
-            isSeasonal: false,
-            isActive: true,
-          },
-          {
-            name: 'Chleb z ziarnami',
-            description:
-              'Chleb z mieszanką ziaren: słonecznik, dynia, siemię lniane.',
-            price: 8.9,
-            isSeasonal: false,
-            isActive: true,
-            images: {
-              create: [
-                {
-                  imgUrl: 'https://example.com/chleb-ziarna-1.jpg',
-                  order: 0,
-                },
-              ],
-            },
-          },
-        ],
-      },
+  const catalog: {
+    category: string;
+    products: {
+      name: string;
+      description: string;
+      price: number;
+      image: string;
+      isSeasonal?: boolean;
+    }[];
+  }[] = [
+    {
+      category: 'Chleby',
+      products: [
+        {
+          name: 'Chleb pszenny na zakwasie',
+          description:
+            'Nasz klasyk: pszenny bochenek na naturalnym zakwasie, 24 godziny fermentacji, chrupiąca skórka i wilgotny, dziurawy miąższ.',
+          price: 16,
+          image: 'chleb-pszenny-na-zakwasie.jpg',
+        },
+        {
+          name: 'Chleb żytni razowy',
+          description:
+            'Ciemny chleb z mąki żytniej razowej na zakwasie, z dodatkiem ziaren i płatków owsianych. Długo zachowuje świeżość.',
+          price: 15,
+          image: 'chleb-zytni-razowy.jpg',
+        },
+        {
+          name: 'Chleb rustykalny',
+          description:
+            'Pszenno-żytni bochenek o głębokim, lekko kwaskowym smaku, wypiekany na kamieniu.',
+          price: 14,
+          image: 'chleb-rustykalny.jpg',
+        },
+        {
+          name: 'Bagietka',
+          description:
+            'Smukła bagietka na zakwasie z cienką, chrupiącą skórką. Najlepsza w dniu wypieku.',
+          price: 7,
+          image: 'bagietka.jpg',
+        },
+      ],
     },
-  });
+    {
+      category: 'Słodkie wypieki',
+      products: [
+        {
+          name: 'Jagodzianka',
+          description:
+            'Maślana drożdżówka z leśnymi jagodami, pod lukrem. Krakowski hit sezonu.',
+          price: 9,
+          image: 'jagodzianka.jpg',
+          isSeasonal: true,
+        },
+        {
+          name: 'Drożdżówka z rabarbarem',
+          description:
+            'Puszyste ciasto drożdżowe z rabarbarem, kruszonką i cukrem pudrem.',
+          price: 8,
+          image: 'drozdzowka-rabarbar.jpg',
+          isSeasonal: true,
+        },
+        {
+          name: 'Drożdżówka z truskawkami',
+          description: 'Drożdżówka z serem i świeżymi truskawkami.',
+          price: 8.5,
+          image: 'drozdzowka-truskawka.jpg',
+          isSeasonal: true,
+        },
+        {
+          name: 'Chałka',
+          description:
+            'Pleciona chałka maślana z kruszonką – na śniadanie, do kawy i na weekend.',
+          price: 12,
+          image: 'chalka.jpg',
+        },
+        {
+          name: 'Rogal drożdżowy',
+          description: 'Duży, maślany rogal drożdżowy posypany kruszonką.',
+          price: 6,
+          image: 'rogal-drozdzowy.jpg',
+        },
+        {
+          name: 'Ślimak cynamonowy',
+          description:
+            'Zawijane ciasto drożdżowe z masłem, cynamonem i brązowym cukrem.',
+          price: 7.5,
+          image: 'slimak-cynamonowy.jpg',
+        },
+        {
+          name: 'Faworki',
+          description:
+            'Kruche, cienkie faworki smażone na złoto, obficie oprószone cukrem pudrem. Opakowanie 200 g.',
+          price: 14,
+          image: 'faworki.jpg',
+          isSeasonal: true,
+        },
+        {
+          name: 'Ciastko czekoladowe z precelkiem',
+          description:
+            'Miękkie w środku ciastko z ciemną czekoladą i słonym precelkiem.',
+          price: 7,
+          image: 'ciastko-czekoladowe.jpg',
+        },
+        {
+          name: 'Muffin',
+          description:
+            'Wilgotny muffin – czekoladowy lub waniliowy z owocami, w zależności od dnia.',
+          price: 7.5,
+          image: 'muffin.jpg',
+        },
+      ],
+    },
+    {
+      category: 'Kanapki',
+      products: [
+        {
+          name: 'Kanapka na chlebie na zakwasie',
+          description:
+            'Nasz chleb na zakwasie, twarożek, świeże warzywa i rukola. Robiona na miejscu.',
+          price: 18,
+          image: 'kanapka-zakwas.jpg',
+        },
+        {
+          name: 'Bagietka z pastą i warzywami',
+          description:
+            'Chrupiąca bagietka z domową pastą, sałatą i warzywami sezonowymi.',
+          price: 19,
+          image: 'bagietka-kanapka.jpg',
+        },
+      ],
+    },
+    {
+      category: 'Lody',
+      products: [
+        {
+          name: 'Lody rzemieślnicze',
+          description:
+            'Lody robione na miejscu z prawdziwych składników. Smaki zmieniają się codziennie. Cena za gałkę.',
+          price: 8,
+          image: 'lody.jpg',
+          isSeasonal: true,
+        },
+      ],
+    },
+  ];
 
-  await prisma.category.create({
-    data: {
-      name: 'Wyroby słodkie',
-      products: {
-        create: [
-          {
-            name: 'Drożdżówka z serem',
-            description: 'Miękka drożdżówka z serem i kruszonką.',
-            price: 4.5,
-            isSeasonal: false,
-            isActive: true,
-          },
-          {
-            name: 'Jagodzianka',
-            description: 'Drożdżówka z nadzieniem jagodowym.',
-            price: 5.5,
-            isSeasonal: true,
-            isActive: true,
-          },
-          {
-            name: 'Sernik krakowski',
-            description: 'Klasyczny sernik z kratką.',
-            price: 12.9,
-            isSeasonal: false,
-            isActive: true,
-          },
-        ],
-      },
-    },
-  });
+  // po kolei, żeby createdAt (kolejność na stronie) odpowiadał kolejności powyżej
+  for (const { category, products } of catalog) {
+    const { id: categoryId } = await prisma.category.create({
+      data: { name: category },
+    });
+    for (const { image, isSeasonal, ...product } of products) {
+      await prisma.product.create({
+        data: {
+          ...product,
+          categoryId,
+          isSeasonal: isSeasonal ?? false,
+          isActive: true,
+          images: seedImage(image),
+        },
+      });
+    }
+  }
 
   console.log('✅ Categories & products seeded');
 
@@ -236,11 +297,11 @@ async function main() {
       images: {
         create: [
           {
-            imgUrl: 'https://example.com/breadvan-1.jpg',
+            imgUrl: `${API_PUBLIC_URL}/uploads/seed/chlebowoz-1.jpg`,
             order: 0,
           },
           {
-            imgUrl: 'https://example.com/breadvan-2.jpg',
+            imgUrl: `${API_PUBLIC_URL}/uploads/seed/chlebowoz-2.jpg`,
             order: 1,
           },
         ],
@@ -304,13 +365,17 @@ async function main() {
   const article1 = await prisma.article.create({
     data: {
       title: 'Jak powstaje nasz chleb na zakwasie',
-      shortDescription: 'Krótka historia naszego zakwasu i procesu wypieku.',
-      content:
-        'Tutaj możesz wstawić dłuższy tekst o procesie powstawania chleba.',
+      shortDescription:
+        'Od dokarmiania zakwasu po wyjęcie bochenka z pieca – zajrzyj z nami do piekarni nocą.',
+      content: [
+        'Nasz dzień zaczyna się wtedy, gdy większość Krakowa jeszcze śpi. Pierwszy krok to zakwas – żywa kultura dzikich drożdży i bakterii, którą dokarmiamy mąką i wodą każdego dnia.',
+        'Ciasto wyrabiamy z mąki, wody, soli i zakwasu. Potem przychodzi najważniejsze: czas. Długa fermentacja sprawia, że chleb ma głęboki smak, lekko kwaskowy aromat i dłużej zachowuje świeżość.',
+        'Każdy bochenek formujemy ręcznie, a przed wypiekiem nacinamy skórkę. W piecu bochenki rosną, rumienią się i dostają charakterystyczną, chrupiącą skórkę, której nie da się pomylić z niczym innym.',
+      ].join('\n\n'),
       images: {
         create: [
           {
-            imgUrl: 'https://example.com/blog-chleb-1.jpg',
+            imgUrl: `${API_PUBLIC_URL}/uploads/seed/blog-zakwas.jpg`,
             order: 0,
           },
         ],
@@ -328,13 +393,17 @@ async function main() {
   // --- OPTIONAL: Another article ---
   const article2 = await prisma.article.create({
     data: {
-      title: 'Przepisy na domowe bułki',
-      shortDescription: 'Łatwe przepisy na bułki w domu.',
-      content: 'Instrukcja przygotowania różnych rodzajów bułek.',
+      title: 'Kanapki na zakwasie – śniadanie u nas',
+      shortDescription:
+        'Świeży chleb, dobre dodatki i kawa. Sprawdź, co przygotowujemy na miejscu każdego ranka.',
+      content: [
+        'W naszych piekarniach poza pieczywem na wynos przygotowujemy kanapki na miejscu – na chlebie na zakwasie i chrupiących bagietkach.',
+        'Dodatki zmieniają się z sezonem: twarożek z rzodkiewką, pasty warzywne, świeże sałaty i pomidory. Do tego kawa i chwila spokoju przed pracą.',
+      ].join('\n\n'),
       images: {
         create: [
           {
-            imgUrl: 'https://example.com/blog-bulki-1.jpg',
+            imgUrl: `${API_PUBLIC_URL}/uploads/seed/blog-kanapki.jpg`,
             order: 0,
           },
         ],

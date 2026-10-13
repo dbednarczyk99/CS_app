@@ -51,6 +51,12 @@ export class ProductsService {
   // PRODUCT
   findAllProducts(): Prisma.PrismaPromise<Product[]> {
     return this.prisma.product.findMany({
+      // kolejność jak w panelu: kategorie, potem produkty wg dodania
+      orderBy: [
+        { category: { createdAt: 'asc' } },
+        { createdAt: 'asc' },
+        { name: 'asc' },
+      ],
       include: {
         images: {
           orderBy: { order: 'asc' },

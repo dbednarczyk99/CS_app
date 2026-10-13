@@ -11,7 +11,9 @@ async function get<T>(path: string): Promise<T> {
   if (!res.ok) {
     throw new Error(`API ${path}: ${res.status}`);
   }
-  return res.json() as Promise<T>;
+  // API zwraca pustą odpowiedź (200) dla nieistniejącego rekordu
+  const text = await res.text();
+  return (text ? JSON.parse(text) : null) as T;
 }
 
 export interface Image {
@@ -28,6 +30,8 @@ export interface Product {
   isSeasonal: boolean;
   isActive: boolean;
   images?: Image[]; // brak w odpowiedzi /products/categories
+  categoryId: string;
+  category?: { id: string; name: string };
 }
 
 export interface Category {
@@ -101,6 +105,7 @@ export interface Article {
   id: string;
   title: string;
   shortDescription: string;
+  content?: string;
   createdAt: string;
   images: Image[];
   tags: { tag: { id: string; name: string } }[];
@@ -108,6 +113,8 @@ export interface Article {
 
 export const api = {
   categories: () => get<Category[]>('/products/categories'),
+  products: () => get<Product[]>('/products'),
+  product: (id: string) => get<Product | null>(`/products/${encodeURIComponent(id)}`),
   locations: () => get<Location[]>('/contact/locations'),
   breadVanStops: () => get<BreadVanStop[]>('/bread-van/locations'),
   breadVanDescription: () =>
@@ -115,6 +122,7 @@ export const api = {
   contactInfo: () => get<ContactInfo[]>('/contact/info'),
   media: () => get<Media[]>('/contact/media'),
   articles: () => get<Article[]>('/blog'),
+  article: (id: string) => get<Article | null>(`/blog/${encodeURIComponent(id)}`),
 };
 
 // Strona ma się wyświetlić nawet wtedy, gdy część API nie odpowiada
