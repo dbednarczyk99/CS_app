@@ -122,7 +122,8 @@ export function StoresMap({
           <APIProvider apiKey={API_KEY} language="pl" region="PL">
             <GoogleMap
               mapId={MAP_ID}
-              colorScheme="DARK"
+              // własny Map ID niesie styl z konsoli; ciemny schemat tylko dla mapy demonstracyjnej
+              colorScheme={MAP_ID === 'DEMO_MAP_ID' ? 'DARK' : undefined}
               defaultCenter={KRAKOW}
               defaultZoom={12}
               gestureHandling="cooperative"
