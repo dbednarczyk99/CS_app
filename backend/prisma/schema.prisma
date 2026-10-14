@@ -76,6 +76,9 @@ model Location {
   address         String
   phone           String?
   googleMapsUrl   String
+  // współrzędne do mapy na stronie
+  lat             Float?
+  lng             Float?
   openingHours    Json?
 
   createdAt       DateTime  @default(now())
@@ -115,6 +118,8 @@ model BreadVanLocation {
   id              String @id @default(uuid())
   address         String
   googleMapsUrl   String
+  lat             Float?
+  lng             Float?
   dayOfTheWeek    Weekday @unique
   startTime       String
   endTime         String

@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { LocationCard } from '@/components/LocationCard';
 import { PageHeader } from '@/components/PageHeader';
 import { Reveal } from '@/components/Reveal';
+import { StoresMap } from '@/components/StoresMap';
 import { api, orFallback } from '@/lib/api';
 import { plural } from '@/lib/format';
 
@@ -12,7 +13,10 @@ export const metadata: Metadata = {
 };
 
 export default async function LocationsPage() {
-  const locations = await orFallback(api.locations(), []);
+  const [locations, stops] = await Promise.all([
+    orFallback(api.locations(), []),
+    orFallback(api.breadVanStops(), []),
+  ]);
 
   return (
     <>
@@ -23,10 +27,12 @@ export default async function LocationsPage() {
       </PageHeader>
 
       <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 md:py-24">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <StoresMap locations={locations} stops={stops} />
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
           {locations.map((location, i) => (
             <Reveal key={location.id} delay={(i % 2) * 100} className="h-full">
-              <LocationCard location={location} index={i} />
+              <LocationCard location={location} index={i} showOnMap />
             </Reveal>
           ))}
         </div>

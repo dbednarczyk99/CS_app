@@ -55,6 +55,7 @@ npm run lint
 - `backend/.env`: `DATABASE_URL` (mysql), optional `PORT`, `JWT_SECRET` (falls back to a dev-only default with a warning), `CORS_ORIGINS` (comma-separated; defaults to :5173 and :3001)
 - `frontend/.env`: `VITE_API_URL` (defaults to `http://localhost:3000`)
 - `web/.env.local`: `API_URL` (defaults to `http://localhost:3000`; also whitelisted for next/image in [next.config.ts](web/next.config.ts))
+- Google Maps: `web/.env.local` `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` + `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID` (map on /piekarnie and /chlebowoz, [StoresMap.tsx](web/src/components/StoresMap.tsx); Map ID must use the cloud style imported from [docs/mapa-styl.json](docs/mapa-styl.json)); `frontend/.env` `VITE_GOOGLE_MAPS_API_KEY` for the admin "Uzupełnij z adresu" geocoding button. Without a key the site shows a placeholder. `Location` and `BreadVanLocation` have nullable `lat`/`lng`; points without them are not shown on the map
 - Seed: `API_PUBLIC_URL` (defaults to `http://localhost:3000`) is baked into seeded image URLs
 - Seeded staff accounts: `admin`/`admin123`, `editor`/`editor123`, `blogger`/`blogger123`, `viewer`/`viewer123`
 

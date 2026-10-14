@@ -2,15 +2,18 @@ import { FaLocationArrow, FaPhone } from 'react-icons/fa6';
 import type { Location } from '@/lib/api';
 import { WEEKDAYS, hoursFor, telHref } from '@/lib/format';
 import { OpenStatus } from './OpenStatus';
+import { ShowOnMapButton } from './StoresMap';
 
 export function LocationCard({
   location,
   index,
   showHours = true,
+  showOnMap = false,
 }: {
   location: Location;
   index: number;
   showHours?: boolean;
+  showOnMap?: boolean;
 }) {
   const [street, city] = location.address.split(/,\s*(?=\d{2}-\d{3})/);
 
@@ -52,7 +55,10 @@ export function LocationCard({
           <FaLocationArrow aria-hidden /> Nawiguj
         </a>
       </div>
-      {location.phone && <p className="mt-3 text-center text-sm text-stone">{location.phone}</p>}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-stone">
+        {location.phone && <span>{location.phone}</span>}
+        {showOnMap && location.lat != null && <ShowOnMapButton id={location.id} />}
+      </div>
     </article>
   );
 }

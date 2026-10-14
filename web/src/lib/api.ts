@@ -52,6 +52,8 @@ export interface Location {
   address: string;
   phone: string | null;
   googleMapsUrl: string;
+  lat: number | null;
+  lng: number | null;
   openingHours: OpeningHours | null;
 }
 
@@ -68,6 +70,8 @@ export interface BreadVanStop {
   id: string;
   address: string;
   googleMapsUrl: string;
+  lat: number | null;
+  lng: number | null;
   dayOfTheWeek: Weekday;
   startTime: string;
   endTime: string;

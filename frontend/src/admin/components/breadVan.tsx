@@ -21,6 +21,7 @@ import {
   SelectInput,
   type RaRecord,
 } from 'react-admin';
+import { CoordinatesInput } from '../common/CoordinatesInput';
 import { ImagePreview } from '../common/ImagePreview';
 import SortableImageInput from '../common/SortableImageInput';
 
@@ -112,6 +113,7 @@ export const BreadVanScheduleCreate = () => (
       
       <TextInput source="address" validate={[required()]} />
       <TextInput source="googleMapsUrl" validate={[required()]} />
+      <CoordinatesInput />
     </SimpleForm>
   </Create>
 );
@@ -133,6 +135,7 @@ export const BreadVanScheduleEdit = () => (
       
       <TextInput source="address" validate={[required()]} />
       <TextInput source="googleMapsUrl" validate={[required()]} />
+      <CoordinatesInput />
     </SimpleForm>
   </Edit>
 );

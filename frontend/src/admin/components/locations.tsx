@@ -8,6 +8,7 @@ import {
   TextField as RATextField,
   required
 } from 'react-admin';
+import { CoordinatesInput } from '../common/CoordinatesInput';
 
 type Weekday = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
 
@@ -43,6 +44,7 @@ export const LocationCreate = () => (
       <TextInput source="address" label="Address" validate={[required()]} />
       <TextInput source="phone" label="Phone" />
       <TextInput source="googleMapsUrl" label="Google Maps URL" validate={[required()]} />
+      <CoordinatesInput />
       <h3 style={{ marginLeft: 16 }}>Opening Hours</h3>
       {weekdayOrder.map((day) => (
         <div key={day} style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 8, marginLeft: 16 }}>
@@ -74,6 +76,7 @@ export const LocationEdit = () => (
       <TextInput source="address" label="Address" validate={[required()]} />
       <TextInput source="phone" label="Phone" />
       <TextInput source="googleMapsUrl" label="Google Maps URL" validate={[required()]} />
+      <CoordinatesInput />
       <h3 style={{ marginLeft: 16 }}>Opening Hours</h3>
       {weekdayOrder.map((day) => (
         <div key={day} style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 0, marginLeft: 16 }}>

@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsObject } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsObject,
+  IsLatitude,
+  IsLongitude,
+} from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateLocationDto {
@@ -15,6 +21,14 @@ export class CreateLocationDto {
 
   @IsString()
   googleMapsUrl: string;
+
+  @IsOptional()
+  @IsLatitude()
+  lat?: number;
+
+  @IsOptional()
+  @IsLongitude()
+  lng?: number;
 
   @IsOptional()
   @IsObject()

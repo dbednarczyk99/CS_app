@@ -229,24 +229,32 @@ async function main() {
       address: 'ul. Wileńska 4, 31-413 Kraków',
       phone: '+48 699 904 702',
       googleMapsUrl: 'https://maps.app.goo.gl/9aptQDq2nb7YSq2N6',
+      lat: 50.0828865,
+      lng: 19.9533542,
     },
     {
       name: 'Piekarnia Rzemieślnicza Chleba Smak',
       address: 'ul. Józefa Chełmońskiego 116, 31-348 Kraków',
       phone: '+48 793 864 282',
       googleMapsUrl: 'https://maps.app.goo.gl/98DExGCTfB3Un9Tp8',
+      lat: 50.0922021,
+      lng: 19.902874,
     },
     {
       name: 'Piekarnia Rzemieślnicza Chleba Smak',
       address: 'ul. Zygmunta Glogera 21, 31-222 Kraków',
       phone: '+48 573 834 870',
       googleMapsUrl: 'https://maps.app.goo.gl/jpN4Q9MyQa1hGZ8j8',
+      lat: 50.1007776,
+      lng: 19.9282251,
     },
     {
       name: 'Piekarnia Rzemieślnicza Chleba Smak',
       address: 'ul. Stańczyka 3A, 30-126 Kraków',
       phone: '+48 571 990 584',
       googleMapsUrl: 'https://maps.app.goo.gl/UPFw44G4KymnWZkL7',
+      lat: 50.0788445,
+      lng: 19.8942342,
     },
   ];
   for (const data of locations) {
@@ -260,28 +268,48 @@ async function main() {
   await prisma.breadVanDescription.deleteMany();
   await prisma.breadVanLocation.deleteMany();
 
+  // Przykładowa trasa – do zastąpienia prawdziwymi przystankami w panelu
   await prisma.breadVanLocation.createMany({
     data: [
       {
-        address: 'Parking przy Lidlu, ul. Handlowa 3',
-        googleMapsUrl: 'https://maps.google.com/?q=Handlowa+3',
+        address: 'Rynek Podgórski, Kraków',
+        googleMapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=50.0442,19.9497',
+        lat: 50.0442,
+        lng: 19.9497,
         dayOfTheWeek: Weekday.MONDAY,
         startTime: '07:00',
         endTime: '10:00',
       },
       {
-        address: 'Osiedle Słoneczne, ul. Słoneczna 15',
-        googleMapsUrl: 'https://maps.google.com/?q=Sloneczna+15',
+        address: 'Plac Na Stawach, Kraków',
+        googleMapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=50.0569,19.9216',
+        lat: 50.0569,
+        lng: 19.9216,
         dayOfTheWeek: Weekday.WEDNESDAY,
         startTime: '15:00',
         endTime: '18:00',
       },
       {
-        address: 'Rynek Miejski – plac główny',
-        googleMapsUrl: 'https://maps.google.com/?q=Rynek+Miasto',
+        address: 'Plac Centralny, Nowa Huta',
+        googleMapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=50.0718,20.0378',
+        lat: 50.0718,
+        lng: 20.0378,
         dayOfTheWeek: Weekday.FRIDAY,
         startTime: '08:00',
         endTime: '11:30',
+      },
+      {
+        address: 'Osiedle Ruczaj, ul. Kobierzyńska, Kraków',
+        googleMapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=50.0306,19.9076',
+        lat: 50.0306,
+        lng: 19.9076,
+        dayOfTheWeek: Weekday.SATURDAY,
+        startTime: '08:00',
+        endTime: '12:00',
       },
     ],
   });

@@ -1,4 +1,6 @@
 import {
+  IsLatitude,
+  IsLongitude,
   IsString,
   IsEnum,
   IsUrl,
@@ -22,6 +24,14 @@ export class CreateBreadVanLocationDto {
   @IsString()
   @IsUrl()
   googleMapsUrl: string;
+
+  @IsOptional()
+  @IsLatitude()
+  lat?: number;
+
+  @IsOptional()
+  @IsLongitude()
+  lng?: number;
 
   // enum z Prisma – MONDAY, TUESDAY, ...
   @IsEnum(Weekday)

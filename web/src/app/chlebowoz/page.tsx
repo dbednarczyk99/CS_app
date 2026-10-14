@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { PageHeader } from '@/components/PageHeader';
 import { SectionHeading } from '@/components/SectionHeading';
+import { StoresMap } from '@/components/StoresMap';
 import { VanSchedule } from '@/components/VanSchedule';
 import { api, orFallback } from '@/lib/api';
 
@@ -41,6 +42,13 @@ export default async function BreadVanPage() {
           </div>
         </div>
       </div>
+
+      {stops.some((s) => s.lat != null) && (
+        <section className="mx-auto max-w-7xl px-5 pb-24 sm:px-8">
+          <h2 className="heading mb-6 text-2xl">Przystanki na mapie</h2>
+          <StoresMap locations={[]} stops={stops} initialFilter="van" />
+        </section>
+      )}
     </>
   );
 }
