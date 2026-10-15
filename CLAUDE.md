@@ -12,11 +12,11 @@ Chleba Smak: the website and admin panel for a bakery. A monorepo with three ind
 
 Code comments and some UI strings are in Polish.
 
-Project goals, scope, planned architecture (public Next.js storefront in `web/`, customer accounts, per-store stock, orders and payments) and roadmap are in [docs/ZALOZENIA.md](docs/ZALOZENIA.md) (in Polish). Read it before planning new features.
+Project goals, scope (bread reservations with pay-on-pickup, no customer accounts), open decisions and roadmap are in [docs/ZALOZENIA.md](docs/ZALOZENIA.md) (in Polish). Read it before planning new features.
 
 ## Commands
 
-Local infrastructure: MySQL 8 on host port **3307** (db `chleba_smak_dev`, user `dev`/`dev`; 3306 is taken by a separate local MySQL service on this machine) and Adminer on :8080.
+Local infrastructure: MySQL 8 on host port **3307** (db `chleba_smak_dev`, user `dev`/`dev`; 3306 is taken by a separate local MySQL service on this machine), Adminer on :8080 and Mailpit (catches all outgoing mail; SMTP :1025, inbox UI http://localhost:8025).
 ```bash
 docker compose up -d
 ```
@@ -52,7 +52,7 @@ npm run lint
 
 ## Environment
 
-- `backend/.env`: `DATABASE_URL` (mysql), optional `PORT`, `JWT_SECRET` (falls back to a dev-only default with a warning), `CORS_ORIGINS` (comma-separated; defaults to :5173 and :3001)
+- `backend/.env`: `DATABASE_URL` (mysql), optional `PORT`, `JWT_SECRET` (falls back to a dev-only default with a warning), `CORS_ORIGINS` (comma-separated; defaults to :5173 and :3001), `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASS`/`MAIL_FROM` (mail is only logged when `SMTP_HOST` is unset), `WEB_URL` (public site URL used in e-mail links)
 - `frontend/.env`: `VITE_API_URL` (defaults to `http://localhost:3000`)
 - `web/.env.local`: `API_URL` (defaults to `http://localhost:3000`; also whitelisted for next/image in [next.config.ts](web/next.config.ts))
 - Google Maps: `web/.env.local` `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` + `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID` (map on /piekarnie and /chlebowoz, [StoresMap.tsx](web/src/components/StoresMap.tsx); Map ID must use the cloud style imported from [docs/mapa-styl.json](docs/mapa-styl.json)); `frontend/.env` `VITE_GOOGLE_MAPS_API_KEY` for the admin "Uzupełnij z adresu" geocoding button. Without a key the site shows a placeholder. `Location` and `BreadVanLocation` have nullable `lat`/`lng`; points without them are not shown on the map
@@ -68,6 +68,14 @@ npm run lint
 - **Image handling:** `POST /upload` ([upload.controller.ts](backend/src/modules/upload/upload.controller.ts)) uses multer to write files to `backend/uploads/` and returns an absolute URL. The files are served statically at `/uploads`. Entities store full image URLs (`imgUrl`) plus an `order` field in their own image tables (`ProductImages`, `ArticleImages`, `BreadVanImages`). When an image is removed or replaced, services call `deleteImageFiles()` from [scripts/imageHandler.ts](backend/src/scripts/imageHandler.ts) to unlink the files from disk.
 - `BreadVanDescription` is a singleton resource (`GET/PATCH /bread-van/description`, no id).
 - The Prisma schema is [backend/prisma/schema.prisma](backend/prisma/schema.prisma); migrations are in `prisma/migrations/`. The seed script uses `tsconfig.seed.json`.
+
+## Reservations
+
+Bread reservations (pay on pickup, no customer accounts) span all three apps:
+- **API** ([backend/src/modules/reservations](backend/src/modules/reservations)): rules live in `reservation-rules.ts` and are computed in Europe/Warsaw time (order and cancel until 18:00 the day before pickup, max 5 days ahead, bakery slots from opening hours, van only on its stop day). Public routes: `GET /reservations/options`, `POST /reservations`, `GET|POST /reservations/cancel/:token`. Admin: list with filters, `PATCH /reservations/:id` (status), `GET /reservations/summary?date=`. Item prices are snapshotted; `Product.isReservable` controls what can be reserved. Static routes are declared before `:id` in the controller.
+- **E-mail:** global `MailService` (nodemailer over SMTP) sends in the background so mail failures never block a reservation. Templates are in `reservation-emails.ts`.
+- **Web:** the basket lives in localStorage ([reservation-cart.tsx](web/src/lib/reservation-cart.tsx)); pages are `/rezerwacja` and `/rezerwacja/anuluj/[token]`. The browser calls Next route handlers under `web/src/app/api/rezerwacje`, which proxy to the API.
+- **Admin:** the `reservations` resource and the `/przygotowanie` custom page (daily preparation summary). The data provider passes list filters to the API as query parameters for this resource.
 
 ## Frontend architecture
 
