@@ -48,7 +48,12 @@ export function StoresMap({
   const [filter, setFilter] = useState<Filter>(initialFilter);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [today, setToday] = useState<Weekday | null>(null);
-  useEffect(() => setToday(weekdayOf(new Date())), []);
+  const [tomorrow, setTomorrow] = useState<Weekday | null>(null);
+  useEffect(() => {
+    const now = new Date();
+    setToday(weekdayOf(now));
+    setTomorrow(weekdayOf(new Date(now.getTime() + 24 * 60 * 60 * 1000)));
+  }, []);
 
   const points = useMemo<Point[]>(() => {
     const result: Point[] = [];
@@ -140,6 +145,7 @@ export function StoresMap({
                   key={point.id}
                   point={point}
                   today={today}
+                  tomorrow={tomorrow}
                   active={point.id === selectedId}
                   onSelect={() => setSelectedId((id) => (id === point.id ? null : point.id))}
                 />
@@ -150,7 +156,7 @@ export function StoresMap({
           <MapPlaceholder />
         )}
 
-        {selected && <DetailsCard point={selected} today={today} onClose={() => setSelectedId(null)} />}
+        {selected && <DetailsCard point={selected} today={today} tomorrow={tomorrow} onClose={() => setSelectedId(null)} />}
       </div>
     </div>
   );
@@ -184,17 +190,20 @@ function PanTo({ point }: { point: Point | null }) {
 function PointMarker({
   point,
   today,
+  tomorrow,
   active,
   onSelect,
 }: {
   point: Point;
   today: Weekday | null;
+  tomorrow: Weekday | null;
   active: boolean;
   onSelect: () => void;
 }) {
   const isStore = point.kind === 'store';
   const vanToday = point.kind === 'van' && point.stop.dayOfTheWeek === today;
-  const dimmed = point.kind === 'van' && today !== null && !vanToday && !active;
+  const vanTomorrow = point.kind === 'van' && point.stop.dayOfTheWeek === tomorrow;
+  const dimmed = point.kind === 'van' && today !== null && !vanToday && !vanTomorrow && !active;
 
   const title = isStore ? splitAddress(point.location.address).street : point.stop.address;
   let subtitle: string;
@@ -202,17 +211,18 @@ function PointMarker({
     const hours = today ? hoursFor(point.location.openingHours, today) : null;
     subtitle = hours ? `Dziś ${hours[0]}–${hours[1]}` : 'Piekarnia';
   } else {
-    subtitle = `${vanToday ? 'Dziś' : dayLabel(point.stop.dayOfTheWeek)} ${point.stop.startTime}–${point.stop.endTime}`;
+    const when = vanToday ? 'Dziś' : vanTomorrow ? 'Jutro' : dayLabel(point.stop.dayOfTheWeek);
+    subtitle = `${when} ${point.stop.startTime}–${point.stop.endTime}`;
   }
 
   return (
     <AdvancedMarker
       position={point}
       onClick={onSelect}
-      zIndex={active ? 1000 : isStore ? 100 : vanToday ? 90 : 10}
+      zIndex={active ? 1000 : isStore ? 100 : vanToday ? 90 : vanTomorrow ? 80 : 10}
       title={`${isStore ? 'Piekarnia' : 'Chlebowóz'}: ${title}`}
     >
-      <div className={`group relative flex flex-col items-center ${dimmed ? 'opacity-60' : ''}`}>
+      <div className={`group relative flex flex-col items-center ${dimmed ? 'opacity-70' : ''}`}>
         {/* podgląd po najechaniu (komputer) */}
         <div className="pointer-events-none absolute bottom-full mb-2 hidden whitespace-nowrap border border-line bg-ink/95 px-3 py-2 text-left shadow-lg group-hover:block">
           <p className="font-display text-[0.6rem] uppercase tracking-[0.25em] text-gold">
@@ -226,17 +236,22 @@ function PointMarker({
           className={`grid place-items-center rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.5)] transition-transform group-hover:scale-110 ${
             active ? 'scale-115' : ''
           } ${
+            // ten sam rozmiar; piekarnia złota, chlebowóz kremowy (dziś / wybrany – ze złotą obwódką)
             isStore
               ? 'size-11 bg-gold text-ink'
-              : `size-9 border-2 bg-ink ${vanToday || active ? 'border-gold text-gold' : 'border-cream/60 text-cream'}`
+              : `size-11 bg-cream text-ink ${vanToday || active ? 'ring-[3px] ring-gold' : ''}`
           }`}
         >
-          {isStore ? <FaBreadSlice size={18} /> : <FaTruck size={14} />}
+          {isStore ? <FaBreadSlice size={18} /> : <FaTruck size={17} />}
         </div>
-        <div className={`-mt-1 size-2 rotate-45 ${isStore ? 'bg-gold' : vanToday || active ? 'bg-gold' : 'bg-cream/60'}`} />
-        {vanToday && (
-          <span className="absolute -right-5 -top-2 bg-gold px-1.5 font-display text-[0.55rem] uppercase tracking-[0.15em] text-ink">
-            Dziś
+        <div className={`-mt-1 size-2 rotate-45 ${isStore || vanToday || active ? 'bg-gold' : 'bg-cream'}`} />
+        {(vanToday || vanTomorrow) && (
+          <span
+            className={`absolute -right-6 -top-2 px-1.5 font-display text-[0.55rem] uppercase tracking-[0.15em] ${
+              vanToday ? 'bg-gold text-ink' : 'border border-cream bg-ink text-cream'
+            }`}
+          >
+            {vanToday ? 'Dziś' : 'Jutro'}
           </span>
         )}
       </div>
@@ -247,10 +262,12 @@ function PointMarker({
 function DetailsCard({
   point,
   today,
+  tomorrow,
   onClose,
 }: {
   point: Point;
   today: Weekday | null;
+  tomorrow: Weekday | null;
   onClose: () => void;
 }) {
   const isStore = point.kind === 'store';
@@ -273,7 +290,7 @@ function DetailsCard({
       {point.kind === 'store' ? (
         <StoreDetails location={point.location} today={today} />
       ) : (
-        <VanDetails stop={point.stop} today={today} />
+        <VanDetails stop={point.stop} today={today} tomorrow={tomorrow} />
       )}
 
       <div className="mt-5 flex gap-2">
@@ -314,8 +331,17 @@ function StoreDetails({ location, today }: { location: Location; today: Weekday 
   );
 }
 
-function VanDetails({ stop, today }: { stop: BreadVanStop; today: Weekday | null }) {
+function VanDetails({
+  stop,
+  today,
+  tomorrow,
+}: {
+  stop: BreadVanStop;
+  today: Weekday | null;
+  tomorrow: Weekday | null;
+}) {
   const isToday = stop.dayOfTheWeek === today;
+  const isTomorrow = stop.dayOfTheWeek === tomorrow;
   return (
     <>
       <p className="eyebrow text-[0.65rem]">Chlebowóz</p>
@@ -324,6 +350,11 @@ function VanDetails({ stop, today }: { stop: BreadVanStop; today: Weekday | null
         {isToday && (
           <span className="bg-gold px-2 py-0.5 font-display text-[0.6rem] uppercase tracking-[0.2em] text-ink">
             Dziś
+          </span>
+        )}
+        {isTomorrow && (
+          <span className="border border-cream px-2 py-0.5 font-display text-[0.6rem] uppercase tracking-[0.2em] text-cream">
+            Jutro
           </span>
         )}
         <span className="text-cream">{dayLabel(stop.dayOfTheWeek)}</span>

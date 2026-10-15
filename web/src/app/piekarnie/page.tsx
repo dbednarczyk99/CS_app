@@ -27,7 +27,7 @@ export default async function LocationsPage() {
       </PageHeader>
 
       <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 md:py-24">
-        <StoresMap locations={locations} stops={stops} />
+        <StoresMap locations={locations} stops={stops} initialFilter="stores" />
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           {locations.map((location, i) => (

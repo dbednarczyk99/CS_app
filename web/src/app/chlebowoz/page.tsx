@@ -11,9 +11,10 @@ export const metadata: Metadata = {
 };
 
 export default async function BreadVanPage() {
-  const [description, stops] = await Promise.all([
+  const [description, stops, locations] = await Promise.all([
     orFallback(api.breadVanDescription(), null),
     orFallback(api.breadVanStops(), []),
+    orFallback(api.locations(), []),
   ]);
 
   return (
@@ -46,7 +47,8 @@ export default async function BreadVanPage() {
       {stops.some((s) => s.lat != null) && (
         <section className="mx-auto max-w-7xl px-5 pb-24 sm:px-8">
           <h2 className="heading mb-6 text-2xl">Przystanki na mapie</h2>
-          <StoresMap locations={[]} stops={stops} initialFilter="van" />
+          {/* ta sama mapa co na /piekarnie – tu domyślnie z filtrem „Chlebowóz” */}
+          <StoresMap locations={locations} stops={stops} initialFilter="van" />
         </section>
       )}
     </>

@@ -8,7 +8,12 @@ import { WEEKDAYS, weekdayOf } from '@/lib/format';
 /** Tygodniowa trasa chlebowozu z wyróżnionym dniem dzisiejszym */
 export function VanSchedule({ stops }: { stops: BreadVanStop[] }) {
   const [today, setToday] = useState<Weekday | null>(null);
-  useEffect(() => setToday(weekdayOf(new Date())), []);
+  const [tomorrow, setTomorrow] = useState<Weekday | null>(null);
+  useEffect(() => {
+    const now = new Date();
+    setToday(weekdayOf(now));
+    setTomorrow(weekdayOf(new Date(now.getTime() + 24 * 60 * 60 * 1000)));
+  }, []);
 
   return (
     <ol className="divide-y divide-line border-y border-line">
@@ -27,6 +32,11 @@ export function VanSchedule({ stops }: { stops: BreadVanStop[] }) {
               {isToday && (
                 <span className="bg-gold px-2 py-0.5 font-display text-[0.6rem] uppercase tracking-[0.2em] text-ink">
                   Dziś
+                </span>
+              )}
+              {tomorrow === day.key && (
+                <span className="border border-cream/70 px-2 py-0.5 font-display text-[0.6rem] uppercase tracking-[0.2em] text-cream">
+                  Jutro
                 </span>
               )}
             </div>
