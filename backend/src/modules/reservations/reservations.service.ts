@@ -8,11 +8,12 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { PickupType, Prisma, ReservationStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { MailService } from '../mail/mail.service';
+import { MailService, type MailMessage } from '../mail/mail.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import {
   reservationCancelledEmail,
   reservationConfirmationEmail,
+  type EmailContext,
 } from './reservation-emails';
 import {
   MAX_ACTIVE_PER_PHONE,
@@ -199,7 +200,10 @@ export class ReservationsService {
       items: { create: items },
     });
 
-    this.mail.send(reservationConfirmationEmail(reservation, this.webUrl()));
+    void this.sendEmail(
+      (ctx) => reservationConfirmationEmail(reservation, ctx),
+      reservation,
+    );
     return this.publicView(reservation);
   }
 
@@ -259,7 +263,10 @@ export class ReservationsService {
       data: { status: ReservationStatus.CANCELLED, cancelledAt: new Date() },
       include: withItems,
     });
-    this.mail.send(reservationCancelledEmail(cancelled));
+    void this.sendEmail(
+      (ctx) => reservationCancelledEmail(cancelled, ctx),
+      cancelled,
+    );
     return this.publicView(cancelled);
   }
 
@@ -412,5 +419,59 @@ export class ReservationsService {
 
   private webUrl() {
     return this.config.get<string>('WEB_URL') ?? 'http://localhost:3001';
+  }
+
+  /** Kontakt i linki do maila: telefon i nawigacja do punktu odbioru, e-mail piekarni, social media */
+  private async emailContext(r: {
+    locationId: string | null;
+    vanStopId: string | null;
+  }): Promise<EmailContext> {
+    const [location, stop, contact, media] = await Promise.all([
+      r.locationId
+        ? this.prisma.location.findUnique({ where: { id: r.locationId } })
+        : null,
+      r.vanStopId
+        ? this.prisma.breadVanLocation.findUnique({
+            where: { id: r.vanStopId },
+          })
+        : null,
+      this.prisma.contactInfo.findFirst({ where: { type: 'EMAIL' } }),
+      this.prisma.media.findMany(),
+    ]);
+    const point = location ?? stop;
+    const navigateUrl =
+      point?.lat != null && point?.lng != null
+        ? `https://www.google.com/maps/dir/?api=1&destination=${point.lat},${point.lng}`
+        : (point?.googleMapsUrl ?? null);
+    const order = [
+      'INSTAGRAM',
+      'FACEBOOK',
+      'TIKTOK',
+      'YOUTUBE',
+      'LINKEDIN',
+      'TWITTER',
+      'PINTEREST',
+    ];
+    return {
+      webUrl: this.webUrl(),
+      pointPhone: location?.phone ?? null,
+      navigateUrl,
+      contactEmail: contact?.value ?? null,
+      social: media
+        .sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name))
+        .map((m) => ({ name: m.name, url: m.url })),
+    };
+  }
+
+  private async sendEmail(
+    build: (ctx: EmailContext) => MailMessage,
+    r: { locationId: string | null; vanStopId: string | null },
+  ) {
+    try {
+      this.mail.send(build(await this.emailContext(r)));
+    } catch (error) {
+      // mail nie może zablokować rezerwacji
+      console.error('Nie udało się przygotować e-maila', error);
+    }
   }
 }

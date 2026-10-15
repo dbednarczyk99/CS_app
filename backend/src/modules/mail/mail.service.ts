@@ -7,6 +7,8 @@ export interface MailMessage {
   subject: string;
   html: string;
   text: string;
+  /** obrazki wbudowane w treść (np. logo), w HTML jako src="cid:<cid>" */
+  attachments?: { filename: string; path: string; cid: string }[];
 }
 
 /**
