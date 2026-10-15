@@ -4,10 +4,12 @@ const API_URL = process.env.API_URL ?? 'http://localhost:3000';
 // Dane odświeżane co 60 s (ISR)
 const REVALIDATE_SECONDS = 60;
 
-async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
-    next: { revalidate: REVALIDATE_SECONDS },
-  });
+async function get<T>(path: string, { fresh = false } = {}): Promise<T> {
+  const res = await fetch(
+    `${API_URL}${path}`,
+    // fresh: dane zależne od bieżącej godziny (np. terminy rezerwacji) – bez cache
+    fresh ? { cache: 'no-store' } : { next: { revalidate: REVALIDATE_SECONDS } },
+  );
   if (!res.ok) {
     throw new Error(`API ${path}: ${res.status}`);
   }
@@ -29,6 +31,7 @@ export interface Product {
   price: number;
   isSeasonal: boolean;
   isActive: boolean;
+  isReservable: boolean;
   images?: Image[]; // brak w odpowiedzi /products/categories
   categoryId: string;
   category?: { id: string; name: string };
@@ -115,7 +118,36 @@ export interface Article {
   tags: { tag: { id: string; name: string } }[];
 }
 
+/** Terminy i punkty odbioru dostępne teraz do rezerwacji (liczone przez API w czasie polskim) */
+export interface ReservationOptions {
+  cutoffHour: number;
+  dates: string[];
+  stores: { id: string; address: string; slots: Record<string, string[]> }[];
+  vanStops: { id: string; address: string; date: string; startTime: string; endTime: string }[];
+}
+
+/** Rezerwacja widoczna dla klienta (potwierdzenie, anulowanie) */
+export interface PublicReservation {
+  number: string;
+  status: 'NEW' | 'READY' | 'PICKED_UP' | 'NO_SHOW' | 'CANCELLED';
+  pickupType: 'STORE' | 'VAN';
+  pickupLabel: string;
+  pickupDate: string;
+  pickupTime: string | null;
+  customerName: string;
+  customerEmail: string;
+  total: string;
+  items: { productName: string; unitPrice: string; quantity: number }[];
+  canCancel: boolean;
+  cancelDeadline: { date: string; hour: string };
+}
+
+export const API_BASE_URL = API_URL;
+
 export const api = {
+  reservationOptions: () => get<ReservationOptions>('/reservations/options', { fresh: true }),
+  reservationByToken: (token: string) =>
+    get<PublicReservation>(`/reservations/cancel/${encodeURIComponent(token)}`, { fresh: true }),
   categories: () => get<Category[]>('/products/categories'),
   products: () => get<Product[]>('/products'),
   product: (id: string) => get<Product | null>(`/products/${encodeURIComponent(id)}`),

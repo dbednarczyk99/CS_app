@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { FaBars, FaXmark } from 'react-icons/fa6';
 import { NAV } from '@/lib/nav';
+import { ReservationButton } from './ReservationButton';
 
 export function Header() {
   const pathname = usePathname();
@@ -69,9 +70,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link href="/oferta" className="btn btn-outline hidden min-h-0 px-5 py-2.5 text-[0.75rem] sm:inline-flex">
-            Nasze wypieki
-          </Link>
+          <ReservationButton />
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}

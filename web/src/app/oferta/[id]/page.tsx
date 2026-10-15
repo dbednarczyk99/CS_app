@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa6';
+import { AddToReservation } from '@/components/AddToReservation';
 import { ProductCard } from '@/components/ProductCard';
 import { api, orFallback } from '@/lib/api';
 import { formatPrice } from '@/lib/format';
@@ -65,12 +66,17 @@ export default async function ProductPage({ params }: Props) {
             <div className="mt-8 h-px bg-line" />
             <p className="mt-8 text-lg leading-relaxed text-cream/90">{product.description}</p>
 
+            <div className="mt-10">
+              <AddToReservation product={product} />
+            </div>
+
             <div className="mt-10 border border-line bg-coal p-6">
-              <p className="heading text-lg">Gdzie kupić?</p>
-              <p className="mt-2 leading-relaxed text-stone">
-                Zapraszamy do naszych piekarni w Krakowie. Zamówienia online z odbiorem w wybranej
-                piekarni – już wkrótce.
-              </p>
+              <p className="heading text-lg">Jak działa rezerwacja?</p>
+              <ul className="mt-3 space-y-2 leading-relaxed text-stone">
+                <li>Odbiór w jednej z naszych piekarni lub z chlebowozu.</li>
+                <li>Rezerwacje przyjmujemy do 18:00 dnia poprzedzającego odbiór, maksymalnie 5 dni do przodu.</li>
+                <li>Płacisz na miejscu, przy odbiorze.</li>
+              </ul>
               <Link href="/piekarnie" className="link-arrow mt-5 inline-flex items-center gap-3 text-[0.75rem]">
                 Nasze piekarnie <FaArrowRight aria-hidden />
               </Link>

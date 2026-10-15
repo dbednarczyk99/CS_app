@@ -45,3 +45,13 @@ export function plural(n: number, [one, few, many]: [string, string, string]) {
   const lastTwo = n % 100;
   return last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14) ? few : many;
 }
+
+/** Data odbioru (YYYY-MM-DD, czas polski) jako „sobota, 17 października” */
+export function formatDay(date: string, style: 'long' | 'short' = 'long') {
+  return new Intl.DateTimeFormat(
+    'pl-PL',
+    style === 'long'
+      ? { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }
+      : { weekday: 'short', day: 'numeric', month: 'numeric', timeZone: 'UTC' },
+  ).format(new Date(`${date}T12:00:00Z`));
+}

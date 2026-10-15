@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Lato, Oswald } from 'next/font/google';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
+import { ReservationCartProvider } from '@/lib/reservation-cart';
 import './globals.css';
 
 const lato = Lato({
@@ -45,9 +46,11 @@ export default function RootLayout({
         >
           Przejdź do treści
         </a>
-        <Header />
-        <main id="tresc">{children}</main>
-        <Footer />
+        <ReservationCartProvider>
+          <Header />
+          <main id="tresc">{children}</main>
+          <Footer />
+        </ReservationCartProvider>
       </body>
     </html>
   );
