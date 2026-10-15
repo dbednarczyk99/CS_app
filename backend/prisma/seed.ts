@@ -292,6 +292,26 @@ async function main() {
         endTime: '18:00',
       },
       {
+        address: 'Plac Inwalidów, Kraków',
+        googleMapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=50.0689,19.9258',
+        lat: 50.0689,
+        lng: 19.9258,
+        dayOfTheWeek: Weekday.TUESDAY,
+        startTime: '07:00',
+        endTime: '10:00',
+      },
+      {
+        address: 'Rondo Mogilskie, Kraków',
+        googleMapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=50.0657,19.9601',
+        lat: 50.0657,
+        lng: 19.9601,
+        dayOfTheWeek: Weekday.THURSDAY,
+        startTime: '14:00',
+        endTime: '17:00',
+      },
+      {
         address: 'Plac Centralny, Nowa Huta',
         googleMapsUrl:
           'https://www.google.com/maps/search/?api=1&query=50.0718,20.0378',
@@ -310,6 +330,16 @@ async function main() {
         dayOfTheWeek: Weekday.SATURDAY,
         startTime: '08:00',
         endTime: '12:00',
+      },
+      {
+        address: 'Błonia – ul. Piastowska, Kraków',
+        googleMapsUrl:
+          'https://www.google.com/maps/search/?api=1&query=50.0612,19.9105',
+        lat: 50.0612,
+        lng: 19.9105,
+        dayOfTheWeek: Weekday.SUNDAY,
+        startTime: '09:00',
+        endTime: '13:00',
       },
     ],
   });
