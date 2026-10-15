@@ -47,19 +47,26 @@ Strona internetowa małej sieci piekarni premium z **systemem rezerwacji pieczyw
 - Klient dostaje **e-mail z potwierdzeniem**: numer rezerwacji, termin i miejsce, produkty, kwota, link do anulowania.
 - **Płatność wyłącznie przy odbiorze.** Ceny są zapamiętywane w rezerwacji w chwili jej złożenia.
 
-### 4.5 Statusy
+### 4.5 Numer rezerwacji
+`KOD-MMDD-NN`, np. **WIL-1017-03**: kod punktu (ustawiany przy piekarni w panelu; chlebowóz = `BUS`), dzień odbioru i kolejny numer w tym punkcie na ten dzień.
+
+### 4.6 Statusy
 `Przyjęta → Gotowa do odbioru → Odebrana`, a także `Nieodebrana` i `Anulowana` (przez klienta lub piekarnię).
 
-### 4.6 Ochrona przed nadużyciami
+### 4.7 Ochrona przed nadużyciami
 - Ukryte pole-pułapka na boty.
 - Maksymalnie **3 aktywne rezerwacje na numer telefonu**.
 - **[DO ROZWAŻENIA]** Cloudflare Turnstile (darmowa ochrona antyspamowa) oraz blokada numerów osób notorycznie nieodbierających rezerwacji.
 
-### 4.7 Powiadomienia dla piekarni
+### 4.8 Powiadomienia dla piekarni
 - Panel: lista rezerwacji i zestawienie **„Do przygotowania”** (sumy produktów i lista rezerwacji na dzień, z podziałem na punkty, do wydruku).
-- **[DO USTALENIA]** Codzienny **zbiorczy e-mail o 18:30** z zestawieniem na kolejny dzień (o tej porze lista na jutro jest już ostateczna). Opcje dodatkowe: powiadomienia push z panelu (darmowe), SMS (płatne, ok. 0,10–0,17 zł za wiadomość).
+- **Zbiorczy e-mail** z zestawieniem: gotowy (przycisk „Wyślij e-mailem” w panelu). **[DO USTALENIA]** Automatyczna wysyłka codziennie **o 18:30** (`DAILY_SUMMARY_ENABLED=true`) z zestawieniem na kolejny dzień (o tej porze lista na jutro jest już ostateczna). Opcje dodatkowe: powiadomienia push z panelu (darmowe), SMS (płatne, ok. 0,10–0,17 zł za wiadomość).
 
-### 4.8 E-mail
+### 4.9 Przechowywanie danych (RODO)
+- Rezerwacje z odbiorem starszym niż **ok. pół roku** (183 dni, `RESERVATION_RETENTION_DAYS`) są codziennie o 3:00 **usuwane** razem z danymi klientów.
+- Okres trzeba wpisać do polityki prywatności.
+
+### 4.10 E-mail
 - Lokalnie: Mailpit (podgląd na http://localhost:8025).
 - Produkcja: dostawca SMTP, np. **Resend** (darmowy do 3000 maili miesięcznie), wysyłka z domeny `@chlebasmak.pl`.
 

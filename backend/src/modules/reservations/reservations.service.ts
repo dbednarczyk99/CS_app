@@ -15,10 +15,15 @@ import {
   reservationConfirmationEmail,
   type EmailContext,
 } from './reservation-emails';
+import { dailySummaryEmail } from './summary-email';
 import {
   MAX_ACTIVE_PER_PHONE,
   allowedPickupDates,
+  VAN_CODE,
+  addDays,
   canCancel,
+  codeFromAddress,
+  numberPrefix,
   cancelDeadline,
   isValidDateString,
   normalizePhone,
@@ -28,7 +33,6 @@ import {
   weekdayOf,
 } from './reservation-rules';
 
-const NUMBER_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const ACTIVE: ReservationStatus[] = [
   ReservationStatus.NEW,
   ReservationStatus.READY,
@@ -207,11 +211,34 @@ export class ReservationsService {
     return this.publicView(reservation);
   }
 
+  /**
+   * Numer KOD-MMDD-NN, np. WIL-1017-03: kod punktu, dzień odbioru, kolejna rezerwacja
+   * w tym punkcie na ten dzień. Przy równoczesnych rezerwacjach unikalność (data + numer)
+   * pilnuje baza – wtedy bierzemy kolejny numer.
+   */
   private async createWithUniqueNumber(
     data: Omit<Prisma.ReservationUncheckedCreateInput, 'number'>,
   ) {
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const number = `CS-${Array.from(randomBytes(6), (b) => NUMBER_ALPHABET[b % NUMBER_ALPHABET.length]).join('')}`;
+    let code = VAN_CODE;
+    if (data.pickupType === PickupType.STORE && data.locationId) {
+      const location = await this.prisma.location.findUnique({
+        where: { id: data.locationId },
+        select: { code: true, address: true },
+      });
+      code = location?.code || codeFromAddress(location?.address ?? '');
+    }
+    const prefix = numberPrefix(code, data.pickupDate);
+    const existing = await this.prisma.reservation.findMany({
+      where: { pickupDate: data.pickupDate, number: { startsWith: prefix } },
+      select: { number: true },
+    });
+    const last = Math.max(
+      0,
+      ...existing.map((r) => Number(r.number.slice(prefix.length)) || 0),
+    );
+
+    for (let attempt = 1; attempt <= 5; attempt++) {
+      const number = `${prefix}${String(last + attempt).padStart(2, '0')}`;
       try {
         return await this.prisma.reservation.create({
           data: { ...data, number },
@@ -415,6 +442,47 @@ export class ReservationsService {
         )
         .map((p) => ({ ...p, products: toList(p.products) })),
     };
+  }
+
+  /** Mail z zestawieniem na dany dzień (domyślnie na adres SUMMARY_EMAIL, potem e-mail kontaktowy) */
+  async sendDailySummary(date: string, to?: string) {
+    const recipient =
+      to ||
+      this.config.get<string>('SUMMARY_EMAIL') ||
+      (await this.prisma.contactInfo.findFirst({ where: { type: 'EMAIL' } }))
+        ?.value;
+    if (!recipient)
+      throw new BadRequestException('Brak adresu odbiorcy (SUMMARY_EMAIL)');
+    const summary = await this.summary(date);
+    const adminUrl =
+      this.config.get<string>('ADMIN_URL') ??
+      'http://localhost:5173/#/przygotowanie';
+    this.mail.send(dailySummaryEmail(summary, recipient, adminUrl));
+    return {
+      sentTo: recipient,
+      date,
+      reservationsCount: summary.reservationsCount,
+    };
+  }
+
+  /**
+   * Retencja danych (RODO): usuwa rezerwacje z odbiorem starszym niż RESERVATION_RETENTION_DAYS
+   * (domyślnie 183 dni ≈ pół roku) – razem z danymi klientów i pozycjami.
+   */
+  async purgeOld(
+    retentionDays = Number(
+      this.config.get<string>('RESERVATION_RETENTION_DAYS') ?? 183,
+    ),
+  ) {
+    const days =
+      Number.isFinite(retentionDays) && retentionDays >= 30
+        ? retentionDays
+        : 183;
+    const cutoff = addDays(warsawNow().date, -days);
+    const { count } = await this.prisma.reservation.deleteMany({
+      where: { pickupDate: { lt: cutoff } },
+    });
+    return { deleted: count, olderThan: cutoff, retentionDays: days };
   }
 
   private webUrl() {

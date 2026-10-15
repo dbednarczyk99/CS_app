@@ -75,6 +75,8 @@ model Location {
   name          String?
   address       String
   phone         String?
+  // skrót do numerów rezerwacji, np. WIL → WIL-1017-03
+  code          String?       @unique @db.VarChar(6)
   googleMapsUrl String
   // współrzędne do mapy na stronie
   lat           Float?
@@ -236,7 +238,8 @@ enum ReservationStatus {
 
 model Reservation {
   id     String            @id @default(uuid())
-  number String            @unique @db.VarChar(16)
+  // KOD-MMDD-NN, np. WIL-1017-03 (unikalny w ramach daty odbioru)
+  number String            @db.VarChar(20)
   status ReservationStatus @default(NEW)
 
   pickupType  PickupType
@@ -263,6 +266,8 @@ model Reservation {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([pickupDate, number])
+  @@index([number])
   @@index([pickupDate, status])
   @@index([customerPhone])
 }

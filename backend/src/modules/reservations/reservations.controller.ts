@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { Public, Roles, RESERVATION_ROLES } from '../auth/auth.decorators';
 import { CreateReservationDto } from './dto/create-reservation.dto';
+import { SendSummaryDto } from './dto/send-summary.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
 import { ReservationsService } from './reservations.service';
 
@@ -44,6 +45,11 @@ export class ReservationsController {
   }
 
   /* --- panel admina --- */
+
+  @Post('summary/send')
+  sendSummary(@Body() dto: SendSummaryDto) {
+    return this.service.sendDailySummary(dto.date, dto.to);
+  }
 
   @Get('summary')
   summary(@Query('date') date: string) {

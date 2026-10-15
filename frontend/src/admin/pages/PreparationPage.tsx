@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Title } from 'react-admin';
+import { Title, useNotify } from 'react-admin';
 import {
   Alert,
   Box,
@@ -17,6 +17,7 @@ import {
   Typography,
 } from '@mui/material';
 import PrintIcon from '@mui/icons-material/Print';
+import MailIcon from '@mui/icons-material/Mail';
 import { formatDay, formatPhone } from '../common/reservation-utils';
 import { StatusChip, type Reservation } from '../components/reservations';
 
@@ -48,6 +49,30 @@ export default function PreparationPage() {
   const [date, setDate] = useState(tomorrow);
   // wynik dla konkretnego dnia – „ładowanie” = brak wyniku dla bieżącej daty
   const [result, setResult] = useState<{ date: string; summary?: Summary; error?: string } | null>(null);
+  const [sending, setSending] = useState(false);
+  const notify = useNotify();
+
+  // ten sam mail, który (po włączeniu) wychodzi automatycznie o 18:30
+  const sendEmail = async () => {
+    setSending(true);
+    try {
+      const res = await fetch(`${apiUrl}/reservations/summary/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token') ?? ''}`,
+        },
+        body: JSON.stringify({ date }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body?.message ?? 'Nie udało się wysłać');
+      notify(`Wysłano zestawienie na ${body.sentTo}`, { type: 'success' });
+    } catch (e) {
+      notify((e as Error).message, { type: 'error' });
+    } finally {
+      setSending(false);
+    }
+  };
   const loading = result?.date !== date;
   const summary = result?.date === date ? result.summary : undefined;
   const error = result?.date === date ? result.error : undefined;
@@ -82,6 +107,9 @@ export default function PreparationPage() {
         />
         <Button variant="outlined" startIcon={<PrintIcon />} onClick={() => window.print()}>
           Drukuj
+        </Button>
+        <Button variant="outlined" startIcon={<MailIcon />} onClick={sendEmail} disabled={sending}>
+          Wyślij e-mailem
         </Button>
         {loading && <CircularProgress size={20} />}
       </Stack>

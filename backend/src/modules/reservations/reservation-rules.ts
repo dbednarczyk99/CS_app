@@ -137,3 +137,30 @@ export function formatPhone(normalized: string): string {
   const d = normalized.replace('+48', '');
   return `+48 ${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6)}`;
 }
+
+/** Kod punktu z adresu, gdy nie ustawiono go w panelu: „ul. Józefa Chełmońskiego 116, …” → CHE */
+export function codeFromAddress(address: string): string {
+  const street = address
+    .split(',')[0]
+    .replace(/^\s*(ul\.|al\.|pl\.|os\.)\s*/i, '');
+  const words = street
+    .split(/\s+/)
+    .filter((w) => /\p{L}/u.test(w) && !/\d/.test(w));
+  const name = (words.at(-1) ?? 'PKT')
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/ł/gi, 'L');
+  return (
+    name
+      .replace(/[^A-Za-z]/g, '')
+      .slice(0, 3)
+      .toUpperCase() || 'PKT'
+  );
+}
+
+export const VAN_CODE = 'BUS';
+
+/** Początek numeru rezerwacji: KOD-MMDD- (np. WIL-1017-) */
+export function numberPrefix(code: string, pickupDate: string): string {
+  return `${code}-${pickupDate.slice(5, 7)}${pickupDate.slice(8, 10)}-`;
+}

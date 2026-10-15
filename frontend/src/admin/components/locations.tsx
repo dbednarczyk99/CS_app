@@ -32,6 +32,7 @@ export const LocationList = () => (
       <RATextField source="name" />
       <RATextField source="address" />
       <RATextField source="phone" />
+      <RATextField source="code" label="Kod" />
       <RATextField source="googleMapsUrl" />
     </Datagrid>
   </List>
@@ -43,6 +44,7 @@ export const LocationCreate = () => (
       <TextInput source="name" label="Name" />
       <TextInput source="address" label="Address" validate={[required()]} />
       <TextInput source="phone" label="Phone" />
+      <TextInput source="code" label="Kod do numerów rezerwacji (np. WIL)" helperText="2–6 liter; puste = z nazwy ulicy" />
       <TextInput source="googleMapsUrl" label="Google Maps URL" validate={[required()]} />
       <CoordinatesInput />
       <h3 style={{ marginLeft: 16 }}>Opening Hours</h3>
@@ -75,6 +77,7 @@ export const LocationEdit = () => (
       <TextInput source="name" label="Name" />
       <TextInput source="address" label="Address" validate={[required()]} />
       <TextInput source="phone" label="Phone" />
+      <TextInput source="code" label="Kod do numerów rezerwacji (np. WIL)" helperText="2–6 liter; puste = z nazwy ulicy" />
       <TextInput source="googleMapsUrl" label="Google Maps URL" validate={[required()]} />
       <CoordinatesInput />
       <h3 style={{ marginLeft: 16 }}>Opening Hours</h3>

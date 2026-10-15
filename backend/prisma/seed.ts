@@ -234,6 +234,7 @@ async function main() {
     {
       name: 'Piekarnia Rzemieślnicza Chleba Smak',
       address: 'ul. Wileńska 4, 31-413 Kraków',
+      code: 'WIL',
       phone: '+48 699 904 702',
       googleMapsUrl: 'https://maps.app.goo.gl/9aptQDq2nb7YSq2N6',
       lat: 50.0828865,
@@ -242,6 +243,7 @@ async function main() {
     {
       name: 'Piekarnia Rzemieślnicza Chleba Smak',
       address: 'ul. Józefa Chełmońskiego 116, 31-348 Kraków',
+      code: 'CHE',
       phone: '+48 793 864 282',
       googleMapsUrl: 'https://maps.app.goo.gl/98DExGCTfB3Un9Tp8',
       lat: 50.0922021,
@@ -250,6 +252,7 @@ async function main() {
     {
       name: 'Piekarnia Rzemieślnicza Chleba Smak',
       address: 'ul. Zygmunta Glogera 21, 31-222 Kraków',
+      code: 'GLO',
       phone: '+48 573 834 870',
       googleMapsUrl: 'https://maps.app.goo.gl/jpN4Q9MyQa1hGZ8j8',
       lat: 50.1007776,
@@ -258,6 +261,7 @@ async function main() {
     {
       name: 'Piekarnia Rzemieślnicza Chleba Smak',
       address: 'ul. Stańczyka 3A, 30-126 Kraków',
+      code: 'STA',
       phone: '+48 571 990 584',
       googleMapsUrl: 'https://maps.app.goo.gl/UPFw44G4KymnWZkL7',
       lat: 50.0788445,
@@ -601,6 +605,8 @@ async function main() {
     },
   ];
 
+  // numery jak w aplikacji: KOD-MMDD-NN
+  const perPrefix = new Map<string, number>();
   for (const [i, s] of sample.entries()) {
     const pickupDate = inDays(s.day);
     const stop = s.van
@@ -612,6 +618,12 @@ async function main() {
       : undefined;
     const store = s.store !== undefined ? stores[s.store] : undefined;
     if (s.van && !stop) continue;
+    const nextNumber = (code: string, date: string) => {
+      const prefix = `${code}-${date.slice(5, 7)}${date.slice(8, 10)}-`;
+      const n = (perPrefix.get(prefix) ?? 0) + 1;
+      perPrefix.set(prefix, n);
+      return `${prefix}${String(n).padStart(2, '0')}`;
+    };
     const items = s.items.map(([name, quantity]) => ({
       productId: byName[name].id,
       productName: name,
@@ -620,7 +632,7 @@ async function main() {
     }));
     await prisma.reservation.create({
       data: {
-        number: `CS-DEMO${String(i + 1).padStart(2, '0')}`,
+        number: nextNumber(stop ? 'BUS' : store!.code!, pickupDate),
         status: s.status ?? 'NEW',
         pickupType: stop ? 'VAN' : 'STORE',
         locationId: store?.id,

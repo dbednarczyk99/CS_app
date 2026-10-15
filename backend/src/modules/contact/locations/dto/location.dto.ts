@@ -4,7 +4,9 @@ import {
   IsObject,
   IsLatitude,
   IsLongitude,
+  Matches,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateLocationDto {
@@ -18,6 +20,16 @@ export class CreateLocationDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  /** skrót do numerów rezerwacji (2–6 liter), np. WIL; puste = z adresu */
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim()
+      ? value.trim().toUpperCase()
+      : null,
+  )
+  @IsOptional()
+  @Matches(/^[A-Z]{2,6}$/, { message: 'Kod: 2–6 liter, np. WIL' })
+  code?: string | null;
 
   @IsString()
   googleMapsUrl: string;
