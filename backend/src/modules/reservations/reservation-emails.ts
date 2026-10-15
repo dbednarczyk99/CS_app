@@ -43,7 +43,8 @@ const C = {
   stone: '#b9b1a4',
   gold: '#c9a36a',
 };
-const HEADING = "'Oswald','Arial Narrow','Helvetica Neue',Arial,sans-serif";
+// Oswald jest wąski – jak na stronie używamy go tylko wielkimi literami z rozstrzeleniem; zamiennik bez „Narrow”
+const HEADING = "'Oswald','Helvetica Neue',Helvetica,Arial,sans-serif";
 const BODY = "'Lato','Helvetica Neue',Helvetica,Arial,sans-serif";
 const LOGO_CID = 'logo@chlebasmak';
 
@@ -86,8 +87,8 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const eyebrow = (text: string) =>
   `<div style="font-family:${HEADING};font-size:11px;letter-spacing:4px;text-transform:uppercase;color:${C.gold}">${esc(text)}</div>`;
 
-const heading = (text: string, size = 26) =>
-  `<h1 style="margin:10px 0 0;font-family:${HEADING};font-weight:500;font-size:${size}px;line-height:1.2;letter-spacing:1px;text-transform:uppercase;color:${C.cream}">${esc(text)}</h1>`;
+const heading = (text: string, size = 30) =>
+  `<h1 style="margin:10px 0 0;font-family:${HEADING};font-weight:500;font-size:${size}px;line-height:1.25;letter-spacing:2px;text-transform:uppercase;color:${C.cream}">${esc(text)}</h1>`;
 
 const paragraph = (html: string, color = C.stone) =>
   `<p style="margin:14px 0 0;font-family:${BODY};font-size:15px;line-height:1.65;color:${color}">${html}</p>`;
@@ -161,7 +162,7 @@ function pickupBlock(r: ReservationForEmail, ctx: EmailContext): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 0">
 <tr><td bgcolor="${C.graphite}" style="background:${C.graphite};border-left:3px solid ${C.gold};padding:20px 22px">
   ${eyebrow('Odbiór')}
-  <div style="margin-top:8px;font-family:${HEADING};font-size:20px;letter-spacing:1px;color:${C.cream}">${esc(when)}</div>
+  <div style="margin-top:8px;font-family:${BODY};font-weight:700;font-size:19px;line-height:1.4;color:${C.cream}">${esc(when)}</div>
   <div style="margin-top:6px;font-family:${BODY};font-size:15px;line-height:1.5;color:${C.stone}">${where}: <span style="color:${C.cream}">${esc(r.pickupLabel)}</span></div>
   ${
     ctx.pointPhone
