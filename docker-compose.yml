@@ -19,5 +19,13 @@ services:
     ports:
       - "8080:8080"
 
+  # Skrzynka testowa: przechwytuje wszystkie maile wysyłane lokalnie (podgląd: http://localhost:8025)
+  mailpit:
+    image: axllent/mailpit:v1.21.0
+    container_name: chleba_smak_mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
 volumes:
   db_data:

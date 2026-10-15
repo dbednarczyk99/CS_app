@@ -15,3 +15,6 @@ export const CONTENT_ROLES: Role[] = [Role.ADMIN, Role.EDITOR];
 
 // Role, które mogą edytować blog i wgrywać zdjęcia
 export const BLOG_ROLES: Role[] = [Role.ADMIN, Role.EDITOR, Role.BLOGGER];
+
+// Role obsługujące rezerwacje w panelu
+export const RESERVATION_ROLES: Role[] = [Role.ADMIN, Role.EDITOR];

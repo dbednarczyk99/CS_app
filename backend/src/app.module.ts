@@ -12,6 +12,8 @@ import { TagsModule } from './modules/blog/tags/tags.module';
 import { BreadVanModule } from './modules/bread-van/bread-van.module';
 import { ContactInfoModule } from './modules/contact/contact-info/contact-info.module';
 import { LocationsModule } from './modules/contact/locations/locations.module';
+import { MailModule } from './modules/mail/mail.module';
+import { ReservationsModule } from './modules/reservations/reservations.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { LocationsModule } from './modules/contact/locations/locations.module';
     BreadVanModule,
     ContactInfoModule,
     LocationsModule,
+    MailModule,
+    ReservationsModule,
   ],
   controllers: [UploadController, DebugController],
 })

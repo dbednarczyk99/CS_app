@@ -38,6 +38,10 @@ export class CreateProductDto {
   @IsBoolean()
   isActive: boolean; // wymagane
 
+  @IsOptional()
+  @IsBoolean()
+  isReservable?: boolean;
+
   @IsUUID()
   categoryId: string;
 

@@ -42,6 +42,7 @@ async function main() {
 
   // --- PRODUCTS & CATEGORIES ---
   // Asortyment na podstawie zdjęć z sesji (zdjęcia w uploads/seed). Ceny są przykładowe.
+  await prisma.reservation.deleteMany();
   await prisma.productImages.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
@@ -215,6 +216,12 @@ async function main() {
       });
     }
   }
+
+  // lody i napoje tylko do wglądu – nie można ich rezerwować online
+  await prisma.product.updateMany({
+    where: { category: { name: 'Lody' } },
+    data: { isReservable: false },
+  });
 
   console.log('✅ Categories & products seeded');
 
@@ -477,6 +484,162 @@ async function main() {
   });
 
   console.log('✅ Articles & tags seeded');
+
+  // --- RESERVATIONS (przykładowe, fikcyjni klienci) ---
+  const warsawToday = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Warsaw',
+  }).format(new Date());
+  const inDays = (n: number) => {
+    const d = new Date(`${warsawToday}T12:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + n);
+    return d.toISOString().slice(0, 10);
+  };
+  const weekdayKeys = [
+    Weekday.SUNDAY,
+    Weekday.MONDAY,
+    Weekday.TUESDAY,
+    Weekday.WEDNESDAY,
+    Weekday.THURSDAY,
+    Weekday.FRIDAY,
+    Weekday.SATURDAY,
+  ];
+  const stores = await prisma.location.findMany({
+    orderBy: { createdAt: 'asc' },
+  });
+  const vanStops = await prisma.breadVanLocation.findMany();
+  const byName = Object.fromEntries(
+    (await prisma.product.findMany()).map((p) => [p.name, p]),
+  );
+
+  const sample: {
+    day: number;
+    store?: number;
+    van?: boolean;
+    time?: string;
+    name: string;
+    phone: string;
+    items: [string, number][];
+    notes?: string;
+    status?: 'NEW' | 'READY';
+  }[] = [
+    {
+      day: 1,
+      store: 0,
+      time: '07:30',
+      name: 'Anna Kowalczyk',
+      phone: '+48500100201',
+      items: [
+        ['Chleb pszenny na zakwasie', 2],
+        ['Jagodzianka', 4],
+      ],
+    },
+    {
+      day: 1,
+      store: 0,
+      time: '09:00',
+      name: 'Piotr Nowicki',
+      phone: '+48500100202',
+      items: [
+        ['Bagietka', 3],
+        ['Chałka', 1],
+      ],
+      notes: 'Proszę o pokrojenie chałki',
+    },
+    {
+      day: 1,
+      store: 1,
+      time: '08:00',
+      name: 'Marta Zielińska',
+      phone: '+48500100203',
+      items: [
+        ['Chleb żytni razowy', 1],
+        ['Drożdżówka z rabarbarem', 6],
+      ],
+    },
+    {
+      day: 1,
+      store: 2,
+      time: '16:30',
+      name: 'Tomasz Wrona',
+      phone: '+48500100204',
+      items: [
+        ['Kanapka na chlebie na zakwasie', 2],
+        ['Ciastko czekoladowe z precelkiem', 2],
+      ],
+    },
+    {
+      day: 1,
+      van: true,
+      name: 'Katarzyna Lis',
+      phone: '+48500100205',
+      items: [
+        ['Chleb rustykalny', 1],
+        ['Ślimak cynamonowy', 3],
+      ],
+    },
+    {
+      day: 2,
+      store: 3,
+      time: '10:00',
+      name: 'Jan Mazur',
+      phone: '+48500100206',
+      items: [
+        ['Faworki', 2],
+        ['Rogal drożdżowy', 4],
+      ],
+    },
+    {
+      day: 2,
+      store: 0,
+      time: '12:30',
+      name: 'Ewa Dąbrowska',
+      phone: '+48500100207',
+      items: [
+        ['Chleb pszenny na zakwasie', 1],
+        ['Muffin', 6],
+      ],
+    },
+  ];
+
+  for (const [i, s] of sample.entries()) {
+    const pickupDate = inDays(s.day);
+    const stop = s.van
+      ? vanStops.find(
+          (v) =>
+            v.dayOfTheWeek ===
+            weekdayKeys[new Date(`${pickupDate}T12:00:00Z`).getUTCDay()],
+        )
+      : undefined;
+    const store = s.store !== undefined ? stores[s.store] : undefined;
+    if (s.van && !stop) continue;
+    const items = s.items.map(([name, quantity]) => ({
+      productId: byName[name].id,
+      productName: name,
+      unitPrice: byName[name].price,
+      quantity,
+    }));
+    await prisma.reservation.create({
+      data: {
+        number: `CS-DEMO${String(i + 1).padStart(2, '0')}`,
+        status: s.status ?? 'NEW',
+        pickupType: stop ? 'VAN' : 'STORE',
+        locationId: store?.id,
+        vanStopId: stop?.id,
+        pickupLabel: stop ? stop.address : store!.address,
+        pickupDate,
+        pickupTime: stop ? `${stop.startTime}–${stop.endTime}` : s.time,
+        customerName: s.name,
+        customerPhone: s.phone,
+        customerEmail: `${s.name.split(' ')[0].toLowerCase()}@example.com`,
+        notes: s.notes,
+        total: items.reduce((sum, it) => sum + it.unitPrice * it.quantity, 0),
+        cancelToken: `demo-token-${i + 1}`,
+        items: { create: items },
+      },
+    });
+  }
+
+  console.log('✅ Reservations seeded');
   console.log('✅ All seed data created');
 }
 

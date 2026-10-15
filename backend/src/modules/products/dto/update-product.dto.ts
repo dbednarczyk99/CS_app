@@ -43,6 +43,10 @@ export class UpdateProductDto {
   @IsOptional()
   isActive?: boolean;
 
+  @IsBoolean()
+  @IsOptional()
+  isReservable?: boolean;
+
   @IsUUID()
   @IsOptional()
   categoryId?: string;

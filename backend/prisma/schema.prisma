@@ -13,7 +13,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 // USER & AUTH 
 enum Role {
   ADMIN
@@ -23,66 +22,68 @@ enum Role {
 }
 
 model User {
-  id          String  @id @default(uuid())
-  role        Role
-  login       String  @unique
-  password    String
+  id       String @id @default(uuid())
+  role     Role
+  login    String @unique
+  password String
 }
-
 
 // PRODUCTS
 model Category {
-  id          String  @id @default(uuid())
-  name        String
-  products    Product[]
+  id       String    @id @default(uuid())
+  name     String
+  products Product[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Product {
-  id          String   @id @default(uuid())
-  name        String
-  description String   @db.Text
-  price       Float
-  isSeasonal  Boolean   @default(false)
-  isActive    Boolean   @default(true)
-  images      ProductImages[]
-  category    Category @relation(fields: [categoryId], references: [id])
-  categoryId  String
+  id               String            @id @default(uuid())
+  name             String
+  description      String            @db.Text
+  price            Float
+  isSeasonal       Boolean           @default(false)
+  isActive         Boolean           @default(true)
+  // czy produkt można zarezerwować online (np. lody i napoje – tylko do wglądu)
+  isReservable     Boolean           @default(true)
+  images           ProductImages[]
+  reservationItems ReservationItem[]
+  category         Category          @relation(fields: [categoryId], references: [id])
+  categoryId       String
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ProductImages {
-  id          String @id @default(uuid())
-  imgUrl      String
-  order       Int
-  product     Product @relation(fields: [productId], references: [id])
-  productId   String
+  id        String   @id @default(uuid())
+  imgUrl    String
+  order     Int
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([productId, order])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 }
-
 
 // CONTACT INFO
 
 model Location {
-  id              String    @id @default(uuid())
-  name            String?
-  address         String
-  phone           String?
-  googleMapsUrl   String
+  id            String        @id @default(uuid())
+  name          String?
+  address       String
+  phone         String?
+  googleMapsUrl String
   // współrzędne do mapy na stronie
-  lat             Float?
-  lng             Float?
-  openingHours    Json?
+  lat           Float?
+  lng           Float?
+  openingHours  Json?
+  reservations  Reservation[]
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum ContactType {
@@ -92,15 +93,14 @@ enum ContactType {
 }
 
 model ContactInfo {
-  id          String @id @default(uuid())
-  type        ContactType
-  label       String?
-  value       String
+  id    String      @id @default(uuid())
+  type  ContactType
+  label String?
+  value String
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-
 
 // BREAD-VAN
 
@@ -108,48 +108,48 @@ enum Weekday {
   MONDAY
   TUESDAY
   WEDNESDAY
-  THURSDAY 
-  FRIDAY 
-  SATURDAY 
-  SUNDAY 
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
 }
 
 model BreadVanLocation {
-  id              String @id @default(uuid())
-  address         String
-  googleMapsUrl   String
-  lat             Float?
-  lng             Float?
-  dayOfTheWeek    Weekday @unique
-  startTime       String
-  endTime         String
+  id            String        @id @default(uuid())
+  address       String
+  googleMapsUrl String
+  lat           Float?
+  lng           Float?
+  dayOfTheWeek  Weekday       @unique
+  reservations  Reservation[]
+  startTime     String
+  endTime       String
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model BreadVanDescription {
-  id               String @id @default("singleton")
+  id               String           @id @default("singleton")
   shortDescription String
-  longDescription  String @db.VarChar(500)
+  longDescription  String           @db.VarChar(500)
   images           BreadVanImages[]
 
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model BreadVanImages {
-  id                        String @id @default(uuid())
-  imgUrl                    String
-  order                     Int
-  breadVanDescription       BreadVanDescription @relation(fields: [descriptionId], references: [id] )
-  descriptionId             String
+  id                  String              @id @default(uuid())
+  imgUrl              String
+  order               Int
+  breadVanDescription BreadVanDescription @relation(fields: [descriptionId], references: [id])
+  descriptionId       String
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 
   @@unique([descriptionId, order])
-  createdAt                 DateTime @default(now())
-  updatedAt                 DateTime @updatedAt
 }
-
 
 // SOCIAL MEDIA
 
@@ -164,58 +164,117 @@ enum MediaName {
 }
 
 model Media {
-  id        String @id @default(uuid())
-  url       String
-  name      MediaName @unique
+  id   String    @id @default(uuid())
+  url  String
+  name MediaName @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
 
 // BLOG
 
 // BLOG
 
 model ArticleImages {
-  id          String @id @default(uuid())
-  imgUrl      String
-  order       Int
-  article     Article @relation(fields: [articleId], references: [id])
-  articleId   String
+  id        String   @id @default(uuid())
+  imgUrl    String
+  order     Int
+  article   Article  @relation(fields: [articleId], references: [id])
+  articleId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([articleId, order])  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  @@unique([articleId, order])
 }
 
 model Article {
-  id                String  @id @default(uuid())
-  title             String
-  shortDescription  String  @db.VarChar(500)
-  content           String  @db.Text
-  images            ArticleImages[]
-  tags              TagOnArticle[]
+  id               String          @id @default(uuid())
+  title            String
+  shortDescription String          @db.VarChar(500)
+  content          String          @db.Text
+  images           ArticleImages[]
+  tags             TagOnArticle[]
 
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ArticleTag {
-  id          String @id @default(uuid())
-  name        String @unique
-  articles    TagOnArticle[]
+  id       String         @id @default(uuid())
+  name     String         @unique
+  articles TagOnArticle[]
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model TagOnArticle {
-  article       Article @relation(fields: [articleId], references: [id])
-  articleId     String
+  article   Article @relation(fields: [articleId], references: [id])
+  articleId String
 
-  tag           ArticleTag @relation(fields: [tagId], references: [id])
-  tagId         String
-  
+  tag   ArticleTag @relation(fields: [tagId], references: [id])
+  tagId String
+
   @@id([articleId, tagId])
+}
+
+// RESERVATIONS – rezerwacje pieczywa z odbiorem i płatnością na miejscu
+
+enum PickupType {
+  STORE
+  VAN
+}
+
+enum ReservationStatus {
+  NEW // przyjęta
+  READY // przygotowana do odbioru
+  PICKED_UP // odebrana
+  NO_SHOW // nieodebrana
+  CANCELLED // anulowana (przez klienta lub piekarnię)
+}
+
+model Reservation {
+  id     String            @id @default(uuid())
+  number String            @unique @db.VarChar(16)
+  status ReservationStatus @default(NEW)
+
+  pickupType  PickupType
+  location    Location?         @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  locationId  String?
+  vanStop     BreadVanLocation? @relation(fields: [vanStopId], references: [id], onDelete: SetNull)
+  vanStopId   String?
+  // kopia adresu na wypadek zmian/usunięcia punktu
+  pickupLabel String
+  // data odbioru YYYY-MM-DD (czas polski) i godzina lub przedział, np. "08:00" / "14:00–17:00"
+  pickupDate  String            @db.VarChar(10)
+  pickupTime  String?           @db.VarChar(20)
+
+  customerName  String  @db.VarChar(100)
+  customerPhone String  @db.VarChar(20)
+  customerEmail String  @db.VarChar(200)
+  notes         String? @db.VarChar(500)
+
+  total       Decimal           @db.Decimal(10, 2)
+  cancelToken String            @unique @db.VarChar(64)
+  cancelledAt DateTime?
+  items       ReservationItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pickupDate, status])
+  @@index([customerPhone])
+}
+
+model ReservationItem {
+  id            String      @id @default(uuid())
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  reservationId String
+  product       Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productId     String?
+  // kopia nazwy i ceny z chwili rezerwacji
+  productName   String
+  unitPrice     Decimal     @db.Decimal(10, 2)
+  quantity      Int
 }
