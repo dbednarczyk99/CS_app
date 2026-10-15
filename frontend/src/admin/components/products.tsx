@@ -26,6 +26,7 @@ export const ProductList = () => (
 
       <BooleanField source="isSeasonal" />
       <BooleanField source="isActive" />
+      <BooleanField source="isReservable" label="Rezerwacja" />
     </Datagrid>
   </List>
 );
@@ -51,6 +52,12 @@ export const ProductCreate = () => (
         validate={[required()]}
       />
 
+      <BooleanInput
+        source="isReservable"
+        label="Można rezerwować online"
+        defaultValue={true}
+      />
+
       <ReferenceInput
         label="Category"
         source="categoryId"
@@ -72,6 +79,7 @@ export const ProductEdit = () => (
       <TextInput source="description" validate={[required()]} />
       <BooleanInput source="isSeasonal" label="Is it Seasonal?" />
       <BooleanInput source="isActive" label="Is it Active?" />
+      <BooleanInput source="isReservable" label="Można rezerwować online" />
 
       <ReferenceInput
         label="Category"

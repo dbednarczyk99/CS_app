@@ -73,7 +73,18 @@ const preparePayload = async (data: any) => {
 
 export const dataProvider: DataProvider = {
   // LISTA
-  async getList(resource) {
+  async getList(resource, params) {
+    // rezerwacje: filtry po stronie API (status, dzień odbioru, rodzaj punktu, wyszukiwarka)
+    if (resource === 'reservations') {
+      const query = new URLSearchParams();
+      for (const [key, value] of Object.entries(params?.filter ?? {})) {
+        if (value !== undefined && value !== null && value !== '') query.set(key, String(value));
+      }
+      const { json } = await httpClient(`${apiUrl}/reservations?${query}`);
+      const data = json as any[];
+      return { data, total: data.length };
+    }
+
     if (resource === 'locations') {
       const { json } = await httpClient(`${apiUrl}/contact/locations`);
 

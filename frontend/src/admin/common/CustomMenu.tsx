@@ -13,6 +13,8 @@ import HelpIcon from '@mui/icons-material/Help';
 import ImageIcon from '@mui/icons-material/Image';
 import UsersIcon from '@mui/icons-material/Group';
 import EditCalendarIcon from '@mui/icons-material/EditCalendar';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import ChecklistIcon from '@mui/icons-material/Checklist';
 
 export const CustomMenu = () => {
   const [open] = useSidebarState();
@@ -28,6 +30,25 @@ export const CustomMenu = () => {
         to="/help"
         primaryText="Help"
         leftIcon={<HelpIcon />}
+      />
+
+      {open && <Divider sx={{ my: 1 }} />}
+      {open && (
+        <Box sx={{ px: 2, pt: 1, pb: 0.5 }}>
+          <Typography variant="subtitle2" color="text.secondary">
+            Rezerwacje
+          </Typography>
+        </Box>
+      )}
+      <Menu.Item
+        to="/reservations"
+        primaryText="Rezerwacje"
+        leftIcon={<ReceiptLongIcon />}
+      />
+      <Menu.Item
+        to="/przygotowanie"
+        primaryText="Do przygotowania"
+        leftIcon={<ChecklistIcon />}
       />
 
       {open && <Divider sx={{ my: 1 }} />}

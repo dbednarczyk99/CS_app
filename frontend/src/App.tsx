@@ -25,6 +25,8 @@ import {
 
 import HomePage from './admin/pages/HomePage';
 import HelpPage from './admin/pages/HelpPage';
+import PreparationPage from './admin/pages/PreparationPage';
+import { ReservationEdit, ReservationList } from './admin/components/reservations';
 import { CustomMenu } from './admin/common/CustomMenu';
 import { BlogCreate, BlogEdit, BlogList } from './admin/components/blog';
 
@@ -35,7 +37,14 @@ function App() {
     <Admin dashboard={HomePage} dataProvider={dataProvider} authProvider={authProvider} layout={MyLayout}>
       <CustomRoutes>
         <Route path="/help" element={<HelpPage />} />
+        <Route path="/przygotowanie" element={<PreparationPage />} />
       </CustomRoutes>
+      <Resource
+        name="reservations"
+        options={{ label: 'Rezerwacje' }}
+        list={ReservationList}
+        edit={ReservationEdit}
+      />
       <Resource
         name="products"
         list={ProductList}
