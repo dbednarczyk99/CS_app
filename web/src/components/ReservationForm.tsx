@@ -95,7 +95,7 @@ export function ReservationForm({
     name.trim().length < 2 && 'imię',
     phoneDigits.length !== 9 && 'telefon (9 cyfr)',
     !/^\S+@\S+\.\S+$/.test(email) && 'e-mail',
-    !consent && 'zgoda',
+    !consent && 'akceptacja regulaminu',
   ].filter(Boolean) as string[];
 
   async function submit(event: React.FormEvent) {
@@ -325,8 +325,17 @@ export function ReservationForm({
         {/* 3. DANE */}
         <Step number={3} title="Twoje dane">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Label text="Imię i nazwisko" htmlFor="name">
-              <input id="name" className={field} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required />
+            <Label text="Imię" htmlFor="name">
+              <input
+                id="name"
+                className={field}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoComplete="given-name"
+                maxLength={50}
+                placeholder="Zawołamy Cię przy odbiorze"
+                required
+              />
             </Label>
             <Label text="Telefon" htmlFor="phone">
               <input
@@ -378,8 +387,15 @@ export function ReservationForm({
               className="mt-1 size-4 shrink-0 accent-gold"
             />
             <span>
-              Wyrażam zgodę na przetwarzanie moich danych (imię, telefon, e-mail) przez Chleba Smak w celu realizacji
-              rezerwacji i kontaktu w jej sprawie.
+              Akceptuję{' '}
+              <a href="/regulamin" target="_blank" className="text-gold underline-offset-2 hover:underline">
+                regulamin rezerwacji
+              </a>{' '}
+              i zapoznałem/-am się z{' '}
+              <a href="/polityka-prywatnosci" target="_blank" className="text-gold underline-offset-2 hover:underline">
+                polityką prywatności
+              </a>
+              .
             </span>
           </label>
         </Step>

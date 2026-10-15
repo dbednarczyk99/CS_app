@@ -13,6 +13,10 @@ import {
   useRecordContext,
   TopToolbar,
   ListButton,
+  Button,
+  Confirm,
+  useNotify,
+  useRefresh,
   type RaRecord,
 } from 'react-admin';
 import {
@@ -23,6 +27,8 @@ import {
   statusChoices,
   type ReservationStatus,
 } from '../common/reservation-utils';
+import { useState } from 'react';
+import PersonOffIcon from '@mui/icons-material/PersonOff';
 import { Box, Chip, Divider, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 
 export interface Reservation extends RaRecord {
@@ -38,6 +44,7 @@ export interface Reservation extends RaRecord {
   notes: string | null;
   total: string;
   createdAt: string;
+  anonymizedAt: string | null;
   items: { id: string; productName: string; unitPrice: string; quantity: number }[];
 }
 
@@ -187,8 +194,56 @@ const ReservationDetails = () => {
   );
 };
 
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+/** Usunięcie danych klienta na jego żądanie (RODO, art. 17) – produkty i daty zostają do statystyk */
+const AnonymizeButton = () => {
+  const record = useRecordContext<Reservation>();
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const notify = useNotify();
+  const refresh = useRefresh();
+  if (!record || record.anonymizedAt) return null;
+
+  const run = async () => {
+    setBusy(true);
+    try {
+      const res = await fetch(`${apiUrl}/reservations/${record.id}/anonymize`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token') ?? ''}` },
+      });
+      if (!res.ok) throw new Error('Nie udało się usunąć danych');
+      notify('Dane klienta zostały usunięte', { type: 'success' });
+      refresh();
+    } catch (e) {
+      notify((e as Error).message, { type: 'error' });
+    } finally {
+      setBusy(false);
+      setOpen(false);
+    }
+  };
+
+  return (
+    <>
+      <Button label="Usuń dane klienta" onClick={() => setOpen(true)} color="error">
+        <PersonOffIcon />
+      </Button>
+      <Confirm
+        isOpen={open}
+        loading={busy}
+        title="Usunąć dane klienta?"
+        content="Imię, telefon, e-mail i uwagi zostaną trwale usunięte. Produkty, termin i punkt odbioru zostaną (bez danych osobowych). Tej operacji nie można cofnąć."
+        confirm="Usuń dane"
+        onConfirm={run}
+        onClose={() => setOpen(false)}
+      />
+    </>
+  );
+};
+
 const EditActions = () => (
   <TopToolbar>
+    <AnonymizeButton />
     <ListButton label="Lista rezerwacji" />
   </TopToolbar>
 );

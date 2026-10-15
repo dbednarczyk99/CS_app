@@ -82,9 +82,17 @@ export async function Footer() {
       </div>
 
       <div className="border-t border-line">
-        <p className="mx-auto max-w-7xl px-5 py-6 text-xs tracking-wide text-stone sm:px-8">
-          © {new Date().getFullYear()} Chleba Smak · Piekarnia Rzemieślnicza · Kraków
-        </p>
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 py-6 text-xs tracking-wide text-stone sm:px-8">
+          <p>© {new Date().getFullYear()} Chleba Smak · Piekarnia Rzemieślnicza · Kraków</p>
+          <nav aria-label="Dokumenty" className="flex gap-5">
+            <Link href="/regulamin" className="transition-colors hover:text-gold">
+              Regulamin rezerwacji
+            </Link>
+            <Link href="/polityka-prywatnosci" className="transition-colors hover:text-gold">
+              Polityka prywatności
+            </Link>
+          </nav>
+        </div>
       </div>
     </footer>
   );

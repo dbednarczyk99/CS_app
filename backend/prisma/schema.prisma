@@ -258,10 +258,12 @@ model Reservation {
   customerEmail String  @db.VarChar(200)
   notes         String? @db.VarChar(500)
 
-  total       Decimal           @db.Decimal(10, 2)
-  cancelToken String            @unique @db.VarChar(64)
-  cancelledAt DateTime?
-  items       ReservationItem[]
+  total        Decimal           @db.Decimal(10, 2)
+  cancelToken  String            @unique @db.VarChar(64)
+  cancelledAt  DateTime?
+  // dane klienta usunięte (po okresie przechowywania lub na żądanie) – zostają produkty, daty, punkt
+  anonymizedAt DateTime?
+  items        ReservationItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

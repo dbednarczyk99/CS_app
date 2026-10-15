@@ -457,7 +457,9 @@ export class ReservationsService {
     const adminUrl =
       this.config.get<string>('ADMIN_URL') ??
       'http://localhost:5173/#/przygotowanie';
-    this.mail.send(dailySummaryEmail(summary, recipient, adminUrl));
+    this.mail.send(
+      dailySummaryEmail(summary, recipient, adminUrl, this.webUrl()),
+    );
     return {
       sentTo: recipient,
       date,
@@ -466,10 +468,11 @@ export class ReservationsService {
   }
 
   /**
-   * Retencja danych (RODO): usuwa rezerwacje z odbiorem starszym niż RESERVATION_RETENTION_DAYS
-   * (domyślnie 183 dni ≈ pół roku) – razem z danymi klientów i pozycjami.
+   * Retencja danych (RODO): anonimizuje rezerwacje z odbiorem starszym niż RESERVATION_RETENTION_DAYS
+   * (domyślnie 183 dni ≈ pół roku). Znikają dane klienta; produkty, ilości, daty i punkt zostają
+   * do statystyk sprzedaży (bez danych osobowych nie podlegają RODO).
    */
-  async purgeOld(
+  async anonymizeOld(
     retentionDays = Number(
       this.config.get<string>('RESERVATION_RETENTION_DAYS') ?? 183,
     ),
@@ -479,10 +482,30 @@ export class ReservationsService {
         ? retentionDays
         : 183;
     const cutoff = addDays(warsawNow().date, -days);
-    const { count } = await this.prisma.reservation.deleteMany({
-      where: { pickupDate: { lt: cutoff } },
+    const old = await this.prisma.reservation.findMany({
+      where: { pickupDate: { lt: cutoff }, anonymizedAt: null },
+      select: { id: true },
     });
-    return { deleted: count, olderThan: cutoff, retentionDays: days };
+    for (const { id } of old) await this.anonymize(id);
+    return { anonymized: old.length, olderThan: cutoff, retentionDays: days };
+  }
+
+  /** Usunięcie danych klienta z rezerwacji (po okresie przechowywania lub na żądanie – art. 17 RODO) */
+  async anonymize(id: string) {
+    await this.findOne(id);
+    return this.prisma.reservation.update({
+      where: { id },
+      data: {
+        customerName: 'Dane usunięte',
+        customerPhone: '',
+        customerEmail: '',
+        notes: null,
+        // stary link do anulowania przestaje działać
+        cancelToken: `anon-${randomBytes(24).toString('hex')}`,
+        anonymizedAt: new Date(),
+      },
+      include: withItems,
+    });
   }
 
   private webUrl() {

@@ -71,6 +71,12 @@ export class ReservationsController {
     return this.service.findOne(id);
   }
 
+  /** usunięcie danych klienta na jego żądanie (RODO) */
+  @Post(':id/anonymize')
+  anonymize(@Param('id') id: string) {
+    return this.service.anonymize(id);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateReservationDto) {
     return this.service.updateStatus(id, dto.status);

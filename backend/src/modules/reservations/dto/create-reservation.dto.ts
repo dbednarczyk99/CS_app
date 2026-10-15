@@ -44,9 +44,10 @@ export class CreateReservationDto {
   @Matches(/^\d{2}:\d{2}$/, { message: 'Nieprawidłowa godzina odbioru' })
   pickupTime?: string;
 
+  /** samo imię – minimalizacja danych (RODO), wystarczy do zawołania klienta przy odbiorze */
   @IsString()
-  @MinLength(2)
-  @MaxLength(100)
+  @MinLength(2, { message: 'Podaj imię' })
+  @MaxLength(50)
   customerName: string;
 
   @IsString()
@@ -62,7 +63,9 @@ export class CreateReservationDto {
   @MaxLength(500)
   notes?: string;
 
-  @Equals(true, { message: 'Wymagana zgoda na przetwarzanie danych' })
+  @Equals(true, {
+    message: 'Wymagana akceptacja regulaminu rezerwacji',
+  })
   consent: boolean;
 
   /** pole-pułapka na boty – ukryte na stronie, musi zostać puste */

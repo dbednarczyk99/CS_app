@@ -1,4 +1,5 @@
 import { join } from 'path';
+import { emailFontFaces } from '../mail/email-fonts';
 import type { MailMessage } from '../mail/mail.service';
 import { cancelDeadline, formatPhone } from './reservation-rules';
 
@@ -124,9 +125,8 @@ function layout(preheader: string, content: string, ctx: EmailContext): string {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
 <meta name="supported-color-schemes" content="dark">
-<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Oswald:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Oswald:wght@400;500&display=swap');
+  ${emailFontFaces(ctx.webUrl)}
   :root { color-scheme: dark; supported-color-schemes: dark; }
   a { color: ${C.gold}; }
   @media (max-width: 620px) { .px { padding-left: 22px !important; padding-right: 22px !important; } }
@@ -149,7 +149,8 @@ ${content}
 <tr><td align="center" style="padding:28px 16px 8px;font-family:${BODY};font-size:13px;line-height:1.8;color:${C.stone}">
   ${links.join('<span style="color:#4d4a45">&nbsp;&nbsp;|&nbsp;&nbsp;</span>')}
   ${social ? `<div style="margin-top:10px">${social}</div>` : ''}
-  <div style="margin-top:16px;font-size:11px;color:#77716a">Chleba Smak · Piekarnia Rzemieślnicza · Kraków<br>Wiadomość wysłana automatycznie – w sprawie rezerwacji skontaktuj się z piekarnią.</div>
+  <div style="margin-top:14px;font-size:12px"><a href="${ctx.webUrl}/regulamin" style="color:${C.stone};text-decoration:underline">Regulamin rezerwacji</a><span style="color:#4d4a45">&nbsp;&nbsp;·&nbsp;&nbsp;</span><a href="${ctx.webUrl}/polityka-prywatnosci" style="color:${C.stone};text-decoration:underline">Polityka prywatności</a></div>
+  <div style="margin-top:12px;font-size:11px;color:#77716a">Chleba Smak · Piekarnia Rzemieślnicza · Kraków<br>Wiadomość wysłana automatycznie – w sprawie rezerwacji skontaktuj się z piekarnią.</div>
 </td></tr>
 
 </table></td></tr></table>

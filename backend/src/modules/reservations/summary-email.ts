@@ -1,4 +1,5 @@
 import { join } from 'path';
+import { emailFontFaces } from '../mail/email-fonts';
 import type { MailMessage } from '../mail/mail.service';
 import { formatPickupDate } from './reservation-emails';
 import { formatPhone } from './reservation-rules';
@@ -94,6 +95,7 @@ ${rows
 export function dailySummaryEmail(
   s: DailySummary,
   to: string,
+  adminUrl: string,
   webUrl: string,
 ): MailMessage {
   const day = capitalize(formatPickupDate(s.date));
@@ -125,7 +127,7 @@ ${points}`;
   const html = `<!doctype html>
 <html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light">
-<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Oswald:wght@400;500&display=swap" rel="stylesheet">
+<style>${emailFontFaces(webUrl)}</style>
 <title>Do przygotowania – ${esc(day)}</title></head>
 <body style="margin:0;padding:0;background:${C.soft}">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="${C.soft}" style="background:${C.soft}">
@@ -144,7 +146,7 @@ ${points}`;
 </td></tr>
 ${body}
 <tr><td style="padding:32px;font-family:${BODY};font-size:12px;line-height:1.6;color:${C.muted}">
-  Płatność przy odbiorze. Szczegóły i zmiana statusów: <a href="${esc(webUrl)}" style="color:${C.gold}">panel administracyjny</a>.<br>
+  Płatność przy odbiorze. Szczegóły i zmiana statusów: <a href="${esc(adminUrl)}" style="color:${C.gold}">panel administracyjny</a>.<br>
   Wiadomość wysłana automatycznie do ${esc(to)}.
 </td></tr>
 </table></td></tr></table></body></html>`;
