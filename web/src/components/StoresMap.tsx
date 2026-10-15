@@ -232,30 +232,54 @@ function PointMarker({
           <p className="text-xs text-stone">{subtitle}</p>
         </div>
 
+        {/* jedna pinezka (SVG) – skaluje się jako całość, od czubka, który wskazuje miejsce */}
         <div
-          className={`grid place-items-center rounded-full shadow-[0_4px_14px_rgba(0,0,0,0.5)] transition-transform group-hover:scale-110 ${
+          className={`relative origin-bottom transition-transform duration-200 ease-out group-hover:scale-110 ${
             active ? 'scale-115' : ''
-          } ${
-            // ten sam rozmiar; piekarnia złota, chlebowóz kremowy (dziś / wybrany – ze złotą obwódką)
-            isStore
-              ? 'size-11 bg-gold text-ink'
-              : `size-11 bg-cream text-ink ${vanToday || active ? 'ring-[3px] ring-gold' : ''}`
           }`}
         >
-          {isStore ? <FaBreadSlice size={18} /> : <FaTruck size={17} />}
-        </div>
-        <div className={`-mt-1 size-2 rotate-45 ${isStore || vanToday || active ? 'bg-gold' : 'bg-cream'}`} />
-        {(vanToday || vanTomorrow) && (
-          <span
-            className={`absolute -right-6 -top-2 px-1.5 font-display text-[0.55rem] uppercase tracking-[0.15em] ${
-              vanToday ? 'bg-gold text-ink' : 'border border-cream bg-ink text-cream'
-            }`}
-          >
-            {vanToday ? 'Dziś' : 'Jutro'}
+          <Pin
+            // piekarnia złota, chlebowóz kremowy; dziś / wybrany przystanek – złota obwódka
+            fill={isStore ? 'var(--color-gold)' : 'var(--color-cream)'}
+            stroke={!isStore && (vanToday || active) ? 'var(--color-gold)' : 'var(--color-ink)'}
+            strokeWidth={!isStore && (vanToday || active) ? 3 : 1.5}
+          />
+          <span className="absolute left-1/2 top-[17px] -translate-x-1/2 -translate-y-1/2 text-ink">
+            {isStore ? <FaBreadSlice size={15} /> : <FaTruck size={14} />}
           </span>
-        )}
+          {(vanToday || vanTomorrow) && (
+            <span
+              className={`absolute -right-7 -top-1 px-1.5 font-display text-[0.55rem] uppercase tracking-[0.15em] ${
+                vanToday ? 'bg-gold text-ink' : 'border border-cream bg-ink text-cream'
+              }`}
+            >
+              {vanToday ? 'Dziś' : 'Jutro'}
+            </span>
+          )}
+        </div>
       </div>
     </AdvancedMarker>
+  );
+}
+
+/** Smukła pinezka w kształcie kropli: okrągła główka (na ikonę) i wydłużony czubek */
+function Pin({ fill, stroke, strokeWidth }: { fill: string; stroke: string; strokeWidth: number }) {
+  return (
+    <svg
+      width="34"
+      height="48"
+      viewBox="0 0 34 48"
+      aria-hidden
+      className="block drop-shadow-[0_4px_6px_rgba(0,0,0,0.55)]"
+    >
+      <path
+        d="M17 46.5C14.6 39.6 3 28.6 3 17A14 14 0 0 1 31 17C31 28.6 19.4 39.6 17 46.5Z"
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={strokeWidth}
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
