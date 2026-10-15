@@ -215,28 +215,46 @@ function PointMarker({
     subtitle = `${when} ${point.stop.startTime}–${point.stop.endTime}`;
   }
 
+  // strona, po której pokazać podgląd: domyślnie z prawej, przy prawej krawędzi mapy – z lewej
+  const [hoverSide, setHoverSide] = useState<'left' | 'right' | null>(null);
+  const hasBadge = vanToday || vanTomorrow;
+
   return (
     <AdvancedMarker
       position={point}
       onClick={onSelect}
-      zIndex={active ? 1000 : isStore ? 100 : vanToday ? 90 : vanTomorrow ? 80 : 10}
+      zIndex={hoverSide ? 2000 : active ? 1000 : isStore ? 100 : vanToday ? 90 : vanTomorrow ? 80 : 10}
       title={`${isStore ? 'Piekarnia' : 'Chlebowóz'}: ${title}`}
     >
-      <div className={`group relative flex flex-col items-center ${dimmed ? 'opacity-70' : ''}`}>
-        {/* podgląd po najechaniu (komputer) */}
-        <div className="pointer-events-none absolute bottom-full mb-2 hidden whitespace-nowrap border border-line bg-ink/95 px-3 py-2 text-left shadow-lg group-hover:block">
-          <p className="font-display text-[0.6rem] uppercase tracking-[0.25em] text-gold">
-            {isStore ? 'Piekarnia' : 'Chlebowóz'}
-          </p>
-          <p className="mt-0.5 text-sm text-cream">{title}</p>
-          <p className="text-xs text-stone">{subtitle}</p>
-        </div>
+      <div
+        className="group relative flex flex-col items-center"
+        onMouseEnter={(event) => {
+          const pin = event.currentTarget.getBoundingClientRect();
+          const map = event.currentTarget.closest('#mapa')?.getBoundingClientRect();
+          setHoverSide(map && pin.right + 280 > map.right ? 'left' : 'right');
+        }}
+        onMouseLeave={() => setHoverSide(null)}
+      >
+        {/* podgląd po najechaniu – obok pinezki, tylko na urządzeniach z kursorem */}
+        {hoverSide && (
+          <div
+            className={`pointer-events-none absolute -top-1 hidden whitespace-nowrap border border-line bg-ink/95 px-3 py-2 text-left shadow-lg [@media(hover:hover)]:block ${
+              hoverSide === 'right' ? `left-full ${hasBadge ? 'ml-10' : 'ml-3'}` : 'right-full mr-3'
+            }`}
+          >
+            <p className="font-display text-[0.6rem] uppercase tracking-[0.25em] text-gold">
+              {isStore ? 'Piekarnia' : 'Chlebowóz'}
+            </p>
+            <p className="mt-0.5 text-sm text-cream">{title}</p>
+            <p className="text-xs text-stone">{subtitle}</p>
+          </div>
+        )}
 
         {/* jedna pinezka (SVG) – skaluje się jako całość, od czubka, który wskazuje miejsce */}
         <div
           className={`relative origin-bottom transition-transform duration-200 ease-out group-hover:scale-110 ${
             active ? 'scale-115' : ''
-          }`}
+          } ${dimmed && !hoverSide ? 'opacity-70' : ''}`}
         >
           <Pin
             // piekarnia złota, chlebowóz kremowy; dziś / wybrany przystanek – złota obwódka
