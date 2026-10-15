@@ -174,7 +174,15 @@ function FitBounds({ points }: { points: Point[] }) {
     }
     const bounds = new google.maps.LatLngBounds();
     points.forEach((p) => bounds.extend(p));
-    map.fitBounds(bounds, 64);
+    // punkt = czubek pinezki; sama pinezka (48 px) i znaczek DZIŚ/JUTRO wystają w górę i w prawo,
+    // więc margines jest większy u góry i z prawej
+    const narrow = (map.getDiv().clientWidth ?? 0) < 640;
+    map.fitBounds(
+      bounds,
+      narrow
+        ? { top: 80, right: 64, bottom: 32, left: 48 }
+        : { top: 100, right: 90, bottom: 40, left: 60 },
+    );
   }, [map, points]);
   return null;
 }
