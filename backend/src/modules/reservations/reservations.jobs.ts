@@ -25,13 +25,13 @@ export class ReservationsJobs {
     );
   }
 
-  /** Codziennie o 3:00 – anonimizacja rezerwacji starszych niż okres przechowywania */
+  /** Codziennie o 3:00 – anonimizacja danych klientów w rezerwacjach złożonych ponad 6 miesięcy temu */
   @Cron('0 3 * * *', { timeZone: 'Europe/Warsaw' })
   async purge() {
     const result = await this.reservations.anonymizeOld();
     if (result.anonymized > 0) {
       this.logger.log(
-        `Zanonimizowano ${result.anonymized} rezerwacji z odbiorem przed ${result.olderThan}`,
+        `Zanonimizowano ${result.anonymized} rezerwacji złożonych przed ${result.createdBefore}`,
       );
     }
   }

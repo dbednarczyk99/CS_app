@@ -6,11 +6,8 @@ import type { PublicReservation } from '@/lib/api';
 import { formatDay, formatPrice } from '@/lib/format';
 
 const STATUS: Record<PublicReservation['status'], string> = {
-  NEW: 'Przyjęta',
-  READY: 'Gotowa do odbioru',
-  PICKED_UP: 'Odebrana',
-  NO_SHOW: 'Nieodebrana',
-  CANCELLED: 'Anulowana',
+  NEW: 'Rezerwacja przyjęta',
+  CANCELLED: 'Rezerwacja anulowana',
 };
 
 export function CancelReservation({ token, initial }: { token: string; initial: PublicReservation }) {

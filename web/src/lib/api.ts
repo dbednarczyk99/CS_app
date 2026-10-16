@@ -129,7 +129,7 @@ export interface ReservationOptions {
 /** Rezerwacja widoczna dla klienta (potwierdzenie, anulowanie) */
 export interface PublicReservation {
   number: string;
-  status: 'NEW' | 'READY' | 'PICKED_UP' | 'NO_SHOW' | 'CANCELLED';
+  status: 'NEW' | 'CANCELLED';
   pickupType: 'STORE' | 'VAN';
   pickupLabel: string;
   pickupDate: string;

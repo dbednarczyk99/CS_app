@@ -25,16 +25,16 @@ Miejsca wymagające uzupełnienia lub decyzji oznaczono w dokumentach jako `[[�
    - rezerwacja na dany dzień możliwa do **18:00 dnia poprzedniego**, najdalej **5 dni do przodu**,
    - w piekarni godzina odbioru w godzinach otwarcia (co 30 min), dla Chlebowozu przedział postoju.
 3. Klient podaje **imię, numer telefonu, adres e-mail**, opcjonalnie uwagi, i zaznacza checkbox: *„Akceptuję regulamin rezerwacji i zapoznałem/-am się z polityką prywatności”*. Nie jest to zgoda w rozumieniu art. 6 ust. 1 lit. a RODO. Podstawą przetwarzania jest art. 6 ust. 1 lit. b.
-4. Serwer weryfikuje zasady (terminy, dostępność produktów, limit **3 aktywnych rezerwacji na jeden numer telefonu**, ukryte pole antyspamowe), nadaje numer (np. `WIL-1017-03`) i zapisuje rezerwację.
+4. Serwer weryfikuje zasady (terminy, dostępność produktów, limit **3 aktywnych rezerwacji na jeden numer telefonu**, ukryte pole antyspamowe), nadaje numer (np. `WIL-261017-03`: kod punktu, data odbioru RRMMDD, kolejny numer) i zapisuje rezerwację.
 5. Klient dostaje **e-mail z potwierdzeniem**: numer, punkt i termin, produkty, ceny, kwota do zapłaty, telefon punktu, link nawigacji, link do anulowania, linki do regulaminu i polityki prywatności. E-mail nie zawiera pikseli śledzących. Czcionki pobierane są z serwera administratora, nie z Google.
 6. **Anulowanie** przez klienta: link z e-maila (unikalny, losowy token), do 18:00 dnia poprzedniego. Potwierdzenie anulowania e-mailem.
-7. Pracownicy widzą rezerwacje w panelu (lista, statusy: przyjęta, gotowa, odebrana, nieodebrana, anulowana) oraz zestawienie „do przygotowania” na dany dzień. Zestawienie może być wysyłane e-mailem na wewnętrzny adres piekarni. Automatyczna wysyłka o 18:30 jest przygotowana, decyzja o włączeniu należy do właściciela.
+7. Pracownicy widzą rezerwacje w panelu (lista tylko do odczytu, statusy: **przyjęta** i **anulowana** – status zmienia wyłącznie klient linkiem z e-maila; obsługa nie edytuje rezerwacji) oraz zestawienie „do przygotowania” na dany dzień. Zestawienie może być wysyłane e-mailem na wewnętrzny adres piekarni. Automatyczna wysyłka o 18:30 jest przygotowana, decyzja o włączeniu należy do właściciela.
 
 ## 3. Inwentaryzacja danych osobowych
 
 | Kategoria | Dane | Skąd | Gdzie przechowywane | Kto ma dostęp | Okres |
 |---|---|---|---|---|---|
-| Rezerwacje | imię, telefon, e-mail, uwagi (opcjonalne), produkty, punkt, termin, status, data złożenia | formularz | baza danych MySQL na serwerze hostingu | upoważnieni pracownicy (panel), wykonawca IT (utrzymanie) | **183 dni od dnia odbioru**, potem automatyczna anonimizacja (usunięcie imienia, telefonu, e-maila, uwag; produkty/daty/punkt zostają do statystyk) |
+| Rezerwacje | imię, telefon, e-mail, uwagi (opcjonalne), produkty, punkt, termin, status, data złożenia | formularz | baza danych MySQL na serwerze hostingu | upoważnieni pracownicy (panel), wykonawca IT (utrzymanie) | **6 miesięcy od złożenia rezerwacji**, potem automatyczna anonimizacja (codziennie o 3:00) (usunięcie imienia, telefonu, e-maila, uwag; produkty/daty/punkt zostają do statystyk) |
 | E-maile transakcyjne | adres e-mail, treść potwierdzenia | system | dostawca wysyłki e-mail | dostawca (podmiot przetwarzający) | wg ustawień dostawcy [[do ustalenia]] |
 | Logi serwera | adres IP, czas, adres podstrony, przeglądarka | automatycznie | serwer hostingu | hosting, wykonawca IT | [[do ustalenia, np. 30 dni]] |
 | Koszyk rezerwacji | identyfikatory i ilości produktów | przeglądarka klienta | localStorage w przeglądarce klienta (nie na serwerze) | tylko klient | do wyczyszczenia przez klienta lub złożenia rezerwacji |
@@ -62,9 +62,9 @@ Dodatkowo:
    - czy alternatywnie nie należy traktować rezerwacji jako umowy zawartej na odległość,
    - czy w takim przypadku wystarczy powołanie wyłączenia z art. 38 ust. 1 pkt 4 ustawy o prawach konsumenta (rzeczy szybko psujące się) i jakie dodatkowe obowiązki informacyjne by z tego wynikały.
 2. **Cena** (regulamin § 6 ust. 2). System zapamiętuje cenę z chwili rezerwacji. Do decyzji: czy jest wiążąca przy odbiorze.
-3. **Nieodebrane rezerwacje** (regulamin § 7 ust. 2–3). Do decyzji: do kiedy rezerwacja czeka i czy oraz na jakich zasadach odmawiać kolejnych rezerwacji osobom notorycznie ich nieodbierającym. Funkcja blokady nie jest jeszcze zaimplementowana i zostanie dodana zgodnie z decyzją.
+3. **Nieodebrane rezerwacje** (regulamin § 7 ust. 2–3). Do decyzji: do kiedy rezerwacja czeka na odbiór. System **nie rejestruje odbioru** (tylko statusy przyjęta/anulowana), więc ewentualna odmowa przyjmowania rezerwacji osobom, które ich nie odbierają, wymagałaby ręcznej weryfikacji przez obsługę. Regulamin § 9: anulowanie przez piekarnię odbywa się telefonicznie lub e-mailowo, a w systemie rezerwacja pozostaje „przyjęta”.
 4. **Podstawa prawna limitu 3 aktywnych rezerwacji na numer telefonu** (prawnie uzasadniony interes, art. 6 ust. 1 lit. f) i ocena, czy nie stanowi to zautomatyzowanego podejmowania decyzji w rozumieniu art. 22 RODO (polityka pkt 8). Założenie: nie, bo nie wywołuje istotnych skutków.
-5. **Okres przechowywania 183 dni** (polityka pkt 6). Czy jest adekwatny wobec terminów reklamacji (rękojmia, niezgodność towaru z umową) i przedawnienia roszczeń, czy należy go wydłużyć albo skrócić. Wartość jest konfigurowalna jednym parametrem.
+5. **Okres przechowywania: 6 miesięcy od złożenia rezerwacji** (polityka pkt 6). Czy jest adekwatny wobec terminów reklamacji (rękojmia, niezgodność towaru z umową) i przedawnienia roszczeń, czy należy go wydłużyć albo skrócić. Wartość jest konfigurowalna jednym parametrem.
 6. **Mapa Google ładowana automatycznie** na podstronach „Piekarnie” i „Chlebowóz”. Wyświetlenie mapy przekazuje adres IP do Google bez uprzedniej akcji użytkownika. Właściciel świadomie zrezygnował z rozwiązania „mapa po kliknięciu”. Prosimy o ocenę ryzyka i właściwej podstawy prawnej (por. wyrok LG München I z 20.01.2022, 3 O 17493/20, dotyczący Google Fonts). Alternatywa techniczna jest łatwa do wdrożenia, gdyby prawnik ją zalecił.
 7. **Rola Google** przy Google Maps Platform i podmiot świadczący usługę dla klientów z EOG.
 8. **Transfery do USA**: weryfikacja certyfikacji Data Privacy Framework wybranego dostawcy e-mail i ewentualnie hostingu.

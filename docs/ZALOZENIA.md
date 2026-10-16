@@ -48,10 +48,10 @@ Strona internetowa małej sieci piekarni premium z **systemem rezerwacji pieczyw
 - **Płatność wyłącznie przy odbiorze.** Ceny są zapamiętywane w rezerwacji w chwili jej złożenia.
 
 ### 4.5 Numer rezerwacji
-`KOD-MMDD-NN`, np. **WIL-1017-03**: kod punktu (ustawiany przy piekarni w panelu; chlebowóz = `BUS`), dzień odbioru i kolejny numer w tym punkcie na ten dzień.
+`KOD-RRMMDD-NN`, np. **WIL-261017-03**: kod punktu (ustawiany przy piekarni w panelu; chlebowóz = `BUS`), data odbioru (rok, miesiąc, dzień) i kolejny numer w tym punkcie na ten dzień. Unikalny także między latami.
 
 ### 4.6 Statusy
-`Przyjęta → Gotowa do odbioru → Odebrana`, a także `Nieodebrana` i `Anulowana` (przez klienta lub piekarnię).
+Tylko dwa, wyłącznie informacyjne: **Rezerwacja przyjęta** i **Rezerwacja anulowana** (anuluje klient linkiem z e-maila). Obsługa nie zmienia statusów w panelu – rezerwacje są tylko do podglądu.
 
 ### 4.7 Ochrona przed nadużyciami
 - Ukryte pole-pułapka na boty.
@@ -63,7 +63,7 @@ Strona internetowa małej sieci piekarni premium z **systemem rezerwacji pieczyw
 - **Zbiorczy e-mail** z zestawieniem: gotowy (przycisk „Wyślij e-mailem” w panelu). **[DO USTALENIA]** Automatyczna wysyłka codziennie **o 18:30** (`DAILY_SUMMARY_ENABLED=true`) z zestawieniem na kolejny dzień (o tej porze lista na jutro jest już ostateczna). Opcje dodatkowe: powiadomienia push z panelu (darmowe), SMS (płatne, ok. 0,10–0,17 zł za wiadomość).
 
 ### 4.9 Przechowywanie danych (RODO)
-- Rezerwacje z odbiorem starszym niż **ok. pół roku** (183 dni, `RESERVATION_RETENTION_DAYS`) są codziennie o 3:00 **usuwane** razem z danymi klientów.
+- Dane klientów w rezerwacjach złożonych ponad **6 miesięcy** temu (`RESERVATION_RETENTION_MONTHS`) są codziennie o 3:00 **anonimizowane** (produkty, daty i punkty zostają do statystyk). Na żądanie klienta – przycisk „Usuń dane klienta” w panelu.
 - Okres trzeba wpisać do polityki prywatności.
 
 ### 4.10 E-mail

@@ -230,16 +230,13 @@ enum PickupType {
 
 enum ReservationStatus {
   NEW // przyjęta
-  READY // przygotowana do odbioru
-  PICKED_UP // odebrana
-  NO_SHOW // nieodebrana
-  CANCELLED // anulowana (przez klienta lub piekarnię)
+  CANCELLED // anulowana przez klienta (link z e-maila)
 }
 
 model Reservation {
   id     String            @id @default(uuid())
-  // KOD-MMDD-NN, np. WIL-1017-03 (unikalny w ramach daty odbioru)
-  number String            @db.VarChar(20)
+  // KOD-RRMMDD-NN, np. WIL-261017-04 – punkt, data odbioru, kolejny numer w punkcie tego dnia
+  number String            @unique @db.VarChar(20)
   status ReservationStatus @default(NEW)
 
   pickupType  PickupType
@@ -268,8 +265,6 @@ model Reservation {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([pickupDate, number])
-  @@index([number])
   @@index([pickupDate, status])
   @@index([customerPhone])
 }

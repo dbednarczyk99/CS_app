@@ -20,7 +20,6 @@ import {
   MAX_ACTIVE_PER_PHONE,
   allowedPickupDates,
   VAN_CODE,
-  addDays,
   canCancel,
   codeFromAddress,
   numberPrefix,
@@ -33,10 +32,8 @@ import {
   weekdayOf,
 } from './reservation-rules';
 
-const ACTIVE: ReservationStatus[] = [
-  ReservationStatus.NEW,
-  ReservationStatus.READY,
-];
+// statusy: przyjęta (NEW) i anulowana przez klienta (CANCELLED) – obsługa ich nie zmienia
+const ACTIVE: ReservationStatus[] = [ReservationStatus.NEW];
 const withItems = { items: true } satisfies Prisma.ReservationInclude;
 
 export interface ReservationOptions {
@@ -364,19 +361,6 @@ export class ReservationsService {
     return reservation;
   }
 
-  async updateStatus(id: string, status: ReservationStatus) {
-    await this.findOne(id);
-    return this.prisma.reservation.update({
-      where: { id },
-      data: {
-        status,
-        cancelledAt:
-          status === ReservationStatus.CANCELLED ? new Date() : undefined,
-      },
-      include: withItems,
-    });
-  }
-
   /** Zestawienie „do przygotowania” na dany dzień: punkty odbioru, sumy produktów, lista rezerwacji */
   async summary(date: string) {
     if (!isValidDateString(date))
@@ -468,26 +452,28 @@ export class ReservationsService {
   }
 
   /**
-   * Retencja danych (RODO): anonimizuje rezerwacje z odbiorem starszym niż RESERVATION_RETENTION_DAYS
-   * (domyślnie 183 dni ≈ pół roku). Znikają dane klienta; produkty, ilości, daty i punkt zostają
+   * Retencja danych (RODO): anonimizuje rezerwacje złożone ponad RESERVATION_RETENTION_MONTHS
+   * miesięcy temu (domyślnie 6). Znikają dane klienta; produkty, ilości, daty i punkt zostają
    * do statystyk sprzedaży (bez danych osobowych nie podlegają RODO).
    */
-  async anonymizeOld(
-    retentionDays = Number(
-      this.config.get<string>('RESERVATION_RETENTION_DAYS') ?? 183,
-    ),
-  ) {
-    const days =
-      Number.isFinite(retentionDays) && retentionDays >= 30
-        ? retentionDays
-        : 183;
-    const cutoff = addDays(warsawNow().date, -days);
+  async anonymizeOld(now = new Date()) {
+    const configured = Number(
+      this.config.get<string>('RESERVATION_RETENTION_MONTHS') ?? 6,
+    );
+    const months =
+      Number.isInteger(configured) && configured >= 1 ? configured : 6;
+    const cutoff = new Date(now);
+    cutoff.setMonth(cutoff.getMonth() - months);
     const old = await this.prisma.reservation.findMany({
-      where: { pickupDate: { lt: cutoff }, anonymizedAt: null },
+      where: { createdAt: { lt: cutoff }, anonymizedAt: null },
       select: { id: true },
     });
     for (const { id } of old) await this.anonymize(id);
-    return { anonymized: old.length, olderThan: cutoff, retentionDays: days };
+    return {
+      anonymized: old.length,
+      createdBefore: cutoff.toISOString(),
+      months,
+    };
   }
 
   /** Usunięcie danych klienta z rezerwacji (po okresie przechowywania lub na żądanie – art. 17 RODO) */

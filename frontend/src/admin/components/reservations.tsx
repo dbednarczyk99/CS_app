@@ -3,13 +3,11 @@ import {
   Datagrid,
   TextField,
   FunctionField,
-  Edit,
-  SimpleForm,
+  Show,
+  SimpleShowLayout,
   SelectInput,
   SearchInput,
   DateInput,
-  Toolbar,
-  SaveButton,
   useRecordContext,
   TopToolbar,
   ListButton,
@@ -70,7 +68,7 @@ const filters = [
 export const ReservationList = () => (
   <List filters={filters} title="Rezerwacje" pagination={false} perPage={1000} exporter={false}>
     <Datagrid
-      rowClick="edit"
+      rowClick="show"
       bulkActionButtons={false}
       rowSx={(record) => (record.status === 'CANCELLED' ? { opacity: 0.55 } : {})}
     >
@@ -241,24 +239,18 @@ const AnonymizeButton = () => {
   );
 };
 
-const EditActions = () => (
+const ShowActions = () => (
   <TopToolbar>
     <AnonymizeButton />
     <ListButton label="Lista rezerwacji" />
   </TopToolbar>
 );
 
-export const ReservationEdit = () => (
-  <Edit title="Rezerwacja" actions={<EditActions />} mutationMode="pessimistic">
-    <SimpleForm
-      toolbar={
-        <Toolbar>
-          <SaveButton label="Zapisz status" />
-        </Toolbar>
-      }
-    >
+/** Podgląd rezerwacji – tylko do informacji; status zmienia wyłącznie klient (anulowanie linkiem z e-maila) */
+export const ReservationShow = () => (
+  <Show title="Rezerwacja" actions={<ShowActions />}>
+    <SimpleShowLayout>
       <ReservationDetails />
-      <SelectInput source="status" label="Status" choices={statusChoices} helperText="Klient nie jest powiadamiany o zmianie statusu." />
-    </SimpleForm>
-  </Edit>
+    </SimpleShowLayout>
+  </Show>
 );

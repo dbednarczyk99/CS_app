@@ -26,7 +26,7 @@ import {
 import HomePage from './admin/pages/HomePage';
 import HelpPage from './admin/pages/HelpPage';
 import PreparationPage from './admin/pages/PreparationPage';
-import { ReservationEdit, ReservationList } from './admin/components/reservations';
+import { ReservationList, ReservationShow } from './admin/components/reservations';
 import { CustomMenu } from './admin/common/CustomMenu';
 import { BlogCreate, BlogEdit, BlogList } from './admin/components/blog';
 
@@ -43,7 +43,7 @@ function App() {
         name="reservations"
         options={{ label: 'Rezerwacje' }}
         list={ReservationList}
-        edit={ReservationEdit}
+        show={ReservationShow}
       />
       <Resource
         name="products"

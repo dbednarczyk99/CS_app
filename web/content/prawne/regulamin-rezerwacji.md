@@ -79,7 +79,7 @@ Obowiązuje od: [[DATA WEJŚCIA W ŻYCIE]]
 
 1. Przy odbiorze Klient podaje Numer Rezerwacji lub imię wskazane w Rezerwacji.
 2. Rezerwacja oczekuje na odbiór w wybranym dniu: w piekarni – do godziny zamknięcia piekarni w tym dniu, a z Chlebowozu – do końca postoju na wybranym przystanku. [[DO DECYZJI: czy rezerwacja czeka do zamknięcia, czy np. do 1 godziny po wybranej godzinie odbioru]].
-3. Po upływie terminu, o którym mowa w ust. 2, Usługodawca może przeznaczyć Produkty do sprzedaży. W przypadku wielokrotnego nieodebrania Rezerwacji przez Klienta (co najmniej [[LICZBA, np. 3]] razy w okresie [[OKRES, np. 3 miesięcy]]) Usługodawca może odmówić przyjmowania kolejnych Rezerwacji składanych z użyciem tego samego numeru telefonu lub adresu e-mail, o czym poinformuje Klienta.
+3. Po upływie terminu, o którym mowa w ust. 2, Usługodawca może przeznaczyć Produkty do sprzedaży. [[DO DECYZJI: Serwis nie rejestruje odbioru Rezerwacji (w systemie są tylko statusy „przyjęta” i „anulowana”). Jeżeli Usługodawca chce odmawiać Rezerwacji osobom wielokrotnie ich nieodbierającym, wymaga to ręcznej weryfikacji przez obsługę – wówczas należy tu opisać zasady (np. liczba nieodebranych Rezerwacji i okres).]]
 4. W przypadku stwierdzenia przy odbiorze, że Produkty nie odpowiadają Rezerwacji, Klient może odmówić ich przyjęcia lub zgłosić reklamację zgodnie z § 10.
 
 ## § 8. Anulowanie i zmiana Rezerwacji przez Klienta
@@ -96,6 +96,7 @@ Obowiązuje od: [[DATA WEJŚCIA W ŻYCIE]]
    3. podania w Formularzu danych nieprawdziwych lub złożenia Rezerwacji niezgodnie z Regulaminem.
 2. O anulowaniu lub zmianie Rezerwacji Usługodawca niezwłocznie informuje Klienta telefonicznie lub e-mailem, w miarę możliwości proponując inny termin, Punkt Odbioru lub Produkty zastępcze.
 3. Ponieważ Rezerwacja nie wiąże się z płatnością z góry, anulowanie Rezerwacji przez Usługodawcę nie rodzi obowiązku zwrotu płatności.
+4. [[DO WERYFIKACJI: obsługa nie zmienia statusów w Serwisie – anulowanie przez Usługodawcę odbywa się poprzez kontakt telefoniczny lub e-mailowy z Klientem; w Serwisie Rezerwacja pozostaje oznaczona jako „przyjęta”.]]
 
 ## § 10. Reklamacje
 

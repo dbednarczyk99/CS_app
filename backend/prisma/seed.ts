@@ -524,7 +524,6 @@ async function main() {
     phone: string;
     items: [string, number][];
     notes?: string;
-    status?: 'NEW' | 'READY';
   }[] = [
     {
       day: 1,
@@ -619,7 +618,7 @@ async function main() {
     const store = s.store !== undefined ? stores[s.store] : undefined;
     if (s.van && !stop) continue;
     const nextNumber = (code: string, date: string) => {
-      const prefix = `${code}-${date.slice(5, 7)}${date.slice(8, 10)}-`;
+      const prefix = `${code}-${date.slice(2, 4)}${date.slice(5, 7)}${date.slice(8, 10)}-`;
       const n = (perPrefix.get(prefix) ?? 0) + 1;
       perPrefix.set(prefix, n);
       return `${prefix}${String(n).padStart(2, '0')}`;
@@ -633,7 +632,7 @@ async function main() {
     await prisma.reservation.create({
       data: {
         number: nextNumber(stop ? 'BUS' : store!.code!, pickupDate),
-        status: s.status ?? 'NEW',
+        status: 'NEW',
         pickupType: stop ? 'VAN' : 'STORE',
         locationId: store?.id,
         vanStopId: stop?.id,

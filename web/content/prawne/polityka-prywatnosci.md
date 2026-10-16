@@ -25,12 +25,12 @@ Składając rezerwację, podajesz:
 - **adres e-mail** – do wysłania potwierdzenia rezerwacji i linku do jej anulowania,
 - opcjonalnie **uwagi** do rezerwacji (prosimy, by nie wpisywać w nich informacji o zdrowiu ani innych danych szczególnych kategorii).
 
-Zapisujemy także: wybrane produkty i ich ilości, punkt i termin odbioru, numer rezerwacji, status rezerwacji (np. przyjęta, odebrana, anulowana) oraz datę jej złożenia.
+Zapisujemy także: wybrane produkty i ich ilości, punkt i termin odbioru, numer rezerwacji, status rezerwacji (przyjęta lub anulowana) oraz datę jej złożenia.
 
 | Cel | Podstawa prawna |
 |---|---|
 | Przyjęcie i realizacja rezerwacji, wysłanie potwierdzenia, umożliwienie anulowania, kontakt w sprawie rezerwacji | art. 6 ust. 1 lit. b RODO – podjęcie działań na Twoje żądanie przed zawarciem umowy i wykonanie umowy |
-| Przeciwdziałanie nadużyciom (limit 3 aktywnych rezerwacji na numer telefonu, możliwość odmowy rezerwacji osobom wielokrotnie ich nieodbierającym) | art. 6 ust. 1 lit. f RODO – nasz prawnie uzasadniony interes, polegający na ochronie przed fałszywymi rezerwacjami i marnowaniem żywności |
+| Przeciwdziałanie nadużyciom (limit 3 aktywnych rezerwacji na numer telefonu) | art. 6 ust. 1 lit. f RODO – nasz prawnie uzasadniony interes, polegający na ochronie przed fałszywymi rezerwacjami i marnowaniem żywności |
 | Rozpatrywanie reklamacji, ustalenie, dochodzenie lub obrona przed roszczeniami | art. 6 ust. 1 lit. f RODO – nasz prawnie uzasadniony interes |
 
 Podanie danych jest dobrowolne, ale niezbędne do złożenia rezerwacji.
@@ -77,7 +77,7 @@ Niektórzy nasi dostawcy (np. [[dostawca e-mail]], Google) mogą przetwarzać da
 
 | Dane | Okres przechowywania |
 |---|---|
-| Dane osobowe z rezerwacji (imię, telefon, e-mail, uwagi) | do upływu ok. **6 miesięcy (183 dni) od dnia odbioru** rezerwacji; następnie są automatycznie i trwale usuwane (anonimizacja). Pozostają wyłącznie informacje bez danych osobowych (produkty, ilości, data, punkt odbioru), wykorzystywane do statystyk sprzedaży. |
+| Dane osobowe z rezerwacji (imię, telefon, e-mail, uwagi) | do upływu **6 miesięcy od dnia złożenia** rezerwacji; następnie są automatycznie i trwale usuwane (anonimizacja). Pozostają wyłącznie informacje bez danych osobowych (produkty, ilości, data, punkt odbioru), wykorzystywane do statystyk sprzedaży. |
 | Dane z korespondencji | przez czas prowadzenia korespondencji, a następnie [[np. 12 miesięcy]] na wypadek pytań lub roszczeń |
 | Logi serwera | [[np. 30 dni]] |
 

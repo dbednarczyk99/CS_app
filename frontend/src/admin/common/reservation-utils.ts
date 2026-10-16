@@ -1,14 +1,12 @@
-export type ReservationStatus = 'NEW' | 'READY' | 'PICKED_UP' | 'NO_SHOW' | 'CANCELLED';
+// tylko do informacji – status zmienia wyłącznie klient (anulowanie linkiem z e-maila)
+export type ReservationStatus = 'NEW' | 'CANCELLED';
 
 export const STATUS: Record<
   ReservationStatus,
   { label: string; color: 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info' }
 > = {
-  NEW: { label: 'Przyjęta', color: 'info' },
-  READY: { label: 'Gotowa do odbioru', color: 'primary' },
-  PICKED_UP: { label: 'Odebrana', color: 'success' },
-  NO_SHOW: { label: 'Nieodebrana', color: 'warning' },
-  CANCELLED: { label: 'Anulowana', color: 'default' },
+  NEW: { label: 'Rezerwacja przyjęta', color: 'success' },
+  CANCELLED: { label: 'Rezerwacja anulowana', color: 'default' },
 };
 
 export const statusChoices = Object.entries(STATUS).map(([id, { label }]) => ({ id, name: label }));

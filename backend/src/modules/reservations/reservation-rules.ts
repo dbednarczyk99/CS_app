@@ -160,7 +160,7 @@ export function codeFromAddress(address: string): string {
 
 export const VAN_CODE = 'BUS';
 
-/** Początek numeru rezerwacji: KOD-MMDD- (np. WIL-1017-) */
+/** Początek numeru rezerwacji: KOD-RRMMDD- (np. WIL-261017-) – z rokiem, więc unikalny także między latami */
 export function numberPrefix(code: string, pickupDate: string): string {
-  return `${code}-${pickupDate.slice(5, 7)}${pickupDate.slice(8, 10)}-`;
+  return `${code}-${pickupDate.slice(2, 4)}${pickupDate.slice(5, 7)}${pickupDate.slice(8, 10)}-`;
 }
