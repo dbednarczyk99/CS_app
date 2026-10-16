@@ -9,6 +9,7 @@ import {
   required
 } from 'react-admin';
 import { CoordinatesInput } from '../common/CoordinatesInput';
+import SortableImageInput from '../common/SortableImageInput';
 
 type Weekday = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
 
@@ -38,68 +39,54 @@ export const LocationList = () => (
   </List>
 );
 
+// wspólny formularz dla tworzenia i edycji
+const LocationForm = () => (
+  <SimpleForm>
+    <TextInput source="name" label="Name" />
+    <TextInput source="address" label="Address" validate={[required()]} />
+    <TextInput source="phone" label="Phone" />
+    <TextInput source="code" label="Kod do numerów rezerwacji (np. WIL)" helperText="2–6 liter; puste = z nazwy ulicy" />
+    <TextInput source="googleMapsUrl" label="Google Maps URL" validate={[required()]} />
+    <CoordinatesInput />
+    <h3 style={{ marginLeft: 16, marginBottom: 0 }}>Zdjęcia lokalu</h3>
+    <p style={{ marginLeft: 16, marginTop: 4, color: '#666', fontSize: 14 }}>
+      Karuzela na stronie /piekarnie, pierwsze zdjęcie pokazuje się od razu.
+    </p>
+    <SortableImageInput source="images" validate={false} maxQty={6} />
+    <h3 style={{ marginLeft: 16, marginBottom: 0 }}>Opening Hours</h3>
+    <p style={{ marginLeft: 16, marginTop: 4, color: '#666', fontSize: 14 }}>
+      Puste godziny = lokal nieczynny w ten dzień.
+    </p>
+    {weekdayOrder.map((day) => (
+      <div key={day} style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 0, marginLeft: 16 }}>
+        <div style={{ width: 110 }}>{weekdayLabel[day]}</div>
+        <TextInput
+          source={`openingHours.${day}.openFrom`}
+          label="From"
+          InputProps={{ inputProps: { type: 'time' } }}
+          InputLabelProps={{ shrink: true }}
+          style={{ width: 180, margin: 0 }}
+        />
+        <TextInput
+          source={`openingHours.${day}.openTo`}
+          label="To"
+          InputProps={{ inputProps: { type: 'time' } }}
+          InputLabelProps={{ shrink: true }}
+          style={{ width: 180, margin: 0 }}
+        />
+      </div>
+    ))}
+  </SimpleForm>
+);
+
 export const LocationCreate = () => (
   <Create>
-    <SimpleForm>
-      <TextInput source="name" label="Name" />
-      <TextInput source="address" label="Address" validate={[required()]} />
-      <TextInput source="phone" label="Phone" />
-      <TextInput source="code" label="Kod do numerów rezerwacji (np. WIL)" helperText="2–6 liter; puste = z nazwy ulicy" />
-      <TextInput source="googleMapsUrl" label="Google Maps URL" validate={[required()]} />
-      <CoordinatesInput />
-      <h3 style={{ marginLeft: 16 }}>Opening Hours</h3>
-      {weekdayOrder.map((day) => (
-        <div key={day} style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 8, marginLeft: 16 }}>
-          <div style={{ width: 110 }}>{weekdayLabel[day]}</div>
-          <TextInput
-            source={`openingHours.${day}.openFrom`}
-            label="From"
-            validate={[required()]}
-            InputProps={{ inputProps: { type: 'time' } }}
-            style={{ width: 180 }}
-          />
-          <TextInput
-            source={`openingHours.${day}.openTo`}
-            label="To"
-            validate={[required()]}
-            InputProps={{ inputProps: { type: 'time' } }}
-            style={{ width: 150 }}
-          />
-        </div>
-      ))}
-    </SimpleForm>
+    <LocationForm />
   </Create>
 );
 
 export const LocationEdit = () => (
   <Edit>
-    <SimpleForm>
-      <TextInput source="name" label="Name" />
-      <TextInput source="address" label="Address" validate={[required()]} />
-      <TextInput source="phone" label="Phone" />
-      <TextInput source="code" label="Kod do numerów rezerwacji (np. WIL)" helperText="2–6 liter; puste = z nazwy ulicy" />
-      <TextInput source="googleMapsUrl" label="Google Maps URL" validate={[required()]} />
-      <CoordinatesInput />
-      <h3 style={{ marginLeft: 16 }}>Opening Hours</h3>
-      {weekdayOrder.map((day) => (
-        <div key={day} style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 0, marginLeft: 16 }}>
-          <div style={{ width: 110 }}>{weekdayLabel[day]}</div>
-          <TextInput
-            source={`openingHours.${day}.openFrom`}
-            label="From"
-            validate={[required()]}
-            InputProps={{ inputProps: { type: 'time' } }}
-            style={{ width: 180, margin: 0}}
-          />
-          <TextInput
-            source={`openingHours.${day}.openTo`}
-            label="To"
-            validate={[required()]}
-            InputProps={{ inputProps: { type: 'time' } }}
-            style={{ width: 180, margin: 0 }}
-          />
-        </div>
-      ))}
-    </SimpleForm>
+    <LocationForm />
   </Edit>
 );

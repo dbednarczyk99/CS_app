@@ -29,7 +29,8 @@ export function weekdayOf(date: Date): Weekday {
 export function hoursFor(hours: OpeningHours | null, day: Weekday): [string, string] | null {
   const value = hours?.[day.toLowerCase()] ?? hours?.[day];
   if (!value) return null;
-  if (typeof value !== 'string') return [value.openFrom, value.openTo];
+  // z panelu: puste pola = nieczynne
+  if (typeof value !== 'string') return value.openFrom && value.openTo ? [value.openFrom, value.openTo] : null;
   const [from, to] = value.split(/[–-]/).map((v) => v.trim());
   return from && to ? [from, to] : null;
 }

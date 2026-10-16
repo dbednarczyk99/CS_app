@@ -156,7 +156,7 @@ export default async function HomePage() {
               </p>
               <p className="mt-4">
                 Codziennie rano na nasze półki trafiają chrupiące bochenki, maślane drożdżówki i
-                sezonowe wypieki – w czterech piekarniach w Krakowie i w naszym chlebowozie.
+                sezonowe wypieki – w naszych krakowskich piekarniach i w chlebowozie.
               </p>
             </SectionHeading>
             <Link href="/o-nas" className="link-arrow mt-10 inline-flex items-center gap-3">

@@ -5,8 +5,20 @@ import {
   IsLatitude,
   IsLongitude,
   Matches,
+  IsArray,
+  IsInt,
+  ValidateNested,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+class LocationImageInlineDto {
+  @IsString()
+  imgUrl: string;
+
+  @IsOptional()
+  @IsInt()
+  order?: number;
+}
 import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateLocationDto {
@@ -45,6 +57,13 @@ export class CreateLocationDto {
   @IsOptional()
   @IsObject()
   openingHours: Record<string, { openFrom: string; openTo: string }>;
+
+  /** pełny zestaw zdjęć lokalu (kolejność jak w tablicy) */
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => LocationImageInlineDto)
+  images?: LocationImageInlineDto[];
 }
 
 export class UpdateLocationDto extends PartialType(CreateLocationDto) {}

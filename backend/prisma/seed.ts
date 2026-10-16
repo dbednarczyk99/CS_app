@@ -268,8 +268,42 @@ async function main() {
       lng: 19.8942342,
     },
   ];
+  // przykładowe godziny otwarcia (do poprawienia w panelu); brak dnia = nieczynne
+  type Span = [string, string] | null;
+  const hours = (weekdays: Span, saturday: Span, sunday: Span) => {
+    const days: [string, Span][] = [
+      ['MONDAY', weekdays],
+      ['TUESDAY', weekdays],
+      ['WEDNESDAY', weekdays],
+      ['THURSDAY', weekdays],
+      ['FRIDAY', weekdays],
+      ['SATURDAY', saturday],
+      ['SUNDAY', sunday],
+    ];
+    return Object.fromEntries(
+      days
+        .filter((entry): entry is [string, [string, string]] => entry[1] !== null)
+        .map(([day, [openFrom, openTo]]) => [day, { openFrom, openTo }]),
+    );
+  };
+  const openingHours: Record<string, ReturnType<typeof hours>> = {
+    WIL: hours(['06:30', '19:00'], ['07:00', '15:00'], null),
+    CHE: hours(['06:00', '18:00'], ['07:00', '14:00'], ['08:00', '12:00']),
+    GLO: hours(['07:00', '19:00'], ['07:00', '15:00'], null),
+    STA: hours(['06:30', '18:30'], ['07:00', '14:00'], ['08:00', '13:00']),
+  };
+  // zdjęcia lokali (tymczasowe, z galerii piekarni)
+  const seedImages = (code: string) => ({
+    create: [1, 2, 3].map((n, order) => ({
+      imgUrl: `${API_PUBLIC_URL}/uploads/seed/lokal-${code.toLowerCase()}-${n}.jpg`,
+      order,
+    })),
+  });
+
   for (const data of locations) {
-    await prisma.location.create({ data });
+    await prisma.location.create({
+      data: { ...data, openingHours: openingHours[data.code], images: seedImages(data.code) },
+    });
   }
 
   console.log('✅ Locations seeded');

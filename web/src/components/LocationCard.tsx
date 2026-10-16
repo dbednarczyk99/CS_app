@@ -2,6 +2,7 @@ import { FaLocationArrow, FaPhone } from 'react-icons/fa6';
 import type { Location } from '@/lib/api';
 import { WEEKDAYS, hoursFor, telHref } from '@/lib/format';
 import { OpenStatus } from './OpenStatus';
+import { PhotoCarousel } from './PhotoCarousel';
 import { ShowOnMapButton } from './StoresMap';
 
 export function LocationCard({
@@ -9,16 +10,27 @@ export function LocationCard({
   index,
   showHours = true,
   showOnMap = false,
+  showPhotos = false,
 }: {
   location: Location;
   index: number;
   showHours?: boolean;
   showOnMap?: boolean;
+  showPhotos?: boolean;
 }) {
   const [street, city] = location.address.split(/,\s*(?=\d{2}-\d{3})/);
 
   return (
-    <article className="flex h-full flex-col border border-line bg-coal p-6 transition-colors hover:border-gold/40 sm:p-8">
+    <article className="flex h-full flex-col border border-line bg-coal transition-colors hover:border-gold/40">
+      {showPhotos && location.images && location.images.length > 0 && (
+        <PhotoCarousel
+          images={location.images}
+          alt={`Piekarnia Chleba Smak, ${street}`}
+          sizes="(min-width: 1280px) 620px, (min-width: 640px) 50vw, 100vw"
+          offset={(index % 4) * 1200}
+        />
+      )}
+      <div className="flex flex-1 flex-col p-6 sm:p-8">
       <div className="flex items-start justify-between gap-4">
         <span className="font-display text-4xl text-gold/70">{String(index + 1).padStart(2, '0')}</span>
         <OpenStatus hours={location.openingHours} />
@@ -58,6 +70,7 @@ export function LocationCard({
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-stone">
         {location.phone && <span>{location.phone}</span>}
         {showOnMap && location.lat != null && <ShowOnMapButton id={location.id} />}
+      </div>
       </div>
     </article>
   );
