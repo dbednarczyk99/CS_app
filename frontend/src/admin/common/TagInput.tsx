@@ -1,65 +1,45 @@
-import {
-  AutocompleteArrayInput,
-  useGetList,
-  useInput,
-} from 'react-admin';
-import { useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
+import { AutocompleteArrayInput, useGetList } from 'react-admin';
 
-const TagInput = ({ source = 'tags', label = 'Tags' }) => {
-  const { data: tags = [] } = useGetList('tags', {
+type TagChoice = { id: string; name: string };
+// tagi przychodzą z API jako { tag: { name } } (relacja), a do API wysyłamy same nazwy
+type TagValue = string | { name?: string; tag?: { name: string } };
+
+const toName = (t: TagValue) => (typeof t === 'string' ? t : (t.tag?.name ?? t.name ?? ''));
+
+const TagInput = ({ source = 'tags', label = 'Tagi' }: { source?: string; label?: string }) => {
+  const { data } = useGetList<TagChoice>('tags', {
     pagination: { page: 1, perPage: 100 },
     sort: { field: 'name', order: 'ASC' },
   });
+  // tagi dopisane w tym formularzu, jeszcze niezapisane w bazie
+  const [created, setCreated] = useState<TagChoice[]>([]);
 
-  const {
-    field: { onChange, value },
-  } = useInput({ source });
-
-  const [choices, setChoices] = useState(tags);
-
-  // aktualizuj choices gdy useGetList zwróci dane
-  useEffect(() => {
-    setChoices(tags);
-  }, [tags]);
-
-  const formattedChoices = (choices || []).map(v => (typeof v === 'string' ? { id: v, name: v } : v));
-
-
-  const handleCreate = (newTagName?: string) => {
-  const trimmedName = newTagName?.trim();
-  if (!trimmedName) return undefined;
-  console.log('Creating tag:', trimmedName);
-
-  const newTag = { id: trimmedName, name: trimmedName };
-
-  // dodaj nowy tag do choices
-  setChoices((prev) => {
-    // unikaj duplikatów
-    if (prev.find((t) => t.name === trimmedName)) return prev;
-    return [...prev, newTag];
-  });
-
-  // dodaj nowy tag do formularza - tylko nazwa
-  const currentValue = value || [];
-  if (!currentValue.includes(trimmedName)) {
-    onChange([...currentValue, trimmedName]);
-  }
-
-  return newTag;
-};
-
+  const choices = useMemo(() => {
+    const seen = new Set<string>();
+    return [...(data ?? []), ...created]
+      .map((t) => ({ id: t.name, name: t.name }))
+      .filter((t) => !seen.has(t.name) && seen.add(t.name));
+  }, [data, created]);
 
   return (
     <AutocompleteArrayInput
       source={source}
       label={label}
-      choices={formattedChoices}
+      choices={choices}
       optionText="name"
-      optionValue="name"
+      optionValue="id"
+      format={(value: TagValue[] | undefined) => (Array.isArray(value) ? value.map(toName).filter(Boolean) : [])}
+      onCreate={(name?: string) => {
+        const trimmed = name?.trim();
+        if (!trimmed) return undefined;
+        const tag = { id: trimmed, name: trimmed };
+        setCreated((prev) => [...prev, tag]);
+        return tag;
+      }}
       fullWidth
       filterSelectedOptions
       helperText="Wybierz istniejący lub wpisz nowy tag i naciśnij Enter"
-      onCreate={handleCreate}
     />
   );
 };

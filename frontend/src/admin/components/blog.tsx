@@ -5,13 +5,12 @@ import {
   Create,
   Edit,
   DateField,
-  ReferenceArrayField,
-  SingleFieldList,
-  ChipField,
+  FunctionField,
   SimpleForm,
   TextInput,
   required,
 } from 'react-admin';
+import { Chip, Stack } from '@mui/material';
 import TagInput from '../common/TagInput';
 import SortableImageInput from '../common/SortableImageInput';
 
@@ -21,11 +20,17 @@ export const BlogList = () => (
       <TextField source="title" label="Title" />
       <TextField source="shortDescription" label="Short description" />
 
-      <ReferenceArrayField source="tags" reference="tags">
-        <SingleFieldList>
-          <ChipField source="name" size="small" />
-        </SingleFieldList>
-      </ReferenceArrayField>
+      {/* tagi są we wpisie jako relacja { tag: { name } } */}
+      <FunctionField
+        label="Tags"
+        render={(record: { tags?: { tag: { id: string; name: string } }[] }) => (
+          <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+            {(record.tags ?? []).map(({ tag }) => (
+              <Chip key={tag.id} label={tag.name} size="small" />
+            ))}
+          </Stack>
+        )}
+      />
 
       <DateField source="createdAt" />
     </Datagrid>
