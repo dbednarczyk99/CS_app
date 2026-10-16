@@ -77,6 +77,7 @@ export default async function LocationsPage() {
               cta="Sprawdź trasę chlebowozu"
               image="/images/chlebowoz.jpg"
               imageAlt="Chlebowóz Chleba Smak"
+              reverse
             >
               Nasz chlebowóz zatrzymuje się w {vanPlaces}{' '}
               {vanPlaces === 1 ? 'miejscu' : 'miejscach'} Krakowa według stałego,
