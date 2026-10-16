@@ -15,11 +15,14 @@ export function PhotoCarousel({
   alt,
   sizes,
   offset = 0,
+  className = 'aspect-[4/3]',
 }: {
   images: { id: string; imgUrl: string }[];
   alt: string;
   sizes: string;
   offset?: number;
+  /** proporcje / wymiary kontenera */
+  className?: string;
 }) {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -43,7 +46,7 @@ export function PhotoCarousel({
 
   return (
     <div
-      className="relative aspect-[4/3] overflow-hidden bg-graphite"
+      className={`relative overflow-hidden bg-graphite ${className}`}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}

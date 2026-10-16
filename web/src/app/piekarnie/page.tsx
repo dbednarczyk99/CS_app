@@ -31,7 +31,7 @@ export default async function LocationsPage() {
       </PageHeader>
 
       <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 md:py-24">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
           {locations.map((location, i) => (
             <Reveal key={location.id} delay={(i % 2) * 100} className="h-full">
               <LocationCard location={location} index={i} showOnMap={hasMap} showPhotos />
