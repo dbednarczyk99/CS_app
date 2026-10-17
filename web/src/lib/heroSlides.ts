@@ -17,7 +17,6 @@ export function buildHeroSlides({
 }): HeroSlide[] {
   const seasonal = products.filter((p) => p.isActive && p.isSeasonal);
   const seasonalWithImage = seasonal.find((p) => p.images?.length);
-  const seasonalNames = seasonal.slice(0, 3).map((p) => p.name.toLowerCase());
 
   const slides: (HeroSlide | null)[] = [
     {
@@ -77,7 +76,7 @@ export function buildHeroSlides({
           name: 'Sezonowo',
           eyebrow: 'Sezonowo',
           title: ['Tylko', 'przez chwilę'],
-          text: `Teraz w naszych piekarniach: ${seasonalNames.join(', ')}${seasonal.length > 3 ? ' i więcej' : ''}. Póki sezon trwa.`,
+          text: 'Wypieki, które pojawiają się w naszych piekarniach tylko w swoim sezonie. Sprawdź, co pieczemy teraz – póki sezon trwa.',
           ctas: [{ href: '/oferta?sezonowe', label: 'Zobacz sezonowe', primary: true }],
           image: { src: seasonalWithImage.images![0].imgUrl, alt: '', position: 'center' },
         }

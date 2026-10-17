@@ -219,39 +219,64 @@ export function HeroCarousel({ slides, firstImage }: { slides: HeroSlide[]; firs
   );
 }
 
-/** Najbliższy przystanek chlebowozu: dziś (jeśli jeszcze stoi), jutro albo kolejny dzień trasy */
+/**
+ * Przystanki chlebowozu: dziś (jeśli jeszcze stoi) i jutro; gdy w te dni nie jeździ –
+ * najbliższy kolejny dzień trasy. Liczone w przeglądarce (zależy od bieżącej godziny).
+ */
 function NextVanStop({ stops }: { stops: BreadVanStop[] }) {
-  const [next, setNext] = useState<{ when: string; stop: BreadVanStop } | null>(null);
+  const [rows, setRows] = useState<{ when: string; stop: BreadVanStop }[]>([]);
 
   useEffect(() => {
     const now = new Date();
     const time = now.toTimeString().slice(0, 5);
-    for (let d = 0; d < 7; d++) {
-      const date = new Date(now.getTime() + d * 24 * 60 * 60 * 1000);
-      const day = weekdayOf(date);
-      const candidates = stops
-        .filter((s) => s.dayOfTheWeek === day && (d > 0 || s.endTime > time))
-        .sort((a, b) => a.startTime.localeCompare(b.startTime));
-      if (candidates.length > 0) {
-        const label = WEEKDAYS.find((w) => w.key === day)!.label;
-        setNext({ when: d === 0 ? 'Dziś' : d === 1 ? 'Jutro' : label, stop: candidates[0] });
-        return;
+    const stopsOn = (d: number) => {
+      const day = weekdayOf(new Date(now.getTime() + d * 24 * 60 * 60 * 1000));
+      return {
+        day,
+        stops: stops
+          .filter((s) => s.dayOfTheWeek === day && (d > 0 || s.endTime > time))
+          .sort((a, b) => a.startTime.localeCompare(b.startTime)),
+      };
+    };
+    const result = [
+      ...stopsOn(0).stops.map((stop) => ({ when: 'Dziś', stop })),
+      ...stopsOn(1).stops.map((stop) => ({ when: 'Jutro', stop })),
+    ];
+    if (result.length === 0) {
+      for (let d = 2; d < 7; d++) {
+        const next = stopsOn(d);
+        if (next.stops.length > 0) {
+          const label = WEEKDAYS.find((w) => w.key === next.day)!.label;
+          result.push(...next.stops.map((stop) => ({ when: label, stop })));
+          break;
+        }
       }
     }
+    setRows(result);
   }, [stops]);
 
-  // miejsce zarezerwowane od razu, żeby tekst nie skakał po obliczeniu w przeglądarce
+  // miejsce na dwa wiersze zarezerwowane od razu, żeby tekst nie skakał po obliczeniu w przeglądarce
   return (
-    <p className="mt-6 flex min-h-7 flex-wrap items-baseline gap-x-3 font-display text-lg uppercase tracking-[0.15em]">
-      {next && (
-        <>
-          <span className="bg-gold px-2 py-0.5 text-[0.7rem] tracking-[0.2em] text-ink">{next.when}</span>
-          <span className="tabular-nums text-gold">
-            {next.stop.startTime}–{next.stop.endTime}
+    <ul className="mt-6 min-h-16 space-y-2">
+      {rows.map(({ when, stop }) => (
+        <li
+          key={when + stop.id}
+          className="flex flex-wrap items-baseline gap-x-3 gap-y-1 font-display text-lg uppercase tracking-[0.15em]"
+        >
+          <span
+            className={`min-w-14 shrink-0 px-2 py-0.5 text-center text-[0.65rem] tracking-[0.2em] ${
+              when === 'Dziś' ? 'bg-gold text-ink' : 'border border-cream/70 text-cream'
+            }`}
+          >
+            {when}
           </span>
-          <span className="normal-case tracking-normal text-cream">{next.stop.address}</span>
-        </>
-      )}
-    </p>
+          <span className="shrink-0 tabular-nums text-gold">
+            {stop.startTime}–{stop.endTime}
+          </span>
+          {/* na telefonie adres w osobnej linii pod godziną */}
+          <span className="basis-full normal-case tracking-normal text-cream sm:basis-auto">{stop.address}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
