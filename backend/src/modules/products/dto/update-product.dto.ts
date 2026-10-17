@@ -45,6 +45,14 @@ export class UpdateProductDto {
 
   @IsBoolean()
   @IsOptional()
+  isBestseller?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  isNew?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
   isActive?: boolean;
 
   @IsBoolean()

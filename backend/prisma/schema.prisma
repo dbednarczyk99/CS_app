@@ -46,6 +46,9 @@ model Product {
   isSeasonal       Boolean           @default(false)
   // tylko dla sezonowych: false = poza sezonem (widoczny na stronie, ale niedostępny i bez rezerwacji)
   inSeason         Boolean           @default(true)
+  // etykiety na karcie produktu, ustawiane w panelu
+  isBestseller     Boolean           @default(false)
+  isNew            Boolean           @default(false)
   isActive         Boolean           @default(true)
   // czy produkt można zarezerwować online (np. lody i napoje – tylko do wglądu)
   isReservable     Boolean           @default(true)

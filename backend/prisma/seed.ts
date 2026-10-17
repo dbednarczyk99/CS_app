@@ -229,6 +229,16 @@ async function main() {
     data: { inSeason: false },
   });
 
+  // przykładowe etykiety
+  await prisma.product.updateMany({
+    where: { name: { in: ['Chleb pszenny na zakwasie', 'Jagodzianka'] } },
+    data: { isBestseller: true },
+  });
+  await prisma.product.updateMany({
+    where: { name: 'Drożdżówka z truskawkami' },
+    data: { isNew: true },
+  });
+
   console.log('✅ Categories & products seeded');
 
   // --- LOCATIONS ---

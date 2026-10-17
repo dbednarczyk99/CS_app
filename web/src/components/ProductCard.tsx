@@ -1,7 +1,15 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Product } from '@/lib/api';
-import { isOutOfSeason } from '@/lib/products';
+import { isOutOfSeason, productBadges, type BadgeTone } from '@/lib/products';
+
+// etykiety na zdjęciu: wyróżnione pełnym tłem, sezonowe – jak dotąd napisem na ciemnym tle
+const BADGE_STYLE: Record<BadgeTone, string> = {
+  new: 'bg-gold text-ink',
+  bestseller: 'bg-cream text-ink',
+  season: 'bg-ink/80 text-gold backdrop-blur-sm',
+  off: 'bg-ink/80 text-stone backdrop-blur-sm',
+};
 import { formatPrice } from '@/lib/format';
 import { AddToReservationCompact } from './AddToReservation';
 
@@ -17,6 +25,7 @@ export function ProductCard({
 }) {
   const image = product.images?.[0];
   const outOfSeason = isOutOfSeason(product);
+  const badges = productBadges(product);
 
   return (
     <div className={`group flex h-full flex-col ${outOfSeason ? 'opacity-60 transition-opacity hover:opacity-90' : ''}`}>
@@ -39,14 +48,17 @@ export function ProductCard({
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-ink/50 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-          {product.isSeasonal && (
-            <span
-              className={`absolute left-3 top-3 bg-ink/80 px-2.5 py-1 font-display text-[0.65rem] uppercase tracking-[0.25em] backdrop-blur-sm ${
-                outOfSeason ? 'text-stone' : 'text-gold'
-              }`}
-            >
-              {outOfSeason ? 'Poza sezonem' : 'Teraz dostępne'}
-            </span>
+          {badges.length > 0 && (
+            <ul className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
+              {badges.map((badge) => (
+                <li
+                  key={badge.label}
+                  className={`px-2.5 py-1 font-display text-[0.65rem] uppercase tracking-[0.25em] ${BADGE_STYLE[badge.tone]}`}
+                >
+                  {badge.label}
+                </li>
+              ))}
+            </ul>
           )}
         </div>
         <div className="mt-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">

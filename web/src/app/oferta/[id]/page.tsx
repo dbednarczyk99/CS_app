@@ -6,7 +6,7 @@ import { FaArrowLeft, FaArrowRight } from 'react-icons/fa6';
 import { AddToReservation } from '@/components/AddToReservation';
 import { ProductCard } from '@/components/ProductCard';
 import { api, orFallback } from '@/lib/api';
-import { isAvailable, isOutOfSeason } from '@/lib/products';
+import { isAvailable, isOutOfSeason, productBadges } from '@/lib/products';
 import { formatPrice } from '@/lib/format';
 
 type Props = { params: Promise<{ id: string }> };
@@ -27,6 +27,7 @@ export default async function ProductPage({ params }: Props) {
 
   const image = product.images?.[0];
   const outOfSeason = isOutOfSeason(product);
+  const badges = productBadges(product);
   const related = all
     .filter((p) => isAvailable(p) && p.categoryId === product.categoryId && p.id !== product.id)
     .slice(0, 4);
@@ -60,14 +61,24 @@ export default async function ProductPage({ params }: Props) {
             )}
             <h1 className="heading mt-4 text-4xl sm:text-5xl">{product.name}</h1>
             {!outOfSeason && <p className="mt-6 font-display text-3xl text-gold">{formatPrice(product.price)}</p>}
-            {product.isSeasonal && (
-              <p
-                className={`mt-4 inline-block border px-3 py-1 font-display text-[0.7rem] uppercase tracking-[0.25em] ${
-                  outOfSeason ? 'border-line text-stone' : 'border-gold/50 text-gold'
-                }`}
-              >
-                {outOfSeason ? 'Poza sezonem' : 'Teraz dostępne'}
-              </p>
+            {badges.length > 0 && (
+              <ul className="mt-4 flex flex-wrap gap-2">
+                {badges.map((badge) => (
+                  <li
+                    key={badge.label}
+                    className={`border px-3 py-1 font-display text-[0.7rem] uppercase tracking-[0.25em] ${
+                      {
+                        new: 'border-gold bg-gold text-ink',
+                        bestseller: 'border-cream bg-cream text-ink',
+                        season: 'border-gold/50 text-gold',
+                        off: 'border-line text-stone',
+                      }[badge.tone]
+                    }`}
+                  >
+                    {badge.label}
+                  </li>
+                ))}
+              </ul>
             )}
             <div className="mt-8 h-px bg-line" />
             <p className="mt-8 text-lg leading-relaxed text-cream/90">{product.description}</p>
