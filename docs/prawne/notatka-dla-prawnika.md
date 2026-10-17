@@ -37,13 +37,14 @@ Miejsca wymagające uzupełnienia lub decyzji oznaczono w dokumentach jako `[[�
 | Rezerwacje | imię, telefon, e-mail, uwagi (opcjonalne), produkty, punkt, termin, status, data złożenia | formularz | baza danych MySQL na serwerze hostingu | upoważnieni pracownicy (panel), wykonawca IT (utrzymanie) | **6 miesięcy od złożenia rezerwacji**, potem automatyczna anonimizacja (codziennie o 3:00) (usunięcie imienia, telefonu, e-maila, uwag; produkty/daty/punkt zostają do statystyk) |
 | E-maile transakcyjne | adres e-mail, treść potwierdzenia | system | dostawca wysyłki e-mail | dostawca (podmiot przetwarzający) | wg ustawień dostawcy [[do ustalenia]] |
 | Logi serwera | adres IP, czas, adres podstrony, przeglądarka | automatycznie | serwer hostingu | hosting, wykonawca IT | [[do ustalenia, np. 30 dni]] |
+| Wiadomości z formularza kontaktowego | imię, e-mail, temat, treść | formularz „Kontakt” | wyłącznie skrzynka e-mail piekarni (nie w bazie); adres IP tylko w pamięci serwera przez 15 min (limit wysyłek) | osoby obsługujące skrzynkę | [[do ustalenia, np. 12 miesięcy]] |
 | Koszyk rezerwacji | identyfikatory i ilości produktów | przeglądarka klienta | localStorage w przeglądarce klienta (nie na serwerze) | tylko klient | do wyczyszczenia przez klienta lub złożenia rezerwacji |
 | Mapa Google | adres IP, podstrona, dane przeglądarki | automatycznie przy wyświetleniu mapy | serwery Google | Google | wg Google |
 | Konta pracowników | login, hasło (zahaszowane bcrypt), rola | administrator | baza danych | administrator | do czasu usunięcia konta |
 
 Dodatkowo:
 - Pracownik może w panelu użyć przycisku **„Usuń dane klienta”**, który działa jak anonimizacja, ale natychmiast. Służy do obsługi żądań z art. 17 RODO.
-- Formularz kontaktowy na stronie **nie wysyła obecnie wiadomości**. Jeśli zostanie uruchomiony, trzeba będzie zaktualizować pkt 2.2 polityki.
+- Formularz kontaktowy wysyła wiadomość e-mailem na skrzynkę piekarni (zob. pkt 5.15).
 - **Brak** analityki (Google Analytics itp.), pikseli reklamowych, wtyczek mediów społecznościowych i newslettera.
 
 ## 4. Podmioty zewnętrzne
@@ -54,6 +55,7 @@ Dodatkowo:
 | Wysyłka e-mail: [[np. Resend, Inc.]] | podmiot przetwarzający | USA | DPA + podstawa transferu (DPF / SCC) |
 | Google (Maps JavaScript API) | [[do oceny: odrębny administrator / podmiot przetwarzający]] | UE / USA | akceptacja warunków Google Maps Platform, informacja w polityce |
 | Wykonawca IT (utrzymanie serwisu) | podmiot przetwarzający | Polska | umowa powierzenia |
+| Meta (Instagram, Facebook – wiadomości prywatne) | [[do oceny: odrębny administrator / współadministrowanie]] | UE / USA | informacja w polityce (pkt 2.5), zob. pkt 5.14 |
 
 ## 5. Kwestie do weryfikacji przez prawnika
 
