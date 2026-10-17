@@ -215,6 +215,8 @@ model Article {
   content          String          @db.Text
   images           ArticleImages[]
   tags             TagOnArticle[]
+  // false = wpis tylko dla subskrybentów newslettera (niewidoczny na stronie)
+  isPublished          Boolean   @default(true)
   // wysyłka do zapisanych w newsletterze – raz, przy zapisaniu artykułu z zaznaczoną flagą
   sendAsNewsletter     Boolean   @default(true)
   newsletterSentAt     DateTime?

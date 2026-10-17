@@ -23,6 +23,18 @@ export class BlogController {
     return this.service.findAllArticles();
   }
 
+  /* --- panel: wszystkie wpisy, także tylko do newslettera (trasy stałe przed ':id') --- */
+
+  @Get('admin/all')
+  findAllForAdmin() {
+    return this.service.findAllArticles(false);
+  }
+
+  @Get('admin/:id')
+  findOneForAdmin(@Param('id') id: string) {
+    return this.service.findOneArticle(id, false);
+  }
+
   @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {

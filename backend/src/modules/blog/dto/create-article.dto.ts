@@ -40,6 +40,11 @@ export class CreateArticleDto {
   @Type(() => ArticleImageInlineDto)
   images?: ArticleImageInlineDto[];
 
+  /** widoczny na stronie (false = tylko newsletter) */
+  @IsOptional()
+  @IsBoolean()
+  isPublished?: boolean;
+
   /** wysłać wpis do zapisanych w newsletterze (domyślnie tak; wysyłka tylko raz) */
   @IsOptional()
   @IsBoolean()

@@ -20,6 +20,9 @@ export function newsletterArticleEmail(
     id: string;
     title: string;
     shortDescription: string;
+    content: string;
+    /** false = wpis tylko do newslettera – cała treść w e-mailu, bez linku do strony */
+    isPublished: boolean;
     imageUrl?: string | null;
   },
   to: { email: string; token: string },
@@ -27,15 +30,24 @@ export function newsletterArticleEmail(
 ): MailMessage {
   const articleUrl = `${ctx.webUrl}/aktualnosci/${article.id}`;
   const unsubscribeUrl = `${ctx.webUrl}/newsletter/wypisz/${to.token}`;
-  const image = article.imageUrl
-    ? `<a href="${articleUrl}"><img src="${esc(article.imageUrl)}" width="520" alt="" style="display:block;width:100%;height:auto;margin:22px 0 4px;border:0"></a>`
+  const img = article.imageUrl
+    ? `<img src="${esc(article.imageUrl)}" width="520" alt="" style="display:block;width:100%;height:auto;margin:22px 0 4px;border:0">`
     : '';
+  // opublikowany: zajawka + „Czytaj dalej”; tylko newsletter: pełna treść (akapity)
+  const body = article.isPublished
+    ? `${img ? `<a href="${articleUrl}">${img}</a>` : ''}
+${paragraph(esc(article.shortDescription), C.cream)}
+<div style="margin-top:26px">${button(articleUrl, 'Czytaj dalej', 'gold')}</div>`
+    : `${img}
+${paragraph(esc(article.shortDescription), C.cream)}
+${article.content
+  .split(/\n{2,}/)
+  .map((p) => paragraph(esc(p.trim()).replace(/\n/g, '<br>')))
+  .join('\n')}`;
   const content = `
 ${eyebrow('Z piekarni Chleba Smak')}
 ${heading(article.title, 26)}
-${image}
-${paragraph(esc(article.shortDescription), C.cream)}
-<div style="margin-top:26px">${button(articleUrl, 'Czytaj dalej', 'gold')}</div>
+${body}
 ${paragraph(
   `Otrzymujesz tę wiadomość, bo zapisałeś(-aś) się do newslettera Chleba Smak. <a href="${unsubscribeUrl}" style="color:#8f877b;text-decoration:underline">Wypisz się</a>`,
   '#8f877b',
@@ -55,7 +67,7 @@ ${paragraph(
       '',
       article.shortDescription,
       '',
-      `Czytaj dalej: ${articleUrl}`,
+      article.isPublished ? `Czytaj dalej: ${articleUrl}` : article.content,
       '',
       `Wypisz się z newslettera: ${unsubscribeUrl}`,
     ].join('\n'),

@@ -14,6 +14,7 @@ import {
   useRecordContext,
 } from 'react-admin';
 import { Alert, Chip, Stack } from '@mui/material';
+import { useWatch } from 'react-hook-form';
 import TagInput from '../common/TagInput';
 import { NewsletterSaveToolbar } from '../common/NewsletterSaveToolbar';
 import SortableImageInput from '../common/SortableImageInput';
@@ -38,8 +39,9 @@ const NewsletterToggle = () => {
   if (record?.newsletterSentAt) {
     return (
       <Alert severity="success" sx={{ mb: 2, width: '100%' }}>
-        Wysłano jako newsletter {new Date(record.newsletterSentAt).toLocaleString('pl-PL')} do{' '}
-        {record.newsletterRecipients ?? 0} os. Poprawki w treści nie wysyłają go ponownie.
+        Wysłano jako newsletter {new Date(record.newsletterSentAt).toLocaleString('pl-PL')}
+        {record.newsletterRecipients == null ? ' (wysyłanie w toku)' : ` do ${record.newsletterRecipients} os.`}. Poprawki w
+        treści nie wysyłają go ponownie.
       </Alert>
     );
   }
@@ -50,6 +52,26 @@ const NewsletterToggle = () => {
       defaultValue={true}
       helperText={`Po zapisaniu wpis trafi e-mailem do potwierdzonych subskrybentów (obecnie: ${confirmed}) – tylko raz. Wyłącz dla wpisów, których nie chcesz wysyłać.`}
     />
+  );
+};
+
+/** Publikacja na stronie – wyłączona = wpis tylko do newslettera (albo szkic, gdy bez wysyłki) */
+const PublishToggle = () => {
+  const [published, send] = useWatch({ name: ['isPublished', 'sendAsNewsletter'] }) as [boolean | undefined, boolean | undefined];
+  return (
+    <>
+      <BooleanInput
+        source="isPublished"
+        label="Opublikuj na stronie"
+        defaultValue={true}
+        helperText="Wyłącz, aby wysłać wpis tylko jako newsletter – nie pojawi się w Aktualnościach, a subskrybenci dostaną w e-mailu całą treść."
+      />
+      {published === false && send === false && (
+        <Alert severity="info" sx={{ mb: 2, width: '100%' }}>
+          Wpis bez publikacji i bez wysyłki to szkic – nikt go nie zobaczy, dopóki nie włączysz jednej z opcji.
+        </Alert>
+      )}
+    </>
   );
 };
 
@@ -73,10 +95,16 @@ export const BlogList = () => (
 
       <DateField source="createdAt" />
       <FunctionField
+        label="Na stronie"
+        render={(r: { isPublished?: boolean }) => (r.isPublished === false ? 'nie (tylko newsletter)' : 'tak')}
+      />
+      <FunctionField
         label="Newsletter"
         render={(r: NewsletterInfo) =>
           r.newsletterSentAt
-            ? `wysłano (${r.newsletterRecipients ?? 0} os.)`
+            ? r.newsletterRecipients == null
+              ? 'wysyłanie…'
+              : `wysłano (${r.newsletterRecipients} os.)`
             : r.sendAsNewsletter
               ? 'czeka na wysyłkę'
               : '—'
@@ -94,6 +122,7 @@ export const BlogCreate = () => (
       <TextInput source="content" multiline />
 
       <TagInput />
+      <PublishToggle />
       <NewsletterToggle />
 
       <SortableImageInput source="images" maxQty={5} />
@@ -109,6 +138,7 @@ export const BlogEdit = () => (
       <TextInput source="content" multiline />
 
       <TagInput />
+      <PublishToggle />
       <NewsletterToggle />
 
       <SortableImageInput source="images" maxQty={5} />

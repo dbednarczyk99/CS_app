@@ -40,8 +40,12 @@ export class BlogService {
 
   /* ----------------- GET ----------------- */
 
-  findAllArticles(): Prisma.PrismaPromise<ArticleWithRelations[]> {
+  /** onlyPublished: strona widzi tylko opublikowane; panel – wszystkie (też wpisy tylko do newslettera) */
+  findAllArticles(
+    onlyPublished = true,
+  ): Prisma.PrismaPromise<ArticleWithRelations[]> {
     return this.prisma.article.findMany({
+      where: onlyPublished ? { isPublished: true } : undefined,
       include: {
         images: { orderBy: { order: 'asc' } },
         tags: { include: { tag: true } },
@@ -51,9 +55,10 @@ export class BlogService {
 
   findOneArticle(
     id: string,
+    onlyPublished = true,
   ): Prisma.PrismaPromise<ArticleWithRelations | null> {
-    return this.prisma.article.findUnique({
-      where: { id },
+    return this.prisma.article.findFirst({
+      where: { id, ...(onlyPublished ? { isPublished: true } : {}) },
       include: {
         images: { orderBy: { order: 'asc' } },
         tags: { include: { tag: true } },
@@ -125,6 +130,9 @@ export class BlogService {
       ...(rest.content !== undefined ? { content: rest.content } : {}),
       ...(rest.sendAsNewsletter !== undefined
         ? { sendAsNewsletter: rest.sendAsNewsletter }
+        : {}),
+      ...(rest.isPublished !== undefined
+        ? { isPublished: rest.isPublished }
         : {}),
     };
 

@@ -115,9 +115,11 @@ const NEWSLETTER_LINK = '#newsletter';
 const ArticlePicker = () => {
   const { setValue } = useFormContext();
   const linkUrl = useWatch({ name: 'linkUrl' }) as string | undefined;
-  const { data = [] } = useGetList<{ id: string; title: string }>('blog', {
+  const { data: articles = [] } = useGetList<{ id: string; title: string; isPublished?: boolean }>('blog', {
     pagination: { page: 1, perPage: 100 },
   });
+  // tylko wpisy widoczne na stronie (nieopublikowany wpis = link do pustej strony)
+  const data = articles.filter((a) => a.isPublished !== false);
   const selected =
     linkUrl === NEWSLETTER_LINK ? NEWSLETTER_LINK : (data.find((a) => linkUrl === `/aktualnosci/${a.id}`)?.id ?? '');
 

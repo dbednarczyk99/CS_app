@@ -99,7 +99,8 @@ export const dataProvider: DataProvider = {
       return { data, total: data.length };
     }
 
-    const { json } = await httpClient(`${apiUrl}/${resource}`);
+    // blog: panel widzi też wpisy nieopublikowane (tylko newsletter)
+    const { json } = await httpClient(resource === 'blog' ? `${apiUrl}/blog/admin/all` : `${apiUrl}/${resource}`);
     const base = Array.isArray(json) ? json : [json];
 
     const mapped =
@@ -143,7 +144,9 @@ export const dataProvider: DataProvider = {
       return { data: json };
     }
 
-    const { json } = await httpClient(`${apiUrl}/${resource}/${params.id}`);
+    const { json } = await httpClient(
+      resource === 'blog' ? `${apiUrl}/blog/admin/${params.id}` : `${apiUrl}/${resource}/${params.id}`,
+    );
 
     if (WITH_IMAGES.includes(resource)) {
       const product = json as any;

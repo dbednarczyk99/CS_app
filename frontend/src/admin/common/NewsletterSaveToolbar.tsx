@@ -13,6 +13,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 export const NewsletterSaveToolbar = ({ deletable = false }: { deletable?: boolean }) => {
   const record = useRecordContext<{ newsletterSentAt?: string | null }>();
   const send = useWatch({ name: 'sendAsNewsletter' }) as boolean | undefined;
+  const published = useWatch({ name: 'isPublished' }) as boolean | undefined;
   const willSend = send !== false && !record?.newsletterSentAt;
   const [confirming, setConfirming] = useState(false);
   const { data: subscribers = [] } = useGetList<{ id: string; status: string }>('newsletter', {
@@ -66,6 +67,11 @@ export const NewsletterSaveToolbar = ({ deletable = false }: { deletable?: boole
             subskrybentów. <strong>Wysłanej wiadomości nie będzie można już edytować</strong> – późniejsze poprawki
             zmienią tylko wpis na stronie.
           </Typography>
+          {published === false && (
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              Wpis <strong>nie pojawi się na stronie</strong> – subskrybenci dostaną całą treść w e-mailu.
+            </Typography>
+          )}
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             Przejrzyj jeszcze treść formularza – to okienko go nie zasłania.
           </Typography>
