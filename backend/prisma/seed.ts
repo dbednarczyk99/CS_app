@@ -546,7 +546,7 @@ async function main() {
       message:
         'Chlebowóz jest w serwisie – przez najbliższe dwa tygodnie nie kursuje. Piekarnie działają normalnie.',
       linkUrl: `/aktualnosci/${vanBreakArticle.id}`,
-      linkLabel: 'Szczegóły',
+      // bez napisu – przycisk „Dowiedz się więcej”
       // wygasa sam po dwóch tygodniach
       endsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     },

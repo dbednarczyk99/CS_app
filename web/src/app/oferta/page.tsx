@@ -47,7 +47,7 @@ export default async function OfferPage({
       {/* Kategorie – przyklejone pod nagłówkiem strony */}
       <nav
         aria-label="Kategorie"
-        className="sticky top-18 z-30 border-y border-line bg-ink/90 backdrop-blur-md sm:top-20"
+        className="sticky top-[calc(4.5rem+var(--banner-h))] z-30 border-y border-line bg-ink/90 backdrop-blur-md sm:top-[calc(5rem+var(--banner-h))]"
       >
         <ul className="mx-auto flex max-w-7xl snap-x gap-2 overflow-x-auto px-5 py-3 [scrollbar-width:none] sm:px-8">
           <li>

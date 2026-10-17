@@ -43,7 +43,7 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 6rem;
+  scroll-padding-top: calc(6rem + var(--banner-h));
   /* wysokość banera pod nawigacją (0, gdy brak komunikatów albo baner zamknięty) */
   --banner-h: 0px;
 }

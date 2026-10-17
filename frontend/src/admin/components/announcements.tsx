@@ -95,11 +95,12 @@ const Preview = () => {
               fontSize: 11,
               letterSpacing: '0.2em',
               textTransform: 'uppercase',
-              borderBottom: '1px solid rgba(20,22,24,.4)',
+              border: '1px solid #141618',
+              padding: '4px 12px',
               whiteSpace: 'nowrap',
             }}
           >
-            {linkLabel || 'Czytaj więcej'} →
+            {linkLabel || 'Dowiedz się więcej'} →
           </span>
         )}
         <span style={{ marginLeft: 'auto', opacity: 0.7 }}>✕</span>
@@ -172,7 +173,7 @@ const AnnouncementForm = () => (
       source="linkLabel"
       label="Napis na przycisku"
       validate={maxLength(40, 'Najwyżej 40 znaków')}
-      helperText="Puste = „Czytaj więcej”"
+      helperText="Puste = „Dowiedz się więcej”"
     />
 
     <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>

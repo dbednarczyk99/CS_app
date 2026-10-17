@@ -99,7 +99,7 @@ export function Header({ announcements = [] }: { announcements?: Announcement[] 
       </div>
 
       {showBanner && (
-        <AnnouncementBar items={announcements} collapsed={scrolled || open} onDismiss={dismissBanner} />
+        <AnnouncementBar items={announcements} collapsed={open} onDismiss={dismissBanner} />
       )}
 
       {/* Menu mobilne na pełny ekran */}

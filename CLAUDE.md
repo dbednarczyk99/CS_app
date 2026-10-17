@@ -82,7 +82,7 @@ Bread reservations (pay on pickup, no customer accounts) span all three apps:
 ## Announcement banner
 
 - **API:** `backend/src/modules/announcements` – `Announcement` model (message ≤160, optional `linkUrl` starting with `/` or `https://`, `linkLabel`, `isActive`, optional `startsAt`/`endsAt` window, `order`). Public `GET /announcements/active`; CRUD for `CONTENT_ROLES`.
-- **Web:** the root layout fetches active announcements, sets `html[data-banner]` and passes them to `Header`, which renders `AnnouncementBar` under the nav row (collapses on scroll, rotates several messages, dismissal kept in sessionStorage per id+updatedAt). `--banner-h` (globals.css) reserves space; pages below the fixed header use the `pt-header` utility instead of fixed top padding.
+- **Web:** the root layout fetches active announcements, sets `html[data-banner]` and passes them to `Header`, which renders `AnnouncementBar` under the nav row (stays visible while scrolling, collapses only with the mobile menu open; rotates several messages, dismissal kept in sessionStorage per id+updatedAt). `--banner-h` (globals.css) reserves space; pages below the fixed header use the `pt-header` utility instead of fixed top padding.
 - **Admin:** "Baner informacyjny" (`announcements` resource) with live preview and a blog-post picker that fills `linkUrl`.
 
 ## Frontend architecture

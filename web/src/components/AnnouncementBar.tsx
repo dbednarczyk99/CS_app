@@ -21,7 +21,7 @@ export function wasDismissed(items: Announcement[]) {
 }
 
 /**
- * Wąski złoty pasek pod nawigacją (część stałego nagłówka). Kilka komunikatów zmienia się co 6 s
+ * Wąski złoty pasek pod nawigacją (część stałego nagłówka, widoczny także po przewinięciu). Kilka komunikatów zmienia się co 6 s
  * (pauza po najechaniu, bez automatu przy prefers-reduced-motion). Zamknięcie krzyżykiem
  * obowiązuje do końca wizyty (sessionStorage).
  */
@@ -56,7 +56,7 @@ export function AnnouncementBar({
 
   return (
     <div
-      // wysokość z --banner-h (globals.css), po przewinięciu strony pasek się zwija
+      // wysokość z --banner-h (globals.css); zwinięty tylko przy otwartym menu mobilnym
       style={{ height: collapsed ? 0 : 'var(--banner-h)' }}
       className="overflow-hidden bg-gold text-ink transition-[height] duration-300 ease-out"
       aria-hidden={collapsed}
@@ -131,8 +131,9 @@ function BannerContent({ item }: { item: Announcement }) {
   const content = (
     <>
       {message}
-      <span className="inline-flex shrink-0 items-center gap-2 border-ink/40 pb-px font-display text-[0.7rem] uppercase tracking-[0.2em] transition-colors group-hover:border-ink sm:border-b">
-        <span className="hidden sm:inline">{item.linkLabel || 'Czytaj więcej'}</span>
+      {/* obramowany przycisk, po najechaniu wypełniony; na telefonie kwadrat z samą strzałką */}
+      <span className="inline-flex size-8 shrink-0 items-center justify-center gap-2 border border-ink font-display text-[0.7rem] uppercase tracking-[0.2em] transition-colors group-hover:bg-ink group-hover:text-gold-light sm:size-auto sm:px-3 sm:py-1">
+        <span className="hidden sm:inline">{item.linkLabel || 'Dowiedz się więcej'}</span>
         <FaArrowRight size={11} aria-hidden />
       </span>
     </>
