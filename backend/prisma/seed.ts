@@ -223,6 +223,12 @@ async function main() {
     data: { isReservable: false },
   });
 
+  // przykładowo poza sezonem (jesień): faworki i lody – widoczne w sekcji „Wrócą w sezonie”
+  await prisma.product.updateMany({
+    where: { name: { in: ['Faworki', 'Lody rzemieślnicze'] } },
+    data: { inSeason: false },
+  });
+
   console.log('✅ Categories & products seeded');
 
   // --- LOCATIONS ---

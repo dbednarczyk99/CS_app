@@ -35,6 +35,11 @@ export class CreateProductDto {
   @IsBoolean()
   isSeasonal: boolean; // wymagane
 
+  /** sezonowy: czy teraz dostępny (domyślnie tak) */
+  @IsOptional()
+  @IsBoolean()
+  inSeason?: boolean;
+
   @IsBoolean()
   isActive: boolean; // wymagane
 

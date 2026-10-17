@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Product } from '@/lib/api';
+import { isOutOfSeason } from '@/lib/products';
 import { formatPrice } from '@/lib/format';
 import { AddToReservationCompact } from './AddToReservation';
 
@@ -15,9 +16,10 @@ export function ProductCard({
   reservable?: boolean;
 }) {
   const image = product.images?.[0];
+  const outOfSeason = isOutOfSeason(product);
 
   return (
-    <div className="group flex h-full flex-col">
+    <div className={`group flex h-full flex-col ${outOfSeason ? 'opacity-60 transition-opacity hover:opacity-90' : ''}`}>
       <Link href={`/oferta/${product.id}`} className="block">
         <div className="relative aspect-[4/5] overflow-hidden bg-graphite">
           {image ? (
@@ -27,7 +29,9 @@ export function ProductCard({
               fill
               priority={priority}
               sizes="(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 50vw"
-              className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              className={`object-cover transition-transform duration-700 ease-out group-hover:scale-105 ${
+                outOfSeason ? 'grayscale' : ''
+              }`}
             />
           ) : (
             <div className="grid h-full place-items-center p-6 text-center font-display uppercase tracking-[0.2em] text-stone">
@@ -36,8 +40,12 @@ export function ProductCard({
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-ink/50 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
           {product.isSeasonal && (
-            <span className="absolute left-3 top-3 bg-ink/80 px-2.5 py-1 font-display text-[0.65rem] uppercase tracking-[0.25em] text-gold backdrop-blur-sm">
-              Sezonowo
+            <span
+              className={`absolute left-3 top-3 bg-ink/80 px-2.5 py-1 font-display text-[0.65rem] uppercase tracking-[0.25em] backdrop-blur-sm ${
+                outOfSeason ? 'text-stone' : 'text-gold'
+              }`}
+            >
+              {outOfSeason ? 'Poza sezonem' : 'Teraz dostępne'}
             </span>
           )}
         </div>
@@ -45,11 +53,11 @@ export function ProductCard({
           <h3 className="font-display text-base uppercase leading-snug tracking-wide transition-colors group-hover:text-gold sm:text-lg">
             {product.name}
           </h3>
-          <span className="shrink-0 font-display text-gold">{formatPrice(product.price)}</span>
+          {!outOfSeason && <span className="shrink-0 font-display text-gold">{formatPrice(product.price)}</span>}
         </div>
         <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-stone">{product.description}</p>
       </Link>
-      {reservable && (
+      {reservable && !outOfSeason && (
         <div className="mt-auto pt-4">
           <AddToReservationCompact product={product} />
         </div>

@@ -1,6 +1,7 @@
 import type { HeroSlide } from '@/components/HeroCarousel';
 import type { BreadVanStop, Location, Product } from './api';
 import { plural } from './format';
+import { isAvailable } from './products';
 
 /**
  * Slajdy karuzeli na stronie głównej. Teksty na stałe w kodzie, liczby i nazwy z API;
@@ -15,7 +16,8 @@ export function buildHeroSlides({
   stops: BreadVanStop[];
   products: Product[];
 }): HeroSlide[] {
-  const seasonal = products.filter((p) => p.isActive && p.isSeasonal);
+  // tylko sezonowe dostępne teraz (poza sezonem nie reklamujemy)
+  const seasonal = products.filter((p) => isAvailable(p) && p.isSeasonal);
   const seasonalWithImage = seasonal.find((p) => p.images?.length);
 
   const slides: (HeroSlide | null)[] = [

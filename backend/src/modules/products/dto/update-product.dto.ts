@@ -41,6 +41,10 @@ export class UpdateProductDto {
 
   @IsBoolean()
   @IsOptional()
+  inSeason?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
   isActive?: boolean;
 
   @IsBoolean()

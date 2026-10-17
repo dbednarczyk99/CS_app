@@ -13,8 +13,24 @@ import {
   SelectInput,
   required,
   BooleanField,
+  FunctionField,
 } from 'react-admin';
+import { useWatch } from 'react-hook-form';
 import SortableImageInput from '../common/SortableImageInput';
+
+/** Przełącznik „W sezonie” – tylko dla produktów sezonowych */
+const InSeasonInput = () => {
+  const isSeasonal = useWatch({ name: 'isSeasonal' }) as boolean | undefined;
+  if (!isSeasonal) return null;
+  return (
+    <BooleanInput
+      source="inSeason"
+      label="W sezonie – teraz dostępny"
+      defaultValue={true}
+      helperText="Wyłączony: produkt zostaje na stronie w sekcji „Wrócą w sezonie”, bez ceny i rezerwacji"
+    />
+  );
+};
 
 export const ProductList = () => (
   <List>
@@ -25,6 +41,10 @@ export const ProductList = () => (
       <TextField source="category.name" label="Kategoria" />
 
       <BooleanField source="isSeasonal" />
+      <FunctionField
+        label="Sezon"
+        render={(p: { isSeasonal: boolean; inSeason: boolean }) => (p.isSeasonal ? (p.inSeason ? 'Teraz dostępny' : 'Poza sezonem') : '—')}
+      />
       <BooleanField source="isActive" />
       <BooleanField source="isReservable" label="Rezerwacja" />
     </Datagrid>
@@ -44,6 +64,7 @@ export const ProductCreate = () => (
         defaultValue={false}
         validate={[required()]}
       />
+      <InSeasonInput />
 
       <BooleanInput
         source="isActive"
@@ -78,6 +99,7 @@ export const ProductEdit = () => (
       <NumberInput source="price" validate={[required()]} />
       <TextInput source="description" validate={[required()]} />
       <BooleanInput source="isSeasonal" label="Is it Seasonal?" />
+      <InSeasonInput />
       <BooleanInput source="isActive" label="Is it Active?" />
       <BooleanInput source="isReservable" label="Można rezerwować online" />
 
