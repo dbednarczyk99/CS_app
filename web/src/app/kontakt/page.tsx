@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import { FaEnvelope, FaLocationArrow, FaPhone } from 'react-icons/fa6';
+import { FaEnvelope, FaInstagram, FaLocationArrow, FaPhone } from 'react-icons/fa6';
 import { ContactForm } from '@/components/ContactForm';
 import { PageHeader } from '@/components/PageHeader';
 import { SocialLinks } from '@/components/SocialLinks';
 import { api, orFallback } from '@/lib/api';
-import { telHref } from '@/lib/format';
+import { instagramProfile, telHref } from '@/lib/format';
 
 export const metadata: Metadata = {
   title: 'Kontakt',
@@ -18,6 +18,8 @@ export default async function ContactPage() {
     orFallback(api.media(), []),
   ]);
   const email = contact.find((c) => c.type === 'EMAIL')?.value;
+  const instagramUrl = media.find((m) => m.name === 'INSTAGRAM')?.url;
+  const instagram = instagramUrl ? instagramProfile(instagramUrl) : null;
 
   return (
     <>
@@ -38,6 +40,28 @@ export default async function ContactPage() {
         </section>
 
         <aside className="space-y-12">
+          {instagram && (
+            <div className="border border-line bg-coal p-6 sm:p-8">
+              <div className="flex items-center gap-3">
+                <FaInstagram className="text-gold" size={22} aria-hidden />
+                <h2 className="eyebrow">Instagram</h2>
+              </div>
+              <p className="heading mt-4 text-2xl">Napisz do nas na Instagramie</p>
+              <p className="mt-3 leading-relaxed text-stone">
+                Wolisz wiadomości? Odezwij się do nas na Instagramie – link otworzy od razu rozmowę z{' '}
+                <span className="text-cream">@{instagram.handle}</span>.
+              </p>
+              <a
+                href={instagram.dmUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-gold mt-6 w-full sm:w-auto"
+              >
+                <FaInstagram aria-hidden /> Otwórz rozmowę
+              </a>
+            </div>
+          )}
+
           {email && (
             <div>
               <h2 className="eyebrow">E-mail</h2>

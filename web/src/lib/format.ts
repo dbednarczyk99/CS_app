@@ -53,6 +53,19 @@ export function groupedHours(hours: OpeningHours | null) {
   return groups;
 }
 
+/**
+ * Profil Instagrama z adresu (https://www.instagram.com/chlebasmak/) → nazwa i link do wiadomości.
+ * ig.me/m/<nazwa> otwiera od razu okno rozmowy (w aplikacji na telefonie albo instagram.com/direct).
+ */
+export function instagramProfile(url: string) {
+  try {
+    const handle = new URL(url).pathname.split('/').filter(Boolean)[0];
+    return handle ? { handle, dmUrl: `https://ig.me/m/${handle}` } : null;
+  } catch {
+    return null;
+  }
+}
+
 export function telHref(phone: string) {
   return `tel:${phone.replace(/[^\d+]/g, '')}`;
 }

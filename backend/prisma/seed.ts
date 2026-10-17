@@ -442,10 +442,6 @@ async function main() {
         name: MediaName.FACEBOOK,
         url: 'https://www.facebook.com/chlebasmak',
       },
-      {
-        name: MediaName.TIKTOK,
-        url: 'https://www.tiktok.com/@chlebasmak',
-      },
     ],
   });
 

@@ -73,6 +73,7 @@ Dodatkowo:
 11. **Inspektor ochrony danych**: założenie, że wyznaczenie nie jest obowiązkowe (art. 37 RODO).
 12. **Rejestr czynności przetwarzania** (art. 30 RODO): czy przy tej skali przetwarzania jest wymagany. Rekomendacja wykonawcy: prowadzić. Inwentaryzacja z pkt 3 może posłużyć za podstawę.
 13. **Treść zgody/akceptacji w formularzu**: czy obecne brzmienie checkboxa (pkt 2.3 powyżej) jest prawidłowe.
+14. **Kontakt przez wiadomości na Instagramie / Facebooku** (polityka pkt 2.2 i 2.5). Na stronie „Kontakt” jest link otwierający okno wiadomości na Instagramie (ig.me). Piekarnia prowadzi profile tylko na Instagramie i Facebooku. Prosimy o ocenę roli Meta (odrębny administrator czy współadministrowanie w zakresie profilu, por. wyrok TSUE C-210/16 Wirtschaftsakademie) i treści informacji w polityce.
 
 ## 6. Obowiązki organizacyjne po stronie właściciela (do zapewnienia przed startem)
 
