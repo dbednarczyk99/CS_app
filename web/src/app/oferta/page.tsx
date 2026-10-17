@@ -12,20 +12,25 @@ export const metadata: Metadata = {
 export default async function OfferPage({
   searchParams,
 }: {
-  searchParams: Promise<{ kategoria?: string }>;
+  searchParams: Promise<{ kategoria?: string; sezonowe?: string }>;
 }) {
-  const { kategoria } = await searchParams;
+  const { kategoria, sezonowe } = await searchParams;
+  // ?sezonowe – tylko produkty sezonowe (link z karuzeli na stronie głównej)
   const products = (await orFallback(api.products(), [])).filter((p) => p.isActive);
+  const hasSeasonal = products.some((p) => p.isSeasonal);
+  const seasonalOnly = sezonowe !== undefined && hasSeasonal;
 
   // kategorie w kolejności pierwszego wystąpienia, tylko te z produktami
   const categories = [
     ...new Map(products.filter((p) => p.category).map((p) => [p.category!.id, p.category!])).values(),
   ];
-  const active = categories.find((c) => c.id === kategoria);
-  const groups = (active ? [active] : categories).map((category) => ({
-    category,
-    products: products.filter((p) => p.categoryId === category.id),
-  }));
+  const active = seasonalOnly ? undefined : categories.find((c) => c.id === kategoria);
+  const groups = (active ? [active] : categories)
+    .map((category) => ({
+      category,
+      products: products.filter((p) => p.categoryId === category.id && (!seasonalOnly || p.isSeasonal)),
+    }))
+    .filter((group) => group.products.length > 0);
 
   const chip = (selected: boolean) =>
     `shrink-0 snap-start border px-4 py-2 font-display text-[0.75rem] uppercase tracking-[0.2em] transition-colors ${
@@ -46,10 +51,17 @@ export default async function OfferPage({
       >
         <ul className="mx-auto flex max-w-7xl snap-x gap-2 overflow-x-auto px-5 py-3 [scrollbar-width:none] sm:px-8">
           <li>
-            <Link href="/oferta" scroll={false} className={chip(!active)}>
+            <Link href="/oferta" scroll={false} className={chip(!active && !seasonalOnly)}>
               Wszystko
             </Link>
           </li>
+          {hasSeasonal && (
+            <li>
+              <Link href="/oferta?sezonowe" scroll={false} className={chip(seasonalOnly)}>
+                Sezonowo
+              </Link>
+            </li>
+          )}
           {categories.map((category) => (
             <li key={category.id}>
               <Link

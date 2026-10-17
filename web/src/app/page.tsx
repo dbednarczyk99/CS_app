@@ -1,12 +1,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { FaArrowRight, FaChevronDown, FaInstagram } from 'react-icons/fa6';
+import { FaArrowRight, FaInstagram } from 'react-icons/fa6';
+import { HeroCarousel } from '@/components/HeroCarousel';
 import { LocationCard } from '@/components/LocationCard';
 import { ProductCard } from '@/components/ProductCard';
 import { Reveal } from '@/components/Reveal';
 import { SectionHeading } from '@/components/SectionHeading';
 import { api, orFallback } from '@/lib/api';
 import { formatDate, plural } from '@/lib/format';
+import { buildHeroSlides } from '@/lib/heroSlides';
 
 const VALUES = [
   {
@@ -26,11 +28,12 @@ const VALUES = [
 const GALLERY = ['01', '02', '03', '04', '05', '06', '07', '08'];
 
 export default async function HomePage() {
-  const [products, locations, articles, media] = await Promise.all([
+  const [products, locations, articles, media, stops] = await Promise.all([
     orFallback(api.products(), []),
     orFallback(api.locations(), []),
     orFallback(api.articles(), []),
     orFallback(api.media(), []),
+    orFallback(api.breadVanStops(), []),
   ]);
 
   // na przemian z pierwszych kategorii (np. chleby i słodkie wypieki), tylko produkty ze zdjęciem
@@ -45,54 +48,26 @@ export default async function HomePage() {
     .slice(0, 4);
   const latestArticles = [...articles].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
   const instagram = media.find((m) => m.name === 'INSTAGRAM');
+  const heroSlides = buildHeroSlides({ locations, stops, products });
 
   return (
     <>
-      {/* HERO */}
-      <section className="relative flex min-h-svh items-end overflow-hidden pb-16 sm:items-center sm:pb-0">
-        <picture>
-          <source media="(min-width: 768px)" srcSet="/images/hero-desktop.jpg" />
-          {/* art direction: różne kadry na telefon i komputer */}
-          <img
-            src="/images/hero-mobile.jpg"
-            alt="Przekrojony chleb na zakwasie w lnianej ściereczce"
-            className="animate-slow-zoom absolute inset-0 size-full object-cover object-[70%_center]"
-            fetchPriority="high"
-          />
-        </picture>
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/55 to-ink/20 md:bg-gradient-to-r md:from-ink/95 md:via-ink/60 md:to-transparent" />
-
-        <div className="relative mx-auto w-full max-w-7xl px-5 sm:px-8">
-          <div className="max-w-xl">
-            <p className="eyebrow">Piekarnia rzemieślnicza · Kraków</p>
-            <h1 className="heading mt-5 text-5xl sm:text-6xl lg:text-7xl">
-              Chleb,
-              <br />
-              który ma czas
-            </h1>
-            <p className="mt-6 max-w-md text-lg leading-relaxed text-cream/85">
-              Naturalny zakwas, długa fermentacja i ręczna praca. Codziennie od świtu w naszych
-              krakowskich piekarniach.
-            </p>
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-              <Link href="/oferta" className="btn btn-gold">
-                Zobacz ofertę
-              </Link>
-              <Link href="/piekarnie" className="btn btn-outline">
-                Znajdź piekarnię
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <a
-          href="#wartosci"
-          aria-label="Przewiń w dół"
-          className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 animate-bounce text-cream/60 transition-colors hover:text-gold sm:block"
-        >
-          <FaChevronDown size={20} />
-        </a>
-      </section>
+      {/* HERO – karuzela najważniejszych informacji */}
+      <HeroCarousel
+        slides={heroSlides}
+        firstImage={
+          <picture>
+            <source media="(min-width: 768px)" srcSet="/images/hero-desktop.jpg" />
+            {/* art direction: różne kadry na telefon i komputer */}
+            <img
+              src="/images/hero-mobile.jpg"
+              alt="Przekrojony chleb na zakwasie w lnianej ściereczce"
+              className="absolute inset-0 size-full object-cover object-[70%_center]"
+              fetchPriority="high"
+            />
+          </picture>
+        }
+      />
 
       {/* WARTOŚCI */}
       <section id="wartosci" className="border-b border-line bg-coal">
