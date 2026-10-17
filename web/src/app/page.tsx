@@ -256,12 +256,15 @@ export default async function HomePage() {
             </a>
           )}
         </div>
-        <GalleryCarousel
-          images={GALLERY.map((name, i) => ({
-            src: `/images/galeria/${name}.jpg`,
-            alt: `Wypieki Chleba Smak – zdjęcie ${i + 1}`,
-          }))}
-        />
+        {/* galeria w szerokości treści – krawędzie zgrane z nagłówkiem i resztą strony */}
+        <div className="mx-auto max-w-7xl px-5 sm:px-8">
+          <GalleryCarousel
+            images={GALLERY.map((name, i) => ({
+              src: `/images/galeria/${name}.jpg`,
+              alt: `Wypieki Chleba Smak – zdjęcie ${i + 1}`,
+            }))}
+          />
+        </div>
       </section>
     </>
   );

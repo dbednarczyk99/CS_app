@@ -9,8 +9,8 @@ const COPIES = 5; // zdjęcia powielone 5× – środkowa kopia to „prawdziwa�
 const MIDDLE = Math.floor(COPIES / 2);
 
 /**
- * Galeria „Prosto z piekarni”: zdjęcia o stałej szerokości (telefon 70vw / tablet 38vw / komputer 22vw),
- * widać tylko te, które mieszczą się w całości (1 / 2 / 4). Zapętlona w obie strony: po dojechaniu do kopii
+ * Galeria „Prosto z piekarni” w szerokości treści strony: 1 / 2 / 4 zdjęcia (telefon / tablet / komputer),
+ * zawsze całe. Zapętlona w obie strony: po dojechaniu do kopii
  * zdjęć pozycja niezauważalnie wraca na oryginał. Przewija się co 4 s (pauza po najechaniu, bez automatu
  * przy prefers-reduced-motion), strzałki i gest palcem.
  */
@@ -79,14 +79,17 @@ export function GalleryCarousel({ images }: { images: { src: string; alt: string
   const position = loop ? index : 0;
   const current = ((index % n) + n) % n;
 
-  const arrow =
-    'absolute top-1/2 z-10 grid size-11 -translate-y-1/2 place-items-center border border-cream/30 bg-ink/70 text-cream backdrop-blur-sm transition-colors hover:border-gold hover:text-gold';
+  // strzałki na zdjęciach (tablet/komputer)
+  const overlayArrow =
+    'absolute top-1/2 z-10 hidden size-11 -translate-y-1/2 place-items-center border border-cream/30 bg-ink/70 text-cream backdrop-blur-sm transition-colors hover:border-gold hover:text-gold sm:grid';
+  // strzałki pod galerią (telefon) – bez tła, nie zasłaniają zdjęcia
+  const rowArrow =
+    'grid size-10 shrink-0 place-items-center text-cream/60 transition-colors hover:text-gold sm:hidden';
 
   return (
     <div
-      className="relative mx-auto mt-12 [--gap:0.75rem] [--item:70vw] [--n:1] sm:[--item:38vw] sm:[--n:2] lg:[--item:22vw] lg:[--n:4]"
-      // szerokość okna = tyle zdjęć, ile mieści się w całości (reszta niewidoczna)
-      style={{ width: 'calc(var(--n) * var(--item) + (var(--n) - 1) * var(--gap))' }}
+      // n zdjęć w szerokości treści (1 / 2 / 4); szerokość zdjęcia i krok przesunięcia liczone z niej
+      className="relative mt-12 [--gap:0.75rem] [--n:1] sm:[--n:2] lg:[--n:4]"
       role="region"
       aria-roledescription="karuzela"
       aria-label="Zdjęcia z piekarni"
@@ -111,7 +114,8 @@ export function GalleryCarousel({ images }: { images: { src: string; alt: string
             className={`flex gap-[var(--gap)] ease-out motion-reduce:transition-none ${
               animate ? 'transition-transform duration-700' : ''
             }`}
-            style={{ transform: `translateX(calc(${-position} * (var(--item) + var(--gap))))` }}
+            // krok = (szerokość okna + odstęp) / n; procent liczony z szerokości listy (= okna)
+            style={{ transform: `translateX(calc(${-position} * (100% + var(--gap)) / var(--n)))` }}
             onTransitionEnd={(e) => {
               if (e.target === e.currentTarget) onTransitionEnd();
             }}
@@ -122,13 +126,13 @@ export function GalleryCarousel({ images }: { images: { src: string; alt: string
                 <li
                   key={`${Math.floor(i / n)}-${image.src}`}
                   aria-hidden={!shown}
-                  className="relative aspect-[3/4] w-[var(--item)] shrink-0 overflow-hidden"
+                  className="relative aspect-[3/4] w-[calc((100%-(var(--n)-1)*var(--gap))/var(--n))] shrink-0 overflow-hidden"
                 >
                   <Image
                     src={image.src}
                     alt={image.alt}
                     fill
-                    sizes="(min-width: 1024px) 22vw, (min-width: 640px) 38vw, 70vw"
+                    sizes="(min-width: 1280px) 300px, (min-width: 1024px) 24vw, (min-width: 640px) 46vw, 92vw"
                     className="object-cover transition-transform duration-700 hover:scale-105"
                   />
                 </li>
@@ -140,25 +144,53 @@ export function GalleryCarousel({ images }: { images: { src: string; alt: string
         {/* strzałki wyśrodkowane względem zdjęć */}
         {loop && (
           <>
-            <button type="button" onClick={() => go(index - 1)} aria-label="Poprzednie zdjęcie" className={`${arrow} left-3`}>
+            <button
+              type="button"
+              onClick={() => go(index - 1)}
+              aria-label="Poprzednie zdjęcie"
+              className={`${overlayArrow} left-3`}
+            >
               <FaChevronLeft size={14} aria-hidden />
             </button>
-            <button type="button" onClick={() => go(index + 1)} aria-label="Następne zdjęcie" className={`${arrow} right-3`}>
+            <button
+              type="button"
+              onClick={() => go(index + 1)}
+              aria-label="Następne zdjęcie"
+              className={`${overlayArrow} right-3`}
+            >
               <FaChevronRight size={14} aria-hidden />
             </button>
           </>
         )}
       </div>
 
-      {/* pozycja: cienkie paski pod galerią – jeden na zdjęcie, zaznaczone pierwsze widoczne */}
+      {/* pod galerią: paski pozycji (jeden na zdjęcie), na telefonie po bokach strzałki */}
       {loop && (
-        <div className="mt-6 flex justify-center gap-1.5" aria-hidden>
-          {images.map((image, i) => (
-            <span
-              key={image.src}
-              className={`h-0.5 w-6 transition-colors duration-500 ${i === current ? 'bg-gold' : 'bg-cream/20'}`}
-            />
-          ))}
+        <div className="mt-4 flex items-center justify-center gap-2 sm:mt-6">
+          <button
+            type="button"
+            onClick={() => go(index - 1)}
+            aria-label="Poprzednie zdjęcie"
+            className={rowArrow}
+          >
+            <FaChevronLeft size={13} aria-hidden />
+          </button>
+          <div className="flex gap-1.5" aria-hidden>
+            {images.map((image, i) => (
+              <span
+                key={image.src}
+                className={`h-0.5 w-5 transition-colors duration-500 sm:w-6 ${i === current ? 'bg-gold' : 'bg-cream/20'}`}
+              />
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => go(index + 1)}
+            aria-label="Następne zdjęcie"
+            className={rowArrow}
+          >
+            <FaChevronRight size={13} aria-hidden />
+          </button>
         </div>
       )}
     </div>

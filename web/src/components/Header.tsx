@@ -50,8 +50,9 @@ export function Header({ announcements = [] }: { announcements?: Announcement[] 
 
   return (
     <header
-      // krawędź jest zawsze (przezroczysta) – przy przejściu płynnie zmienia tylko kolor, bez błysku bieli
-      className={`fixed inset-x-0 top-0 z-50 border-b transition-colors duration-300 ${
+      // krawędź jest zawsze (przezroczysta) – przy przejściu płynnie zmienia tylko kolor, w tempie tła;
+      // gradient tła sięga pod krawędź (background-origin), inaczej powtarza się pod nią jako ciemna linia
+      className={`fixed inset-x-0 top-0 z-50 border-b transition-colors duration-300 [background-origin:border-box] ${
         solid ? 'border-line bg-ink/90 backdrop-blur-md' : 'border-transparent bg-gradient-to-b from-ink/70 to-transparent'
       }`}
     >
