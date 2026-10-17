@@ -53,6 +53,14 @@ Dostawcą usługi jest [[DO WERYFIKACJI: Google Ireland Limited, Gordon House, B
 
 W Serwisie umieszczamy wyłącznie odnośniki (linki) do naszych profili w serwisach Instagram i Facebook. Nie stosujemy wtyczek tych serwisów – do czasu kliknięcia w link żadne dane nie są im przekazywane. Po przejściu na profil zastosowanie mają polityki prywatności tych serwisów. Wiadomości wysyłane do nas przez Instagram lub Facebook są przesyłane za pośrednictwem Meta Platforms Ireland Limited, która przetwarza je zgodnie z własną polityką prywatności: https://privacycenter.instagram.com/policy. [[DO WERYFIKACJI PRZEZ PRAWNIKA: rola Meta i ewentualne współadministrowanie – zob. notatka dla prawnika]]
 
+### 2.6. Newsletter
+
+Jeżeli zapiszesz się do newslettera, przetwarzamy Twój **adres e-mail** oraz daty wyrażenia zgody, potwierdzenia zapisu i ewentualnego wypisania się – w celu wysyłania informacji o nowościach, wypiekach sezonowych i promocjach. Podstawą jest Twoja zgoda (art. 6 ust. 1 lit. a RODO), a w zakresie wysyłania informacji handlowych drogą elektroniczną – także art. 398 ustawy z dnia 12 lipca 2024 r. – Prawo komunikacji elektronicznej. [[DO WERYFIKACJI PRZEZ PRAWNIKA]]
+
+1. Zapis wymaga potwierdzenia – na podany adres wysyłamy wiadomość z linkiem potwierdzającym. Jeżeli zapis nie zostanie potwierdzony w ciągu 7 dni, adres jest automatycznie usuwany.
+2. Zgodę możesz wycofać w każdej chwili, klikając link „wypisz się” w wiadomości od nas albo kontaktując się z nami (pkt 1). Wycofanie zgody nie wpływa na zgodność z prawem przetwarzania przed jej wycofaniem.
+3. Podanie adresu e-mail jest dobrowolne, ale niezbędne do otrzymywania newslettera.
+
 ## 3. Pamięć przeglądarki i pliki cookies
 
 1. Serwis zapisuje w pamięci Twojej przeglądarki wyłącznie:
@@ -83,6 +91,7 @@ Niektórzy nasi dostawcy (np. [[dostawca e-mail]], Google) mogą przetwarzać da
 |---|---|
 | Dane osobowe z rezerwacji (imię, telefon, e-mail, uwagi) | do upływu **6 miesięcy od dnia złożenia** rezerwacji; następnie są automatycznie i trwale usuwane (anonimizacja). Pozostają wyłącznie informacje bez danych osobowych (produkty, ilości, data, punkt odbioru), wykorzystywane do statystyk sprzedaży. |
 | Dane z korespondencji | przez czas prowadzenia korespondencji, a następnie [[np. 12 miesięcy]] na wypadek pytań lub roszczeń |
+| Adres e-mail w newsletterze | do czasu wycofania zgody (wypisania się); niepotwierdzony zapis – 7 dni. Po wypisaniu przechowujemy adres i daty zgody/wypisania [[DO WERYFIKACJI: np. przez okres przedawnienia roszczeń]] jako dowód, że zgoda była udzielona, i nie wysyłamy już wiadomości. |
 | Logi serwera | [[np. 30 dni]] |
 
 Jeżeli przed upływem tych okresów zgłosisz sprzeciw lub żądanie usunięcia danych, usuniemy je wcześniej, chyba że będziemy ich potrzebować do ustalenia, dochodzenia lub obrony roszczeń. [[DO WERYFIKACJI PRZEZ PRAWNIKA: czy 6 miesięcy jest adekwatne wobec terminów reklamacji i przedawnienia roszczeń]]
@@ -94,9 +103,10 @@ Przysługuje Ci prawo do:
 2. **sprostowania** danych (art. 16 RODO),
 3. **usunięcia** danych (art. 17 RODO),
 4. **ograniczenia przetwarzania** (art. 18 RODO),
-5. **przenoszenia danych** przetwarzanych na podstawie umowy (art. 20 RODO),
+5. **przenoszenia danych** przetwarzanych na podstawie umowy lub zgody (art. 20 RODO),
 6. **sprzeciwu** wobec przetwarzania opartego na naszym prawnie uzasadnionym interesie (art. 21 RODO),
-7. **wniesienia skargi** do Prezesa Urzędu Ochrony Danych Osobowych (ul. Stawki 2, 00-193 Warszawa, https://uodo.gov.pl), jeżeli uważasz, że przetwarzamy Twoje dane niezgodnie z prawem.
+7. **wycofania zgody** (newsletter) w dowolnym momencie – bez wpływu na zgodność z prawem przetwarzania przed jej wycofaniem,
+8. **wniesienia skargi** do Prezesa Urzędu Ochrony Danych Osobowych (ul. Stawki 2, 00-193 Warszawa, https://uodo.gov.pl), jeżeli uważasz, że przetwarzamy Twoje dane niezgodnie z prawem.
 
 Aby skorzystać z praw, skontaktuj się z nami (pkt 1). Odpowiemy bez zbędnej zwłoki, nie później niż w terminie miesiąca. Abyśmy mogli zidentyfikować rezerwację, podaj numer rezerwacji lub adres e-mail i numer telefonu użyte przy rezerwacji.
 

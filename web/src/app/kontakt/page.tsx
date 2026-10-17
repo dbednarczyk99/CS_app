@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { FaEnvelope, FaInstagram, FaLocationArrow, FaPhone } from 'react-icons/fa6';
 import { ContactForm } from '@/components/ContactForm';
+import { NewsletterButton } from '@/components/Newsletter';
 import { PageHeader } from '@/components/PageHeader';
 import { SocialLinks } from '@/components/SocialLinks';
 import { api, orFallback } from '@/lib/api';
@@ -38,6 +39,19 @@ export default async function ContactPage() {
           <div className="mt-5 h-px w-16 bg-gold" />
           <div className="mt-8">
             <ContactForm email={email} />
+          </div>
+
+          {/* newsletter pod formularzem */}
+          <div className="mt-16 border-t border-line pt-12">
+            <p className="eyebrow">Newsletter</p>
+            <h2 className="heading mt-3 text-2xl">Bądź na bieżąco</h2>
+            <p className="mt-4 max-w-lg leading-relaxed text-stone">
+              Zapisz się, a damy znać o nowościach, wypiekach sezonowych i promocjach. Bez spamu – wypisać
+              możesz się w każdej chwili.
+            </p>
+            <NewsletterButton className="btn btn-outline mt-6">
+              <FaEnvelope size={12} aria-hidden /> Zapisz się do newslettera
+            </NewsletterButton>
           </div>
         </section>
 

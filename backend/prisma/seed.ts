@@ -573,6 +573,14 @@ async function main() {
       endsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     },
   });
+  await prisma.announcement.create({
+    data: {
+      message: 'Zapisz się do newslettera – nowości i wypieki sezonowe prosto na Twoją skrzynkę.',
+      linkUrl: '#newsletter', // otwiera okienko zapisu
+      linkLabel: 'Zapisz się',
+      order: 1,
+    },
+  });
   console.log('✅ Announcements seeded');
 
   // --- RESERVATIONS (przykładowe, fikcyjni klienci) ---

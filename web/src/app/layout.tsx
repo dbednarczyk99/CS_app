@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Lato, Oswald } from 'next/font/google';
 import { Footer } from '@/components/Footer';
+import { NewsletterDialog } from '@/components/Newsletter';
 import { Header } from '@/components/Header';
 import { api, orFallback } from '@/lib/api';
 import { ReservationCartProvider } from '@/lib/reservation-cart';
@@ -54,6 +55,8 @@ export default async function RootLayout({
           <Header announcements={announcements} />
           <main id="tresc">{children}</main>
           <Footer />
+          {/* okienko zapisu do newslettera – jedno dla całej strony */}
+          <NewsletterDialog />
         </ReservationCartProvider>
       </body>
     </html>

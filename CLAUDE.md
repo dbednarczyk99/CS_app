@@ -79,6 +79,12 @@ Bread reservations (pay on pickup, no customer accounts) span all three apps:
 - **Legal pages:** `/regulamin` and `/polityka-prywatnosci` render Markdown from `web/content/prawne/*.md` (single source; `[[…]]` = placeholder, highlighted) via the tiny renderer in [web/src/lib/markdown.tsx](web/src/lib/markdown.tsx). Notes for the lawyer: [docs/prawne/notatka-dla-prawnika.md](docs/prawne/notatka-dla-prawnika.md). E-mails load Oswald/Lato from `web/public/fonts` (CORS header in next.config), never from Google Fonts.
 - **Admin:** the read-only `reservations` resource (list + show, no edit) and the `/przygotowanie` custom page (daily preparation summary). The data provider passes list filters to the API as query parameters for this resource.
 
+## Newsletter
+
+- **API:** `backend/src/modules/newsletter` – `NewsletterSubscriber` (email, `PENDING | CONFIRMED | UNSUBSCRIBED`, random `token`, consent/confirm/unsubscribe dates). Double opt-in: public `POST /newsletter/subscribe` (always `{ok:true}`, honeypot, 5 per IP / 15 min) sends a confirmation e-mail; `POST /newsletter/confirm` and `POST /newsletter/unsubscribe` take `{token}` (POST on purpose – mail scanners open GET links). Cron 3:30 removes PENDING older than 7 days. Admin: `GET /newsletter`, `DELETE /newsletter/:id`. The system only collects subscribers (CSV export in the panel); it does not send newsletters.
+- **Web:** one `NewsletterDialog` (native `<dialog>`, dimmed backdrop) mounted in the root layout; opened by `openNewsletter()`/`NewsletterButton`, by any `a[href="#newsletter"]` (announcement links may be `#newsletter`) or by visiting a URL with `#newsletter`. Entry points: announcement bar, footer, `/kontakt` below the form. E-mail links land on `/newsletter/potwierdz/[token]` and `/newsletter/wypisz/[token]` (button → `/api/newsletter/[akcja]` proxy).
+- E-mail helpers (`layout`, `button`, …) are exported from `reservations/reservation-emails.ts`; `layout` takes an optional footer note.
+
 ## Announcement banner
 
 - **API:** `backend/src/modules/announcements` – `Announcement` model (message ≤160, optional `linkUrl` starting with `/` or `https://`, `linkLabel`, `isActive`, optional `startsAt`/`endsAt` window, `order`). Public `GET /announcements/active`; CRUD for `CONTENT_ROLES`.

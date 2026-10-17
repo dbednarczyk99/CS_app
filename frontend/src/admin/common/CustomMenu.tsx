@@ -16,6 +16,7 @@ import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import CampaignIcon from '@mui/icons-material/Campaign';
+import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 
 export const CustomMenu = () => {
   const [open] = useSidebarState();
@@ -131,6 +132,11 @@ export const CustomMenu = () => {
         to="/announcements"
         primaryText="Baner informacyjny"
         leftIcon={<CampaignIcon />}
+      />
+      <Menu.Item
+        to="/newsletter"
+        primaryText="Newsletter"
+        leftIcon={<MarkEmailReadIcon />}
       />
       <Menu.Item
         to="/contact/media"

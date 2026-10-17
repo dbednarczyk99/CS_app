@@ -1,8 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { FaEnvelope } from 'react-icons/fa6';
 import { api, orFallback } from '@/lib/api';
 import { telHref } from '@/lib/format';
 import { NAV } from '@/lib/nav';
+import { NewsletterButton } from './Newsletter';
 import { SocialLinks } from './SocialLinks';
 
 export async function Footer() {
@@ -33,6 +35,13 @@ export async function Footer() {
           <div className="mt-6">
             <SocialLinks media={media} size={22} />
           </div>
+          <h2 className="eyebrow mt-10">Newsletter</h2>
+          <p className="mt-3 max-w-sm text-sm leading-relaxed text-stone">
+            Nowości, wypieki sezonowe i promocje – prosto na Twoją skrzynkę.
+          </p>
+          <NewsletterButton className="btn btn-outline mt-4 min-h-10 px-4 py-2 text-[0.7rem]">
+            <FaEnvelope size={11} aria-hidden /> Zapisz się
+          </NewsletterButton>
         </div>
 
         <div>

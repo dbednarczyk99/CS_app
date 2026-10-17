@@ -35,7 +35,7 @@ export interface EmailContext {
 
 /* ---------- identyfikacja wizualna (jak na stronie) ---------- */
 
-const C = {
+export const C = {
   ink: '#141618',
   coal: '#1a1d20',
   graphite: '#212529',
@@ -72,7 +72,7 @@ export const formatPickupDate = (date: string) =>
     timeZone: 'UTC',
   }).format(new Date(`${date}T12:00:00Z`));
 
-const esc = (value: string) =>
+export const esc = (value: string) =>
   value.replace(
     /[&<>"']/g,
     (c) =>
@@ -85,16 +85,16 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /* ---------- elementy ---------- */
 
-const eyebrow = (text: string) =>
+export const eyebrow = (text: string) =>
   `<div style="font-family:${HEADING};font-size:11px;letter-spacing:4px;text-transform:uppercase;color:${C.gold}">${esc(text)}</div>`;
 
-const heading = (text: string, size = 30) =>
+export const heading = (text: string, size = 30) =>
   `<h1 style="margin:10px 0 0;font-family:${HEADING};font-weight:500;font-size:${size}px;line-height:1.25;letter-spacing:2px;text-transform:uppercase;color:${C.cream}">${esc(text)}</h1>`;
 
-const paragraph = (html: string, color = C.stone) =>
+export const paragraph = (html: string, color = C.stone) =>
   `<p style="margin:14px 0 0;font-family:${BODY};font-size:15px;line-height:1.65;color:${color}">${html}</p>`;
 
-function button(href: string, label: string, variant: 'gold' | 'outline') {
+export function button(href: string, label: string, variant: 'gold' | 'outline') {
   const gold = variant === 'gold';
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="display:inline-table;margin:6px 8px 0 0"><tr>
 <td bgcolor="${gold ? C.gold : C.coal}" style="background:${gold ? C.gold : C.coal};border:1px solid ${gold ? C.gold : C.stone}">
@@ -102,8 +102,13 @@ function button(href: string, label: string, variant: 'gold' | 'outline') {
 </td></tr></table>`;
 }
 
-/** Ramka strony: logo, panel z treścią, stopka z kontaktem i social media */
-function layout(preheader: string, content: string, ctx: EmailContext): string {
+/** Ramka strony: logo, panel z treścią, stopka z kontaktem i social media (note – zdanie na dole stopki) */
+export function layout(
+  preheader: string,
+  content: string,
+  ctx: EmailContext,
+  note = 'Wiadomość wysłana automatycznie – w sprawie rezerwacji skontaktuj się z piekarnią.',
+): string {
   const site = ctx.webUrl.replace(/^https?:\/\//, '');
   const links = [
     `<a href="${ctx.webUrl}" style="color:${C.cream};text-decoration:none">${esc(site)}</a>`,
@@ -150,7 +155,7 @@ ${content}
   ${links.join('<span style="color:#4d4a45">&nbsp;&nbsp;|&nbsp;&nbsp;</span>')}
   ${social ? `<div style="margin-top:10px">${social}</div>` : ''}
   <div style="margin-top:14px;font-size:12px"><a href="${ctx.webUrl}/regulamin" style="color:${C.stone};text-decoration:underline">Regulamin rezerwacji</a><span style="color:#4d4a45">&nbsp;&nbsp;·&nbsp;&nbsp;</span><a href="${ctx.webUrl}/polityka-prywatnosci" style="color:${C.stone};text-decoration:underline">Polityka prywatności</a></div>
-  <div style="margin-top:12px;font-size:11px;color:#77716a">Chleba Smak · Piekarnia Rzemieślnicza · Kraków<br>Wiadomość wysłana automatycznie – w sprawie rezerwacji skontaktuj się z piekarnią.</div>
+  <div style="margin-top:12px;font-size:11px;color:#77716a">Chleba Smak · Piekarnia Rzemieślnicza · Kraków<br>${esc(note)}</div>
 </td></tr>
 
 </table></td></tr></table>
@@ -281,7 +286,7 @@ ${itemsTable(r)}
 }
 
 // logo w treści maila (cid) – działa bez publicznego adresu i nie jest blokowane jak obrazki z internetu
-function logoAttachment() {
+export function logoAttachment() {
   return {
     filename: 'chleba-smak.png',
     path: join(process.cwd(), 'assets', 'email', 'logo.png'),
