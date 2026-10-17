@@ -28,6 +28,17 @@
       transform: scale(1);
     }
   }
+
+  /* pasek postępu slajdu w karuzeli hero (czas ustawiany w komponencie) */
+  --animate-hero-progress: hero-progress 7s linear both;
+  @keyframes hero-progress {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
 }
 
 html {
