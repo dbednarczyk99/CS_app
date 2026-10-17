@@ -294,7 +294,7 @@ export default async function OfferPage({
               <div className="h-px flex-1 bg-line" />
             </div>
             <p className="mt-3 max-w-2xl text-stone">
-              Te produkty są dostępne tylko w swoim sezonie – wrócą do oferty, gdy sezon znów się zacznie.
+              Teraz ich nie znajdziesz w naszych piekarniach – ale na pewno do nich wrócimy.
             </p>
             <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-3 xl:grid-cols-4">
               {outOfSeason.map((product) => (
