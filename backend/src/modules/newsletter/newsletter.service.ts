@@ -12,7 +12,10 @@ import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { EmailContext } from '../reservations/reservation-emails';
 import type { SubscribeDto } from './dto/newsletter.dto';
-import { newsletterConfirmEmail } from './newsletter-emails';
+import {
+  newsletterArticleEmail,
+  newsletterConfirmEmail,
+} from './newsletter-emails';
 
 const WINDOW_MS = 15 * 60 * 1000;
 const PER_IP_LIMIT = 5; // zapisów z jednego adresu IP w oknie 15 min
@@ -93,6 +96,48 @@ export class NewsletterService {
       });
     }
     return { status: 'unsubscribed' as const };
+  }
+
+  /**
+   * Wysyłka wpisu z bloga do potwierdzonych subskrybentów – tylko raz na artykuł (atomowe „zajęcie”
+   * przez newsletterSentAt chroni przed podwójną wysyłką przy szybkich zapisach).
+   */
+  async sendArticle(articleId: string) {
+    const claimed = await this.prisma.article.updateMany({
+      where: { id: articleId, sendAsNewsletter: true, newsletterSentAt: null },
+      data: { newsletterSentAt: new Date() },
+    });
+    if (claimed.count === 0) return;
+
+    const [article, subscribers, ctx] = await Promise.all([
+      this.prisma.article.findUnique({
+        where: { id: articleId },
+        include: { images: { orderBy: { order: 'asc' }, take: 1 } },
+      }),
+      this.prisma.newsletterSubscriber.findMany({
+        where: { status: 'CONFIRMED' },
+        select: { email: true, token: true },
+      }),
+      this.emailContext(),
+    ]);
+    if (!article) return;
+
+    for (const subscriber of subscribers) {
+      this.mail.send(
+        newsletterArticleEmail(
+          { ...article, imageUrl: article.images[0]?.imgUrl },
+          subscriber,
+          ctx,
+        ),
+      );
+    }
+    await this.prisma.article.update({
+      where: { id: articleId },
+      data: { newsletterRecipients: subscribers.length },
+    });
+    this.logger.log(
+      `Newsletter „${article.title}” – wysłano do ${subscribers.length} os.`,
+    );
   }
 
   /* --- panel --- */

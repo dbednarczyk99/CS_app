@@ -559,6 +559,9 @@ async function main() {
     data: { articleId: vanBreakArticle.id, tagId: breadTag.id },
   });
 
+  // przykładowe wpisy traktujemy jak dawne – nie wysyłamy ich do newslettera przy edycji
+  await prisma.article.updateMany({ data: { sendAsNewsletter: false } });
+
   console.log('✅ Articles & tags seeded');
 
   // --- BANER INFORMACYJNY ---

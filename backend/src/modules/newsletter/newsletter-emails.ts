@@ -14,6 +14,57 @@ import {
 const NOTE =
   'Otrzymujesz tę wiadomość, bo ktoś podał ten adres przy zapisie do newslettera Chleba Smak.';
 
+/** Newsletter z nowym wpisem z bloga – osobny e-mail dla każdego odbiorcy (własny link do wypisania) */
+export function newsletterArticleEmail(
+  article: {
+    id: string;
+    title: string;
+    shortDescription: string;
+    imageUrl?: string | null;
+  },
+  to: { email: string; token: string },
+  ctx: EmailContext,
+): MailMessage {
+  const articleUrl = `${ctx.webUrl}/aktualnosci/${article.id}`;
+  const unsubscribeUrl = `${ctx.webUrl}/newsletter/wypisz/${to.token}`;
+  const image = article.imageUrl
+    ? `<a href="${articleUrl}"><img src="${esc(article.imageUrl)}" width="520" alt="" style="display:block;width:100%;height:auto;margin:22px 0 4px;border:0"></a>`
+    : '';
+  const content = `
+${eyebrow('Z piekarni Chleba Smak')}
+${heading(article.title, 26)}
+${image}
+${paragraph(esc(article.shortDescription), C.cream)}
+<div style="margin-top:26px">${button(articleUrl, 'Czytaj dalej', 'gold')}</div>
+${paragraph(
+  `Otrzymujesz tę wiadomość, bo zapisałeś(-aś) się do newslettera Chleba Smak. <a href="${unsubscribeUrl}" style="color:#8f877b;text-decoration:underline">Wypisz się</a>`,
+  '#8f877b',
+)}`;
+
+  return {
+    to: to.email,
+    subject: `${article.title} – Chleba Smak`,
+    html: layout(
+      article.shortDescription,
+      content,
+      ctx,
+      'Newsletter Chleba Smak',
+    ),
+    text: [
+      article.title,
+      '',
+      article.shortDescription,
+      '',
+      `Czytaj dalej: ${articleUrl}`,
+      '',
+      `Wypisz się z newslettera: ${unsubscribeUrl}`,
+    ].join('\n'),
+    // przycisk „Wypisz się” w programach pocztowych (Gmail, Outlook)
+    headers: { 'List-Unsubscribe': `<${unsubscribeUrl}>` },
+    attachments: [logoAttachment()],
+  };
+}
+
 /** E-mail z linkiem potwierdzającym zapis (double opt-in) */
 export function newsletterConfirmEmail(
   email: string,

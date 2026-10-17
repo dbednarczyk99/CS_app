@@ -6,5 +6,7 @@ import { NewsletterService } from './newsletter.service';
 @Module({
   providers: [NewsletterService, PrismaService],
   controllers: [NewsletterController],
+  // wysyłka wpisów z bloga (BlogService)
+  exports: [NewsletterService],
 })
 export class NewsletterModule {}

@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { FaEnvelopeOpenText, FaXmark } from 'react-icons/fa6';
 
@@ -151,9 +150,15 @@ export function NewsletterDialog() {
               <span>
                 Chcę otrzymywać newsletter Chleba Smak na podany adres e-mail. Zgodę mogę wycofać w każdej chwili –
                 link do wypisania jest w każdej wiadomości. Więcej w{' '}
-                <Link href="/polityka-prywatnosci" className="text-cream underline underline-offset-4 hover:text-gold">
+                {/* w nowej karcie – okienko z wpisanym adresem zostaje otwarte */}
+                <a
+                  href="/polityka-prywatnosci"
+                  target="_blank"
+                  rel="noopener"
+                  className="text-cream underline underline-offset-4 hover:text-gold"
+                >
                   polityce prywatności
-                </Link>
+                </a>
                 .
               </span>
             </label>

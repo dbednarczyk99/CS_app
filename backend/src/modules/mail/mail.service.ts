@@ -6,6 +6,8 @@ export interface MailMessage {
   to: string;
   /** adres dla „Odpowiedz” (np. nadawca formularza kontaktowego) */
   replyTo?: string;
+  /** dodatkowe nagłówki, np. List-Unsubscribe w newsletterze */
+  headers?: Record<string, string>;
   subject: string;
   html: string;
   text: string;

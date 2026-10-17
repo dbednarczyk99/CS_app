@@ -215,6 +215,10 @@ model Article {
   content          String          @db.Text
   images           ArticleImages[]
   tags             TagOnArticle[]
+  // wysyłka do zapisanych w newsletterze – raz, przy zapisaniu artykułu z zaznaczoną flagą
+  sendAsNewsletter     Boolean   @default(true)
+  newsletterSentAt     DateTime?
+  newsletterRecipients Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

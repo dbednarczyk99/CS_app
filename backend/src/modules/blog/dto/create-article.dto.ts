@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsArray,
   IsInt,
   IsOptional,
@@ -38,6 +39,11 @@ export class CreateArticleDto {
   @ValidateNested({ each: true })
   @Type(() => ArticleImageInlineDto)
   images?: ArticleImageInlineDto[];
+
+  /** wysłać wpis do zapisanych w newsletterze (domyślnie tak; wysyłka tylko raz) */
+  @IsOptional()
+  @IsBoolean()
+  sendAsNewsletter?: boolean;
 
   // nazwy tagów (string) lub obiekty { name }
   @IsOptional()

@@ -1,10 +1,11 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import deleteImageFiles from './../../scripts/imageHandler';
 
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
+import { NewsletterService } from '../newsletter/newsletter.service';
 
 type ArticleWithRelations = Prisma.ArticleGetPayload<{
   include: {
@@ -19,7 +20,23 @@ type ArticleWithRelations = Prisma.ArticleGetPayload<{
 
 @Injectable()
 export class BlogService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private newsletter: NewsletterService,
+  ) {}
+
+  /** Wysyłka do newslettera w tle (raz na artykuł) – błąd poczty nie blokuje zapisu artykułu */
+  private sendNewsletter(articleId: string) {
+    this.newsletter
+      .sendArticle(articleId)
+      .catch((error: unknown) =>
+        this.logger.error(
+          `Newsletter dla artykułu ${articleId} nie wysłany`,
+          error as Error,
+        ),
+      );
+  }
+  private readonly logger = new Logger(BlogService.name);
 
   /* ----------------- GET ----------------- */
 
@@ -46,7 +63,7 @@ export class BlogService {
 
   /* ----------------- CREATE ----------------- */
 
-  createArticle(dto: CreateArticleDto) {
+  async createArticle(dto: CreateArticleDto) {
     const { images, tags, ...rest } = dto as any;
 
     const tagNames = (tags || []).map((t: any) =>
@@ -60,7 +77,7 @@ export class BlogService {
       }),
     );
 
-    return this.prisma.article.create({
+    const article = await this.prisma.article.create({
       data: {
         ...rest,
         images: {
@@ -82,6 +99,8 @@ export class BlogService {
         tags: { include: { tag: true } },
       },
     });
+    if (article.sendAsNewsletter) this.sendNewsletter(article.id);
+    return article;
   }
 
   /* ----------------- UPDATE ----------------- */
@@ -104,6 +123,9 @@ export class BlogService {
         ? { shortDescription: rest.shortDescription }
         : {}),
       ...(rest.content !== undefined ? { content: rest.content } : {}),
+      ...(rest.sendAsNewsletter !== undefined
+        ? { sendAsNewsletter: rest.sendAsNewsletter }
+        : {}),
     };
 
     /* -------- TAGI -------- */
@@ -163,6 +185,10 @@ export class BlogService {
     if (urlsToDelete.length > 0) {
       await deleteImageFiles(urlsToDelete);
     }
+
+    // flaga włączona, a artykuł jeszcze nie wysłany (np. zapisany wcześniej bez wysyłki) – wysyłka teraz
+    if (updated.sendAsNewsletter && !updated.newsletterSentAt)
+      this.sendNewsletter(id);
 
     return updated;
   }
