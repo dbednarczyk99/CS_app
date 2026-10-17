@@ -139,7 +139,7 @@ export class ReservationsService {
       pickupTime = `${stop.startTime}–${stop.endTime}`;
     }
 
-    // produkty: aktywne i dostępne do rezerwacji, każdy tylko raz
+    // produkty: aktywne, dostępne do rezerwacji i (sezonowe) w sezonie, każdy tylko raz
     const quantities = new Map<string, number>();
     for (const item of dto.items) {
       quantities.set(
@@ -152,6 +152,7 @@ export class ReservationsService {
         id: { in: [...quantities.keys()] },
         isActive: true,
         isReservable: true,
+        OR: [{ isSeasonal: false }, { inSeason: true }],
       },
     });
     if (products.length !== quantities.size) {

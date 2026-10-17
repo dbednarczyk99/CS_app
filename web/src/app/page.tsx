@@ -7,6 +7,7 @@ import { ProductCard } from '@/components/ProductCard';
 import { Reveal } from '@/components/Reveal';
 import { SectionHeading } from '@/components/SectionHeading';
 import { api, orFallback } from '@/lib/api';
+import { isAvailable } from '@/lib/products';
 import { formatDate, plural } from '@/lib/format';
 import { buildHeroSlides } from '@/lib/heroSlides';
 
@@ -37,12 +38,14 @@ export default async function HomePage() {
   ]);
 
   // na przemian z pierwszych kategorii (np. chleby i słodkie wypieki), tylko produkty ze zdjęciem
-  const withImages = products.filter((p) => p.isActive && p.images?.length);
+  const withImages = products.filter((p) => isAvailable(p) && p.images?.length);
   const groups = new Map<string, typeof withImages>();
   for (const p of withImages) groups.set(p.categoryId, [...(groups.get(p.categoryId) ?? []), p]);
   const byCategory = [...groups.values()];
-  const featured = Array.from({ length: 4 }, (_, i) => byCategory[i % 2]?.[Math.floor(i / 2)])
-    .filter((p) => p !== undefined)
+  // najpierw bestsellery (etykieta z panelu), potem na przemian z kategorii
+  const featured = withImages
+    .filter((p) => p.isBestseller)
+    .concat(Array.from({ length: 4 }, (_, i) => byCategory[i % 2]?.[Math.floor(i / 2)]).filter((p) => p !== undefined))
     .concat(withImages)
     .filter((p, i, all) => all.indexOf(p) === i)
     .slice(0, 4);

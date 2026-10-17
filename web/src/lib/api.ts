@@ -30,6 +30,10 @@ export interface Product {
   description: string;
   price: number;
   isSeasonal: boolean;
+  /** sezonowy: false = poza sezonem (widoczny w sekcji „Wrócą w sezonie”, bez rezerwacji) */
+  inSeason: boolean;
+  isBestseller: boolean;
+  isNew: boolean;
   isActive: boolean;
   isReservable: boolean;
   images?: Image[]; // brak w odpowiedzi /products/categories

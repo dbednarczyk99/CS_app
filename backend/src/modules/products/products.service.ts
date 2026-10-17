@@ -116,7 +116,15 @@ export class ProductsService {
         : {}),
       ...(rest.price !== undefined ? { price: rest.price } : {}),
       ...(rest.isSeasonal !== undefined ? { isSeasonal: rest.isSeasonal } : {}),
+      ...(rest.inSeason !== undefined ? { inSeason: rest.inSeason } : {}),
+      ...(rest.isBestseller !== undefined
+        ? { isBestseller: rest.isBestseller }
+        : {}),
+      ...(rest.isNew !== undefined ? { isNew: rest.isNew } : {}),
       ...(rest.isActive !== undefined ? { isActive: rest.isActive } : {}),
+      ...(rest.isReservable !== undefined
+        ? { isReservable: rest.isReservable }
+        : {}),
       ...(rest.categoryId !== undefined ? { categoryId: rest.categoryId } : {}),
     };
 

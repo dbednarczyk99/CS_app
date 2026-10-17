@@ -1,6 +1,7 @@
 import type { HeroSlide } from '@/components/HeroCarousel';
 import type { BreadVanStop, Location, Product } from './api';
 import { plural } from './format';
+import { isAvailable } from './products';
 
 /**
  * Slajdy karuzeli na stronie głównej. Teksty na stałe w kodzie, liczby i nazwy z API;
@@ -15,7 +16,8 @@ export function buildHeroSlides({
   stops: BreadVanStop[];
   products: Product[];
 }): HeroSlide[] {
-  const seasonal = products.filter((p) => p.isActive && p.isSeasonal);
+  // tylko sezonowe dostępne teraz (poza sezonem nie reklamujemy)
+  const seasonal = products.filter((p) => isAvailable(p) && p.isSeasonal);
   const seasonalWithImage = seasonal.find((p) => p.images?.length);
 
   const slides: (HeroSlide | null)[] = [
@@ -77,7 +79,7 @@ export function buildHeroSlides({
           eyebrow: 'Sezonowo',
           title: ['Tylko', 'przez chwilę'],
           text: 'Wypieki, które pojawiają się w naszych piekarniach tylko w swoim sezonie. Sprawdź, co pieczemy teraz – póki sezon trwa.',
-          ctas: [{ href: '/oferta?sezonowe', label: 'Zobacz sezonowe', primary: true }],
+          ctas: [{ href: '/oferta?etykiety=sezonowe', label: 'Zobacz sezonowe', primary: true }],
           image: { src: seasonalWithImage.images![0].imgUrl, alt: '', position: 'center' },
         }
       : null,

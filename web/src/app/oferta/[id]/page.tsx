@@ -6,6 +6,7 @@ import { FaArrowLeft, FaArrowRight } from 'react-icons/fa6';
 import { AddToReservation } from '@/components/AddToReservation';
 import { ProductCard } from '@/components/ProductCard';
 import { api, orFallback } from '@/lib/api';
+import { isAvailable, isOutOfSeason, productBadges } from '@/lib/products';
 import { formatPrice } from '@/lib/format';
 
 type Props = { params: Promise<{ id: string }> };
@@ -25,8 +26,10 @@ export default async function ProductPage({ params }: Props) {
   if (!product || !product.isActive) notFound();
 
   const image = product.images?.[0];
+  const outOfSeason = isOutOfSeason(product);
+  const badges = productBadges(product);
   const related = all
-    .filter((p) => p.isActive && p.categoryId === product.categoryId && p.id !== product.id)
+    .filter((p) => isAvailable(p) && p.categoryId === product.categoryId && p.id !== product.id)
     .slice(0, 4);
 
   return (
@@ -45,7 +48,7 @@ export default async function ProductPage({ params }: Props) {
                 fill
                 priority
                 sizes="(min-width: 1024px) 50vw, 100vw"
-                className="object-cover"
+                className={`object-cover ${outOfSeason ? 'grayscale' : ''}`}
               />
             )}
           </div>
@@ -57,20 +60,48 @@ export default async function ProductPage({ params }: Props) {
               </Link>
             )}
             <h1 className="heading mt-4 text-4xl sm:text-5xl">{product.name}</h1>
-            <p className="mt-6 font-display text-3xl text-gold">{formatPrice(product.price)}</p>
-            {product.isSeasonal && (
-              <p className="mt-4 inline-block border border-gold/50 px-3 py-1 font-display text-[0.7rem] uppercase tracking-[0.25em] text-gold">
-                Produkt sezonowy
-              </p>
+            {!outOfSeason && <p className="mt-6 font-display text-3xl text-gold">{formatPrice(product.price)}</p>}
+            {badges.length > 0 && (
+              <ul className="mt-4 flex flex-wrap gap-2">
+                {badges.map((badge) => (
+                  <li
+                    key={badge.label}
+                    className={`border px-3 py-1 font-display text-[0.7rem] uppercase tracking-[0.25em] ${
+                      {
+                        new: 'border-gold bg-gold text-ink',
+                        bestseller: 'border-cream bg-cream text-ink',
+                        season: 'border-gold/50 text-gold',
+                        off: 'border-line text-stone',
+                      }[badge.tone]
+                    }`}
+                  >
+                    {badge.label}
+                  </li>
+                ))}
+              </ul>
             )}
             <div className="mt-8 h-px bg-line" />
             <p className="mt-8 text-lg leading-relaxed text-cream/90">{product.description}</p>
 
             <div className="mt-10">
-              <AddToReservation product={product} />
+              {outOfSeason ? (
+                <div className="border-l-2 border-line py-1 pl-5">
+                  <p className="heading text-lg">Obecnie poza sezonem</p>
+                  <p className="mt-2 leading-relaxed text-stone">
+                    Teraz nie ma go w naszych piekarniach i nie można go zarezerwować – wróci, gdy
+                    przyjdzie na niego pora.
+                  </p>
+                  <Link href="/oferta" className="link-arrow mt-4 inline-flex items-center gap-3 text-[0.75rem]">
+                    Zobacz, co mamy teraz <FaArrowRight aria-hidden />
+                  </Link>
+                </div>
+              ) : (
+                <AddToReservation product={product} />
+              )}
             </div>
 
-            <div className="mt-10 border border-line bg-coal p-6">
+            {/* poza sezonem nie można rezerwować – bez opisu rezerwacji */}
+            <div className={`mt-10 border border-line bg-coal p-6 ${outOfSeason ? 'hidden' : ''}`}>
               <p className="heading text-lg">Jak działa rezerwacja?</p>
               <ul className="mt-3 space-y-2 leading-relaxed text-stone">
                 <li>Odbiór w jednej z naszych piekarni lub z chlebowozu.</li>
