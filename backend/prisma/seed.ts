@@ -440,6 +440,12 @@ async function main() {
         label: 'E-mail',
         value: 'piekarnia@chlebasmak.pl',
       },
+      {
+        // główny telefon (oprócz numerów piekarni) – numer przykładowy, do podmiany w panelu
+        type: ContactType.PHONE,
+        label: 'Telefon',
+        value: '+48 12 345 67 89',
+      },
     ],
   });
 

@@ -39,7 +39,14 @@ const withItems = { items: true } satisfies Prisma.ReservationInclude;
 export interface ReservationOptions {
   cutoffHour: number;
   dates: string[];
-  stores: { id: string; address: string; slots: Record<string, string[]> }[];
+  stores: {
+    id: string;
+    address: string;
+    /** terminy odbioru co 30 min; ostatni najpóźniej 30 min przed zamknięciem */
+    slots: Record<string, string[]>;
+    /** godziny otwarcia w danym dniu (z panelu) – do podpowiedzi „Odbiór między …” */
+    hours: Record<string, { open: string; close: string }>;
+  }[];
   vanStops: {
     id: string;
     address: string;
@@ -69,11 +76,20 @@ export class ReservationsService {
     const stores = locations
       .map((location) => {
         const slots: Record<string, string[]> = {};
+        const openingHours: Record<string, { open: string; close: string }> = {};
         for (const date of dates) {
           const hours = storeHoursOn(location.openingHours as never, date);
-          if (hours) slots[date] = pickupSlots(hours);
+          if (hours) {
+            slots[date] = pickupSlots(hours);
+            openingHours[date] = { open: hours[0], close: hours[1] };
+          }
         }
-        return { id: location.id, address: location.address, slots };
+        return {
+          id: location.id,
+          address: location.address,
+          slots,
+          hours: openingHours,
+        };
       })
       .filter((store) => Object.keys(store.slots).length > 0);
 

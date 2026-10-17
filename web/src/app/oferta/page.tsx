@@ -154,7 +154,7 @@ export default async function OfferPage({
               }
             >
               <div className={`${dropdownPanel} left-0`}>
-                <ul className="max-h-[60svh] overflow-y-auto">
+                <ul className="scrollbar-subtle max-h-[60svh] overflow-y-auto">
                   {categoryOptions.map((option) => (
                     <li key={option.id || 'wszystkie'}>
                       {checkboxRow({ ...option, label: option.name, dimmed: option.count === 0 })}

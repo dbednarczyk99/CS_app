@@ -1,13 +1,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaArrowRight, FaInstagram } from 'react-icons/fa6';
+import { LoopCarousel } from '@/components/LoopCarousel';
 import { HeroCarousel } from '@/components/HeroCarousel';
 import { LocationCard } from '@/components/LocationCard';
 import { ProductCard } from '@/components/ProductCard';
 import { Reveal } from '@/components/Reveal';
 import { SectionHeading } from '@/components/SectionHeading';
 import { api, orFallback } from '@/lib/api';
-import { isAvailable } from '@/lib/products';
+import { featuredProducts, isAvailable } from '@/lib/products';
 import { formatDate, plural } from '@/lib/format';
 import { buildHeroSlides } from '@/lib/heroSlides';
 
@@ -37,18 +38,8 @@ export default async function HomePage() {
     orFallback(api.breadVanStops(), []),
   ]);
 
-  // na przemian z pierwszych kategorii (np. chleby i słodkie wypieki), tylko produkty ze zdjęciem
-  const withImages = products.filter((p) => isAvailable(p) && p.images?.length);
-  const groups = new Map<string, typeof withImages>();
-  for (const p of withImages) groups.set(p.categoryId, [...(groups.get(p.categoryId) ?? []), p]);
-  const byCategory = [...groups.values()];
-  // najpierw bestsellery (etykieta z panelu), potem na przemian z kategorii
-  const featured = withImages
-    .filter((p) => p.isBestseller)
-    .concat(Array.from({ length: 4 }, (_, i) => byCategory[i % 2]?.[Math.floor(i / 2)]).filter((p) => p !== undefined))
-    .concat(withImages)
-    .filter((p, i, all) => all.indexOf(p) === i)
-    .slice(0, 4);
+  // karuzela: produkty z etykietami, dopełnione losowymi do min. 8 (tylko dostępne, ze zdjęciem)
+  const featured = featuredProducts(products.filter((p) => isAvailable(p) && p.images?.length));
   const latestArticles = [...articles].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
   const instagram = media.find((m) => m.name === 'INSTAGRAM');
   const heroSlides = buildHeroSlides({ locations, stops, products });
@@ -94,12 +85,13 @@ export default async function HomePage() {
               Cała oferta <FaArrowRight aria-hidden />
             </Link>
           </div>
-          <div className="mt-14 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4">
-            {featured.map((product, i) => (
-              <Reveal key={product.id} delay={i * 100}>
-                <ProductCard product={product} />
-              </Reveal>
-            ))}
+          <div className="mt-14">
+            <LoopCarousel
+              label="Wypieki, po które się wraca"
+              perView="[--n:2] sm:[--n:3] lg:[--n:4]"
+              gap="[--gap:1rem] sm:[--gap:1.5rem]"
+              items={featured.map((product) => ({ key: product.id, node: <ProductCard product={product} /> }))}
+            />
           </div>
         </section>
       )}
@@ -255,19 +247,30 @@ export default async function HomePage() {
             </a>
           )}
         </div>
-        <ul className="mt-12 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-4 sm:px-8 [scrollbar-width:thin]">
-          {GALLERY.map((name, i) => (
-            <li key={name} className="relative aspect-[3/4] w-[70vw] shrink-0 snap-start overflow-hidden sm:w-[38vw] lg:w-[22vw]">
-              <Image
-                src={`/images/galeria/${name}.jpg`}
-                alt={`Wypieki Chleba Smak – zdjęcie ${i + 1}`}
-                fill
-                sizes="(min-width: 1024px) 22vw, (min-width: 640px) 38vw, 70vw"
-                className="object-cover transition-transform duration-700 hover:scale-105"
-              />
-            </li>
-          ))}
-        </ul>
+        {/* galeria w szerokości treści – krawędzie zgrane z nagłówkiem i resztą strony */}
+        <div className="mx-auto max-w-7xl px-5 sm:px-8">
+          <div className="mt-12">
+            <LoopCarousel
+              label="Zdjęcia z piekarni"
+              perView="[--n:1] sm:[--n:2] lg:[--n:4]"
+              overlayArrows
+              items={GALLERY.map((name, i) => ({
+                key: name,
+                node: (
+                  <div className="relative aspect-[3/4] overflow-hidden">
+                    <Image
+                      src={`/images/galeria/${name}.jpg`}
+                      alt={`Wypieki Chleba Smak – zdjęcie ${i + 1}`}
+                      fill
+                      sizes="(min-width: 1280px) 300px, (min-width: 1024px) 24vw, (min-width: 640px) 46vw, 92vw"
+                      className="object-cover transition-transform duration-700 hover:scale-105"
+                    />
+                  </div>
+                ),
+              }))}
+            />
+          </div>
+        </div>
       </section>
     </>
   );

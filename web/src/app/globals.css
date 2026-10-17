@@ -44,6 +44,9 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: calc(6rem + var(--banner-h));
+  /* pasek przewijania całej strony – jak w listach (scrollbar-subtle) */
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-gold) 50%, transparent) var(--color-ink);
   /* wysokość banera pod nawigacją (0, gdy brak komunikatów albo baner zamknięty) */
   --banner-h: 0px;
 }
@@ -54,6 +57,12 @@ html[data-banner] {
   html[data-banner] {
     --banner-h: 2.5rem;
   }
+}
+
+/* cienki pasek przewijania w kolorach strony (listy rozwijane) */
+@utility scrollbar-subtle {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-gold) 50%, transparent) transparent;
 }
 
 /* odstęp treści od stałego nagłówka (nawigacja + ewentualny baner) */
