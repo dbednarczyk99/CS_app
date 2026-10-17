@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaBreadSlice, FaCheck, FaTrash, FaTruck } from 'react-icons/fa6';
 import type { PublicReservation, ReservationOptions } from '@/lib/api';
@@ -10,6 +11,45 @@ import { useReservationCart } from '@/lib/reservation-cart';
 import { QuantityStepper } from './AddToReservation';
 
 type ReservableProduct = { id: string; name: string; price: number; image?: string };
+
+const EMPTY_CART_REDIRECT_S = 10;
+
+/**
+ * Pusty koszyk: po kilku sekundach przejście do oferty. Subtelny pasek odlicza czas
+ * (bez animacji przy prefers-reduced-motion – wtedy zostaje sam tekst); „Zostań” anuluje.
+ */
+function RedirectCountdown({ href, seconds }: { href: string; seconds: number }) {
+  const router = useRouter();
+  const [cancelled, setCancelled] = useState(false);
+
+  useEffect(() => {
+    if (cancelled) return;
+    const timer = setTimeout(() => router.push(href), seconds * 1000);
+    return () => clearTimeout(timer);
+  }, [cancelled, href, router, seconds]);
+
+  if (cancelled) return null;
+  return (
+    <div className="mx-auto mt-10 max-w-xs" role="status">
+      <p className="text-xs text-stone">
+        Za {seconds} sekund przeniesiemy Cię do oferty.{' '}
+        <button
+          type="button"
+          onClick={() => setCancelled(true)}
+          className="text-cream/70 underline underline-offset-4 transition-colors hover:text-gold"
+        >
+          Zostań na tej stronie
+        </button>
+      </p>
+      <div className="mt-3 h-px overflow-hidden bg-line motion-reduce:hidden">
+        <div
+          className="h-full origin-left animate-hero-progress bg-gold/70 [animation-direction:reverse]"
+          style={{ animationDuration: `${seconds}s` }}
+        />
+      </div>
+    </div>
+  );
+}
 type PickupType = 'STORE' | 'VAN';
 
 const field =
@@ -155,6 +195,7 @@ export function ReservationForm({
         <Link href="/oferta" className="btn btn-gold mt-8">
           Przejdź do oferty
         </Link>
+        <RedirectCountdown href="/oferta" seconds={EMPTY_CART_REDIRECT_S} />
       </div>
     );
   }

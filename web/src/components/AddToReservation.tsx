@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FaArrowRight, FaMinus, FaPlus } from 'react-icons/fa6';
+import { FaArrowRight, FaBasketShopping, FaMinus, FaPlus } from 'react-icons/fa6';
 import type { Product } from '@/lib/api';
 import { MAX_QUANTITY, useReservationCart } from '@/lib/reservation-cart';
 
@@ -23,11 +23,12 @@ export function QuantityStepper({
 }: {
   value: number;
   onChange: (value: number) => void;
-  size?: 'sm' | 'lg';
+  /** card – na karcie produktu: na telefonie węższy, żeby zmieścił się obok przycisku koszyka */
+  size?: 'card' | 'sm' | 'lg';
   label: string;
   className?: string;
 }) {
-  const btn = size === 'lg' ? 'size-12' : 'size-10';
+  const btn = size === 'lg' ? 'size-12' : size === 'card' ? 'h-[38px] w-9 sm:w-10' : 'size-10';
   return (
     <div className={`inline-flex items-center border border-gold/60 ${className}`} role="group" aria-label={`Ilość: ${label}`}>
       <button
@@ -38,7 +39,12 @@ export function QuantityStepper({
       >
         <FaMinus size={12} />
       </button>
-      <span className={`min-w-10 text-center font-display tabular-nums ${size === 'lg' ? 'text-lg' : ''}`} aria-live="polite">
+      <span
+        className={`text-center font-display tabular-nums ${size === 'lg' ? 'text-lg' : ''} ${
+          size === 'card' ? 'min-w-7 sm:min-w-10' : 'min-w-10'
+        }`}
+        aria-live="polite"
+      >
         {value}
       </span>
       <button
@@ -73,17 +79,26 @@ export function AddToReservationCompact({ product }: { product: Product }) {
       </button>
     );
   }
-  // po dodaniu: ilość + przejście do rezerwacji (obok; na telefonie i w wąskiej karcie – pod spodem)
+  // po dodaniu: ilość + przejście do rezerwacji w jednej linii – karta nie zmienia wysokości
+  // (na telefonie przycisk to kwadrat z ikoną koszyka)
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex items-center gap-2">
       <QuantityStepper
         value={quantity}
         onChange={(q) => setQuantity(toCartProduct(product), q)}
         label={product.name}
-        className="w-full justify-between sm:w-auto"
+        size="card"
+        className="min-w-0 flex-1 justify-between sm:flex-none"
       />
-      <Link href="/rezerwacja" className="btn btn-gold min-h-10 w-full px-3 py-2 text-[0.7rem] sm:w-auto sm:flex-1">
-        Do rezerwacji <FaArrowRight size={10} aria-hidden />
+      <Link
+        href="/rezerwacja"
+        aria-label="Przejdź do rezerwacji"
+        className="btn btn-gold size-10 min-h-10 shrink-0 p-0 text-[0.7rem] sm:h-auto sm:w-auto sm:flex-1 sm:px-3 sm:py-2"
+      >
+        <FaBasketShopping size={13} aria-hidden className="sm:hidden" />
+        <span className="hidden items-center gap-2 sm:inline-flex">
+          Do rezerwacji <FaArrowRight size={10} aria-hidden />
+        </span>
       </Link>
     </div>
   );
