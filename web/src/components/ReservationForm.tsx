@@ -313,19 +313,8 @@ export function ReservationForm({
 
               {store && date && (
                 <Fieldset legend="Godzina odbioru">
-                  <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
-                    {slots.map((t) => (
-                      <button
-                        key={t}
-                        type="button"
-                        onClick={() => setTime(t)}
-                        className={`${chip(time === t)} tabular-nums`}
-                        aria-pressed={time === t}
-                      >
-                        {t}
-                      </button>
-                    ))}
-                  </div>
+                  {/* klucz: nowy punkt/dzień = puste pole */}
+                  <PickupTimeInput key={`${store.id}|${date}`} slots={slots} onChange={setTime} />
                 </Fieldset>
               )}
             </div>
@@ -500,6 +489,61 @@ function Step({ number, title, children }: { number: number; title: string; chil
       </div>
       {children}
     </section>
+  );
+}
+
+const toMinutes = (t: string) => {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+};
+
+/**
+ * Godzina odbioru jako pole „czas”: zakres = godziny otwarcia (pierwszy i ostatni termin z API), krok 30 min.
+ * Wpisana godzina spoza siatki (np. z zegara na Androidzie, który ignoruje krok) jest po wyjściu z pola
+ * zaokrąglana do najbliższego dostępnego terminu – z krótką informacją.
+ */
+function PickupTimeInput({ slots, onChange }: { slots: string[]; onChange: (time: string | null) => void }) {
+  const [value, setValue] = useState('');
+  const [note, setNote] = useState<string | null>(null);
+  const first = slots[0];
+  const last = slots[slots.length - 1];
+
+  if (!first) return <p className="text-stone">Brak wolnych terminów odbioru w tym dniu.</p>;
+
+  const snap = () => {
+    if (!value || slots.includes(value)) return;
+    const nearest = slots.reduce((best, t) =>
+      Math.abs(toMinutes(t) - toMinutes(value)) < Math.abs(toMinutes(best) - toMinutes(value)) ? t : best,
+    );
+    setValue(nearest);
+    onChange(nearest);
+    setNote(`Zmieniliśmy na ${nearest} – odbiór jest możliwy co 30 minut, w godzinach ${first}–${last}.`);
+  };
+
+  return (
+    <div>
+      <input
+        id="pickup-time"
+        type="time"
+        min={first}
+        max={last}
+        step={1800}
+        value={value}
+        onChange={(e) => {
+          const v = e.target.value;
+          setValue(v);
+          setNote(null);
+          onChange(slots.includes(v) ? v : null);
+        }}
+        onBlur={snap}
+        required
+        aria-describedby="pickup-time-hint"
+        className={`${field} max-w-48 tabular-nums [color-scheme:dark]`}
+      />
+      <p id="pickup-time-hint" className="mt-2 text-sm text-stone" aria-live="polite">
+        {note ?? `Odbiór między ${first} a ${last}, co 30 minut (np. ${slots[Math.min(1, slots.length - 1)]}).`}
+      </p>
+    </div>
   );
 }
 
