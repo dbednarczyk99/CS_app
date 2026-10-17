@@ -4,11 +4,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FaBreadSlice, FaCheck, FaChevronDown, FaTrash, FaTruck } from 'react-icons/fa6';
+import { FaBreadSlice, FaCheck, FaLocationDot, FaTrash, FaTruck } from 'react-icons/fa6';
 import type { PublicReservation, ReservationOptions } from '@/lib/api';
 import { formatDay, formatPrice } from '@/lib/format';
 import { useReservationCart } from '@/lib/reservation-cart';
 import { QuantityStepper } from './AddToReservation';
+import { DropdownSelect } from './DropdownSelect';
 
 type ReservableProduct = { id: string; name: string; price: number; image?: string };
 
@@ -281,28 +282,27 @@ export function ReservationForm({
           {pickupType === 'STORE' ? (
             <div className="mt-6 space-y-6">
               <Fieldset legend="Piekarnia">
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {options.stores.map((s) => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => {
-                        setStoreId(s.id);
-                        if (date && !s.slots[date]) setDate(null);
-                        setTime(null);
-                      }}
-                      className={choice(storeId === s.id)}
-                      aria-pressed={storeId === s.id}
-                    >
-                      <span className="block font-display uppercase tracking-wide">
-                        {shortStreet(s.address)}
-                      </span>
-                      <span className="text-sm text-stone">
-                        {s.address.split(/,\s*/).slice(1).join(', ')}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                {/* rozwijana lista – wygodna także przy większej liczbie piekarni */}
+                <DropdownSelect
+                  id="pickup-store"
+                  label="Piekarnia"
+                  placeholder="Wybierz piekarnię"
+                  icon={<FaLocationDot size={13} aria-hidden className="shrink-0 text-gold" />}
+                  options={options.stores.map((s) => ({
+                    value: s.id,
+                    label: shortStreet(s.address),
+                    detail: s.address.split(/,\s*/).slice(1).join(', '),
+                  }))}
+                  value={storeId}
+                  onChange={(id) => {
+                    const s = options.stores.find((x) => x.id === id);
+                    setStoreId(id);
+                    if (date && !s?.slots[date]) setDate(null);
+                    setTime(null);
+                  }}
+                  className="max-w-md"
+                  buttonClassName={field}
+                />
               </Fieldset>
 
               {store && (
@@ -544,11 +544,7 @@ function Step({
   );
 }
 
-/**
- * Wybór godziny odbioru: własna lista w stylu strony (zamiast systemowego pola czasu, które pozwala wybrać
- * dowolną godzinę). Do wyboru są wyłącznie terminy z API – co 30 min, ostatni 30 min przed zamknięciem.
- * Lista ma szerokość pola; obsługa klawiaturą (strzałki, Home/End, Enter, Esc).
- */
+/** Godzina odbioru: tylko terminy z API (co 30 min, ostatni 30 min przed zamknięciem) + godziny otwarcia */
 function PickupTimeSelect({
   slots,
   hours,
@@ -560,126 +556,20 @@ function PickupTimeSelect({
   value: string | null;
   onChange: (time: string) => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [active, setActive] = useState(0);
-  const root = useRef<HTMLDivElement>(null);
-  const list = useRef<HTMLUListElement>(null);
-
-  // zamknięcie po kliknięciu poza listą
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: PointerEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('pointerdown', close);
-    return () => document.removeEventListener('pointerdown', close);
-  }, [open]);
-
-  // po otwarciu: fokus na liście, wybrana (albo pierwsza) godzina widoczna
-  useEffect(() => {
-    if (!open) return;
-    list.current?.focus();
-    list.current
-      ?.querySelector('[aria-selected="true"], [data-active="true"]')
-      ?.scrollIntoView({ block: 'nearest' });
-  }, [open]);
-  useEffect(() => {
-    if (open)
-      list.current?.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'nearest' });
-  }, [active, open]);
-
-  if (slots.length === 0)
-    return <p className="text-stone">Brak wolnych terminów odbioru w tym dniu.</p>;
-
-  const openList = () => {
-    setActive(Math.max(0, value ? slots.indexOf(value) : 0));
-    setOpen(true);
-  };
-  const choose = (t: string) => {
-    onChange(t);
-    setOpen(false);
-    root.current?.querySelector('button')?.focus();
-  };
-
+  if (slots.length === 0) return <p className="text-stone">Brak wolnych terminów odbioru w tym dniu.</p>;
   return (
     <div>
-      {/* lista zaczepiona tuż pod polem (podpowiedź poza tym kontenerem) */}
-      <div ref={root} className="relative max-w-60">
-        <button
-          type="button"
-          id="pickup-time"
-          aria-haspopup="listbox"
-          aria-expanded={open}
-          aria-describedby="pickup-time-hint"
-          onClick={() => (open ? setOpen(false) : openList())}
-          onKeyDown={(e) => {
-            if (['ArrowDown', 'ArrowUp'].includes(e.key)) {
-              e.preventDefault();
-              openList();
-            }
-          }}
-          className={`${field} flex items-center justify-between gap-3 text-left tabular-nums ${open ? 'border-gold' : ''}`}
-        >
-          <span className={value ? 'text-cream' : 'text-stone/70'}>
-            {value ?? 'Wybierz godzinę'}
-          </span>
-          <FaChevronDown
-            size={11}
-            aria-hidden
-            className={`shrink-0 text-stone transition-transform ${open ? 'rotate-180' : ''}`}
-          />
-        </button>
-
-        {open && (
-          <ul
-            ref={list}
-            role="listbox"
-            tabIndex={-1}
-            aria-label="Godzina odbioru"
-            aria-activedescendant={`slot-${slots[active]}`}
-            onKeyDown={(e) => {
-              const move = (i: number) => {
-                e.preventDefault();
-                setActive(Math.min(slots.length - 1, Math.max(0, i)));
-              };
-              if (e.key === 'ArrowDown') move(active + 1);
-              else if (e.key === 'ArrowUp') move(active - 1);
-              else if (e.key === 'Home') move(0);
-              else if (e.key === 'End') move(slots.length - 1);
-              else if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                choose(slots[active]);
-              } else if (e.key === 'Escape' || e.key === 'Tab') setOpen(false);
-            }}
-            // szerokość pola, kolory strony; przewijana przy długich godzinach otwarcia; bez obwódki fokusu
-            // (aktywna pozycja jest podświetlona)
-            className="scrollbar-subtle absolute inset-x-0 top-full z-20 mt-1 max-h-64 overflow-y-auto border border-line bg-ink py-1 shadow-xl shadow-black/40"
-            style={{ outline: 'none' }}
-          >
-            {slots.map((t, i) => {
-              const selected = t === value;
-              return (
-                <li
-                  key={t}
-                  id={`slot-${t}`}
-                  role="option"
-                  aria-selected={selected}
-                  data-active={i === active}
-                  onPointerEnter={() => setActive(i)}
-                  onClick={() => choose(t)}
-                  className={`flex cursor-pointer items-center justify-between px-4 py-2.5 tabular-nums transition-colors ${
-                    i === active ? 'bg-coal' : ''
-                  } ${selected ? 'text-gold' : 'text-cream'}`}
-                >
-                  {t}
-                  {selected && <FaCheck size={11} aria-hidden />}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
-
+      <DropdownSelect
+        id="pickup-time"
+        label="Godzina odbioru"
+        placeholder="Wybierz godzinę"
+        options={slots.map((t) => ({ value: t, label: t }))}
+        value={value}
+        onChange={onChange}
+        describedBy="pickup-time-hint"
+        className="max-w-60"
+        buttonClassName={field}
+      />
       {hours && (
         <p id="pickup-time-hint" className="mt-2 text-sm text-stone">
           Odbiór między {hours.open} a {hours.close}

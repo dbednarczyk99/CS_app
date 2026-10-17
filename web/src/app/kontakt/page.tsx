@@ -18,6 +18,8 @@ export default async function ContactPage() {
     orFallback(api.media(), []),
   ]);
   const email = contact.find((c) => c.type === 'EMAIL')?.value;
+  // główny telefon (z panelu: Contact info, typ PHONE) – oprócz numerów poszczególnych piekarni
+  const phone = contact.find((c) => c.type === 'PHONE')?.value;
   const instagramUrl = media.find((m) => m.name === 'INSTAGRAM')?.url;
   const instagram = instagramUrl ? instagramProfile(instagramUrl) : null;
 
@@ -60,6 +62,18 @@ export default async function ContactPage() {
                 <FaInstagram aria-hidden /> Otwórz rozmowę
               </a>
             </section>
+          )}
+
+          {phone && (
+            <div>
+              <h2 className="eyebrow">Telefon</h2>
+              <a
+                href={telHref(phone)}
+                className="mt-3 inline-flex items-center gap-3 text-lg transition-colors hover:text-gold"
+              >
+                <FaPhone className="text-gold" aria-hidden /> {phone}
+              </a>
+            </div>
           )}
 
           {email && (

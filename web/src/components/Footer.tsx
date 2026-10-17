@@ -12,6 +12,8 @@ export async function Footer() {
     orFallback(api.media(), []),
   ]);
   const email = contact.find((c) => c.type === 'EMAIL')?.value;
+  // główny telefon (z panelu: Contact info, typ PHONE) – oprócz numerów poszczególnych piekarni
+  const phone = contact.find((c) => c.type === 'PHONE')?.value;
 
   return (
     <footer className="border-t border-line bg-coal">
@@ -70,6 +72,14 @@ export async function Footer() {
               </li>
             ))}
           </ul>
+          {phone && (
+            <>
+              <h2 className="eyebrow mt-10">Zadzwoń do nas</h2>
+              <a href={telHref(phone)} className="mt-4 block text-sm text-cream transition-colors hover:text-gold">
+                {phone}
+              </a>
+            </>
+          )}
           {email && (
             <>
               <h2 className="eyebrow mt-10">Napisz do nas</h2>
