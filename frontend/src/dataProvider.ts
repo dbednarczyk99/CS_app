@@ -19,6 +19,9 @@ const httpClient = (url: string, options: fetchUtils.Options = {}) => {
   return fetchUtils.fetchJson(url, { ...options, headers });
 };
 
+// zasoby z galerią zdjęć (upload plików + mapowanie imgUrl → src dla ImageInput)
+const WITH_IMAGES = ['products', 'contact/locations'];
+
 interface ImageFormValue {
   id?: string;
   src?: string;
@@ -100,7 +103,7 @@ export const dataProvider: DataProvider = {
     const base = Array.isArray(json) ? json : [json];
 
     const mapped =
-      resource === 'products'
+      WITH_IMAGES.includes(resource)
         ? (base as any[]).map((product: any) => ({
             ...product,
             images: Array.isArray(product.images)
@@ -142,7 +145,7 @@ export const dataProvider: DataProvider = {
 
     const { json } = await httpClient(`${apiUrl}/${resource}/${params.id}`);
 
-    if (resource === 'products') {
+    if (WITH_IMAGES.includes(resource)) {
       const product = json as any;
       const mapped = {
         ...product,
@@ -161,7 +164,7 @@ export const dataProvider: DataProvider = {
 
   // CREATE
   async create(resource, params) {
-    if (resource === 'products') {
+    if (WITH_IMAGES.includes(resource)) {
       const payload = await preparePayload(params.data);
       const { json } = await httpClient(`${apiUrl}/${resource}`, {
         method: 'POST',
@@ -198,7 +201,7 @@ export const dataProvider: DataProvider = {
       return { data: json };
     }
 
-    if (resource === 'products') {
+    if (WITH_IMAGES.includes(resource)) {
       const payload = await preparePayload(params.data);
       const { json } = await httpClient(
         `${apiUrl}/${resource}/${params.id}`,

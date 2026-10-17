@@ -29,9 +29,28 @@ export function weekdayOf(date: Date): Weekday {
 export function hoursFor(hours: OpeningHours | null, day: Weekday): [string, string] | null {
   const value = hours?.[day.toLowerCase()] ?? hours?.[day];
   if (!value) return null;
-  if (typeof value !== 'string') return [value.openFrom, value.openTo];
+  // z panelu: puste pola = nieczynne
+  if (typeof value !== 'string') return value.openFrom && value.openTo ? [value.openFrom, value.openTo] : null;
   const [from, to] = value.split(/[–-]/).map((v) => v.trim());
   return from && to ? [from, to] : null;
+}
+
+/** Godziny tygodnia zgrupowane: kolejne dni z tymi samymi godzinami w jednym wierszu („Poniedziałek–Piątek”) */
+export function groupedHours(hours: OpeningHours | null) {
+  const groups: { label: string; value: string }[] = [];
+  let start = 0;
+  WEEKDAYS.forEach((day, i) => {
+    const span = hoursFor(hours, day.key);
+    const value = span ? `${span[0]}–${span[1]}` : 'nieczynne';
+    const next = WEEKDAYS[i + 1];
+    const nextSpan = next ? hoursFor(hours, next.key) : undefined;
+    const nextValue = nextSpan === undefined ? undefined : nextSpan ? `${nextSpan[0]}–${nextSpan[1]}` : 'nieczynne';
+    if (nextValue === value) return;
+    const label = start === i ? day.label : `${WEEKDAYS[start].label}–${day.label}`;
+    groups.push({ label, value });
+    start = i + 1;
+  });
+  return groups;
 }
 
 export function telHref(phone: string) {

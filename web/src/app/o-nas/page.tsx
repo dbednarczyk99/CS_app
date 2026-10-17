@@ -45,7 +45,7 @@ export default function AboutPage() {
               każdego dnia. Uczciwy, pachnący, z chrupiącą skórką.
             </p>
             <p className="mt-4">
-              Dziś pieczemy dla czterech piekarni w Krakowie i naszego chlebowozu, ale zasady się nie
+              Dziś pieczemy dla naszych piekarni w Krakowie i chlebowozu, ale zasady się nie
               zmieniły – wciąż formujemy bochenki ręcznie i dajemy ciastu tyle czasu, ile potrzebuje.
             </p>
           </SectionHeading>

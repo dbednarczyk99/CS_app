@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { CrossPromo } from '@/components/CrossPromo';
 import { PageHeader } from '@/components/PageHeader';
 import { SectionHeading } from '@/components/SectionHeading';
 import { StoresMap } from '@/components/StoresMap';
@@ -49,6 +50,23 @@ export default async function BreadVanPage() {
           <h2 className="heading mb-6 text-2xl">Przystanki na mapie</h2>
           {/* ta sama mapa co na /piekarnie – tu domyślnie z filtrem „Chlebowóz” */}
           <StoresMap locations={locations} stops={stops} initialFilter="van" />
+        </section>
+      )}
+
+      {locations.length > 0 && (
+        <section className="mx-auto max-w-7xl px-5 pb-24 sm:px-8">
+          <CrossPromo
+            eyebrow="Nasze piekarnie"
+            title="Może masz bliżej do piekarni?"
+            href="/piekarnie"
+            cta="Zobacz nasze piekarnie"
+            image="/images/lokal.jpg"
+            imageAlt="Piekarnia Chleba Smak"
+          >
+            Chlebowóz nie dojeżdża w Twoje okolice albo nie pasuje Ci godzina? Zajrzyj do{' '}
+            {locations.length === 1 ? 'naszej piekarni' : `jednej z ${locations.length} naszych piekarni`}{' '}
+            w Krakowie – z pełnym asortymentem, kanapkami i kawą na miejscu.
+          </CrossPromo>
         </section>
       )}
     </>

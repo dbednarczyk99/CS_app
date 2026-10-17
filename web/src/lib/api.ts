@@ -58,6 +58,7 @@ export interface Location {
   lat: number | null;
   lng: number | null;
   openingHours: OpeningHours | null;
+  images?: Image[]; // zdjęcia lokalu (karuzela na /piekarnie)
 }
 
 export type Weekday =
