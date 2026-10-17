@@ -12,30 +12,37 @@ export const metadata: Metadata = {
   description: 'Chleby na zakwasie, słodkie wypieki, kanapki i lody rzemieślnicze z piekarni Chleba Smak w Krakowie.',
 };
 
-/** Adres oferty z filtrami (kategoria + etykiety) */
-function offerHref(kategoria: string | undefined, etykiety: LabelFilterKey[]) {
+/** Adres oferty z filtrami (kategorie + wyróżnione), oba z wielokrotnym wyborem */
+function offerHref(kategorie: string[], etykiety: LabelFilterKey[]) {
   const params = new URLSearchParams();
-  if (kategoria) params.set('kategoria', kategoria);
+  if (kategorie.length) params.set('kategorie', kategorie.join(','));
   if (etykiety.length) params.set('etykiety', etykiety.join(','));
   const query = params.toString();
   return query ? `/oferta?${query.replace(/%2C/g, ',')}` : '/oferta';
 }
 
+/** Dodaje lub usuwa wartość z listy (przełącznik w filtrze) */
+const toggle = <T,>(list: T[], value: T) => (list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
+
 export default async function OfferPage({
   searchParams,
 }: {
-  searchParams: Promise<{ kategoria?: string; etykiety?: string; sezonowe?: string }>;
+  searchParams: Promise<{ kategorie?: string; kategoria?: string; etykiety?: string; sezonowe?: string }>;
 }) {
   const params = await searchParams;
   const all = (await orFallback(api.products(), [])).filter((p) => p.isActive);
   const products = all.filter(isAvailable);
 
-  // kategorie w kolejności pierwszego wystąpienia, tylko te z produktami
+  // kategorie z produktów (kolejność pierwszego wystąpienia) – nowa kategoria z panelu pojawia się sama,
+  // gdy ma co najmniej jeden aktywny produkt
   const categories = [
     ...new Map(all.filter((p) => p.category).map((p) => [p.category!.id, p.category!])).values(),
   ];
-  const active = categories.find((c) => c.id === params.kategoria);
-  const inCategory = (p: Product) => !active || p.categoryId === active.id;
+  // ?kategorie=a,b; ?kategoria=a – stary pojedynczy filtr (link ze strony produktu)
+  const requestedCategories = [...(params.kategorie?.split(',') ?? []), ...(params.kategoria ? [params.kategoria] : [])];
+  const activeCategories = categories.filter((c) => requestedCategories.includes(c.id));
+  const activeIds = activeCategories.map((c) => c.id);
+  const inCategory = (p: Product) => activeIds.length === 0 || activeIds.includes(p.categoryId);
 
   // etykiety z adresu; ?sezonowe – stary link z karuzeli na stronie głównej
   const requested = [...(params.etykiety?.split(',') ?? []), ...(params.sezonowe !== undefined ? ['sezonowe'] : [])];
@@ -43,7 +50,7 @@ export default async function OfferPage({
   const matchesLabels = (p: Product) =>
     labels.length === 0 || LABEL_FILTERS.some((f) => labels.includes(f.key) && f.test(p));
 
-  const groups = (active ? [active] : categories)
+  const groups = (activeCategories.length ? activeCategories : categories)
     .map((category) => ({
       category,
       products: products.filter((p) => p.categoryId === category.id && matchesLabels(p)),
@@ -54,29 +61,34 @@ export default async function OfferPage({
     (p) => isOutOfSeason(p) && inCategory(p) && (labels.length === 0 || labels.includes('sezonowe')),
   );
 
-  // przełączniki etykiet: tylko te, które mają produkty (liczba w obrębie wybranej kategorii)
-  const labelOptions = LABEL_FILTERS.map((f) => {
-    const selected = labels.includes(f.key);
-    return {
-      ...f,
-      selected,
-      count: products.filter((p) => inCategory(p) && f.test(p)).length,
-      href: offerHref(active?.id, selected ? labels.filter((k) => k !== f.key) : [...labels, f.key]),
-    };
-  }).filter((f) => f.count > 0 || f.selected);
-  const filtered = Boolean(active) || labels.length > 0;
+  // przełączniki wyróżnionych: tylko te, które mają produkty (liczba w obrębie wybranych kategorii)
+  const labelOptions = LABEL_FILTERS.map((f) => ({
+    ...f,
+    selected: labels.includes(f.key),
+    count: products.filter((p) => inCategory(p) && f.test(p)).length,
+    href: offerHref(activeIds, toggle<LabelFilterKey>(labels, f.key)),
+  })).filter((f) => f.count > 0 || f.selected);
+  const filtered = activeIds.length > 0 || labels.length > 0;
 
-  // kategorie z adresem (z zachowaniem wyróżnionych) i liczbą pasujących produktów
+  // kategorie: przełączniki (z zachowaniem wyróżnionych) z liczbą pasujących produktów;
+  // „Wszystkie” czyści wybór kategorii
+  const allCategoriesOption = {
+    id: '',
+    name: 'Wszystkie',
+    selected: activeIds.length === 0,
+    href: offerHref([], labels),
+    count: products.filter(matchesLabels).length,
+  };
   const categoryOptions = [
-    { id: '', name: 'Wszystkie', href: offerHref(undefined, labels), count: products.filter(matchesLabels).length },
+    allCategoriesOption,
     ...categories.map((c) => ({
       id: c.id,
       name: c.name,
-      href: offerHref(c.id, labels),
+      selected: activeIds.includes(c.id),
+      href: offerHref(toggle(activeIds, c.id), labels),
       count: products.filter((p) => p.categoryId === c.id && matchesLabels(p)).length,
     })),
   ];
-  const categoryHref = Object.fromEntries(categoryOptions.map((o) => [o.id, o.href])) as Record<string, string>;
 
   // wspólny wygląd przycisku i panelu rozwijanych filtrów (telefon/tablet)
   const dropdownButton = (on: boolean) =>
@@ -85,6 +97,30 @@ export default async function OfferPage({
     }`;
   const dropdownPanel = 'absolute top-full mt-2 w-64 border border-line bg-ink p-2 shadow-xl shadow-black/40';
   const chevron = <FaChevronDown size={9} aria-hidden className="ml-auto shrink-0 transition-transform group-open:rotate-180" />;
+  const countBadge = (n: number) => (
+    <span className="grid size-5 shrink-0 place-items-center bg-gold text-[0.65rem] tracking-normal text-ink">{n}</span>
+  );
+  // wiersz listy z kwadratowym polem – ten sam w obu panelach
+  const checkboxRow = (option: { href: string; label: string; selected: boolean; count: number; dimmed?: boolean }) => (
+    <Link
+      href={option.href}
+      scroll={false}
+      aria-pressed={option.selected}
+      className={`flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-coal ${
+        option.dimmed && !option.selected ? 'opacity-45' : ''
+      }`}
+    >
+      <span
+        className={`grid size-4 shrink-0 place-items-center border ${
+          option.selected ? 'border-gold bg-gold text-ink' : 'border-cream/40'
+        }`}
+      >
+        {option.selected && <FaCheck size={9} aria-hidden />}
+      </span>
+      <span className={option.selected ? 'text-gold' : 'text-cream'}>{option.label}</span>
+      <span className="ml-auto text-sm text-stone">{option.count}</span>
+    </Link>
+  );
 
   const categoryChip = (selected: boolean) =>
     `block shrink-0 whitespace-nowrap border px-4 py-2 font-display text-[0.75rem] uppercase tracking-[0.2em] transition-colors ${
@@ -104,47 +140,26 @@ export default async function OfferPage({
         className="sticky top-[calc(4.5rem+var(--banner-h))] z-30 border-y border-line bg-ink/90 backdrop-blur-md sm:top-[calc(5rem+var(--banner-h))]"
       >
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-5 py-3 sm:px-8">
-          {/* telefon/tablet: dwa rozwijane panele – kategoria (jeden wybór) i wyróżnione (kilka) */}
+          {/* telefon/tablet: dwa rozwijane panele z kwadratowymi polami – kategorie i wyróżnione (wiele naraz) */}
           <div className="flex min-w-0 flex-1 items-center gap-2 lg:hidden">
             <DropdownPanel
               className="min-w-0 flex-1"
-              closeOnSelect
-              summaryClassName={dropdownButton(Boolean(active))}
+              summaryClassName={dropdownButton(activeIds.length > 0)}
               summary={
                 <>
-                  <span className="truncate">{active ? active.name : 'Kategorie'}</span>
+                  <span className="truncate">{activeCategories.length === 1 ? activeCategories[0].name : 'Kategorie'}</span>
+                  {activeCategories.length > 1 && countBadge(activeCategories.length)}
                   {chevron}
                 </>
               }
             >
               <div className={`${dropdownPanel} left-0`}>
-                <ul>
-                  {categoryOptions.map((option) => {
-                    const selected = (active?.id ?? '') === option.id;
-                    return (
-                      <li key={option.id || 'wszystkie'}>
-                        <Link
-                          href={option.href}
-                          scroll={false}
-                          aria-current={selected ? 'true' : undefined}
-                          className={`flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-coal ${
-                            option.count === 0 && !selected ? 'opacity-45' : ''
-                          }`}
-                        >
-                          {/* kropka – wybór jednej kategorii */}
-                          <span
-                            className={`grid size-4 shrink-0 place-items-center rounded-full border ${
-                              selected ? 'border-gold' : 'border-cream/40'
-                            }`}
-                          >
-                            {selected && <span className="size-2 rounded-full bg-gold" />}
-                          </span>
-                          <span className={selected ? 'text-gold' : 'text-cream'}>{option.name}</span>
-                          <span className="ml-auto text-sm text-stone">{option.count}</span>
-                        </Link>
-                      </li>
-                    );
-                  })}
+                <ul className="max-h-[60svh] overflow-y-auto">
+                  {categoryOptions.map((option) => (
+                    <li key={option.id || 'wszystkie'}>
+                      {checkboxRow({ ...option, label: option.name, dimmed: option.count === 0 })}
+                    </li>
+                  ))}
                 </ul>
               </div>
             </DropdownPanel>
@@ -155,11 +170,7 @@ export default async function OfferPage({
                 summary={
                   <>
                     Wyróżnione
-                    {labels.length > 0 && (
-                      <span className="grid size-5 place-items-center bg-gold text-[0.65rem] tracking-normal text-ink">
-                        {labels.length}
-                      </span>
-                    )}
+                    {labels.length > 0 && countBadge(labels.length)}
                     {chevron}
                   </>
                 }
@@ -167,24 +178,7 @@ export default async function OfferPage({
                 <div className={`${dropdownPanel} right-0`}>
                   <ul>
                     {labelOptions.map((option) => (
-                      <li key={option.key}>
-                        <Link
-                          href={option.href}
-                          scroll={false}
-                          aria-pressed={option.selected}
-                          className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-coal"
-                        >
-                          <span
-                            className={`grid size-4 shrink-0 place-items-center border ${
-                              option.selected ? 'border-gold bg-gold text-ink' : 'border-cream/40'
-                            }`}
-                          >
-                            {option.selected && <FaCheck size={9} aria-hidden />}
-                          </span>
-                          <span className={option.selected ? 'text-gold' : 'text-cream'}>{option.label}</span>
-                          <span className="ml-auto text-sm text-stone">{option.count}</span>
-                        </Link>
-                      </li>
+                      <li key={option.key}>{checkboxRow(option)}</li>
                     ))}
                   </ul>
                   {filtered && (
@@ -206,15 +200,15 @@ export default async function OfferPage({
             aria-label="Kategorie"
             className="hidden min-w-0 flex-1 gap-2 overflow-x-auto [mask-image:linear-gradient(to_right,black_calc(100%-3rem),transparent)] [scrollbar-width:none] lg:flex"
           >
-            <li>
-              <Link href={categoryHref['']} scroll={false} className={categoryChip(!active)}>
-                Wszystko
-              </Link>
-            </li>
-            {categories.map((category) => (
-              <li key={category.id}>
-                <Link href={categoryHref[category.id]} scroll={false} className={categoryChip(active?.id === category.id)}>
-                  {category.name}
+            {categoryOptions.map((option) => (
+              <li key={option.id || 'wszystko'}>
+                <Link
+                  href={option.href}
+                  scroll={false}
+                  aria-pressed={option.selected}
+                  className={categoryChip(option.selected)}
+                >
+                  {option.id ? option.name : 'Wszystko'}
                 </Link>
               </li>
             ))}

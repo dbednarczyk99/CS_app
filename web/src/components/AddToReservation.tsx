@@ -19,15 +19,17 @@ export function QuantityStepper({
   onChange,
   size = 'sm',
   label,
+  className = '',
 }: {
   value: number;
   onChange: (value: number) => void;
   size?: 'sm' | 'lg';
   label: string;
+  className?: string;
 }) {
   const btn = size === 'lg' ? 'size-12' : 'size-10';
   return (
-    <div className="inline-flex items-center border border-gold/60" role="group" aria-label={`Ilość: ${label}`}>
+    <div className={`inline-flex items-center border border-gold/60 ${className}`} role="group" aria-label={`Ilość: ${label}`}>
       <button
         type="button"
         onClick={() => onChange(value - 1)}
@@ -71,7 +73,20 @@ export function AddToReservationCompact({ product }: { product: Product }) {
       </button>
     );
   }
-  return <QuantityStepper value={quantity} onChange={(q) => setQuantity(toCartProduct(product), q)} label={product.name} />;
+  // po dodaniu: ilość + przejście do rezerwacji (obok; na telefonie i w wąskiej karcie – pod spodem)
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <QuantityStepper
+        value={quantity}
+        onChange={(q) => setQuantity(toCartProduct(product), q)}
+        label={product.name}
+        className="w-full justify-between sm:w-auto"
+      />
+      <Link href="/rezerwacja" className="btn btn-gold min-h-10 w-full px-3 py-2 text-[0.7rem] sm:w-auto sm:flex-1">
+        Do rezerwacji <FaArrowRight size={10} aria-hidden />
+      </Link>
+    </div>
+  );
 }
 
 /** Pełny wybór ilości na stronie produktu */
