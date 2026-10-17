@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { FaCheck, FaChevronDown, FaXmark } from 'react-icons/fa6';
-import { CategorySelect } from '@/components/CategorySelect';
 import { DropdownPanel } from '@/components/DropdownPanel';
 import { PageHeader } from '@/components/PageHeader';
 import { ProductCard } from '@/components/ProductCard';
@@ -67,9 +66,25 @@ export default async function OfferPage({
   }).filter((f) => f.count > 0 || f.selected);
   const filtered = Boolean(active) || labels.length > 0;
 
-  const categoryHref = Object.fromEntries(
-    [['', offerHref(undefined, labels)], ...categories.map((c) => [c.id, offerHref(c.id, labels)])],
-  ) as Record<string, string>;
+  // kategorie z adresem (z zachowaniem wyróżnionych) i liczbą pasujących produktów
+  const categoryOptions = [
+    { id: '', name: 'Wszystkie', href: offerHref(undefined, labels), count: products.filter(matchesLabels).length },
+    ...categories.map((c) => ({
+      id: c.id,
+      name: c.name,
+      href: offerHref(c.id, labels),
+      count: products.filter((p) => p.categoryId === c.id && matchesLabels(p)).length,
+    })),
+  ];
+  const categoryHref = Object.fromEntries(categoryOptions.map((o) => [o.id, o.href])) as Record<string, string>;
+
+  // wspólny wygląd przycisku i panelu rozwijanych filtrów (telefon/tablet)
+  const dropdownButton = (on: boolean) =>
+    `flex h-10 items-center gap-2 border px-3.5 font-display text-[0.7rem] uppercase tracking-[0.2em] ${
+      on ? 'border-gold bg-gold/10 text-gold' : 'border-line text-cream/85'
+    }`;
+  const dropdownPanel = 'absolute top-full mt-2 w-64 border border-line bg-ink p-2 shadow-xl shadow-black/40';
+  const chevron = <FaChevronDown size={9} aria-hidden className="ml-auto shrink-0 transition-transform group-open:rotate-180" />;
 
   const categoryChip = (selected: boolean) =>
     `block shrink-0 whitespace-nowrap border px-4 py-2 font-display text-[0.75rem] uppercase tracking-[0.2em] transition-colors ${
@@ -83,34 +98,73 @@ export default async function OfferPage({
         wypieki sezonowe dostępne teraz mają znaczek „Teraz dostępne”.
       </PageHeader>
 
-      {/* Filtry – przyklejone pod nagłówkiem strony: kategoria + etykiety */}
+      {/* Filtry – przyklejone pod nagłówkiem strony: kategoria + wyróżnione (etykiety) */}
       <nav
         aria-label="Filtry oferty"
         className="sticky top-[calc(4.5rem+var(--banner-h))] z-30 border-y border-line bg-ink/90 backdrop-blur-md sm:top-[calc(5rem+var(--banner-h))]"
       >
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-5 py-3 sm:px-8">
-          {/* telefon/tablet: lista kategorii + rozwijany panel etykiet */}
+          {/* telefon/tablet: dwa rozwijane panele – kategoria (jeden wybór) i wyróżnione (kilka) */}
           <div className="flex min-w-0 flex-1 items-center gap-2 lg:hidden">
-            <CategorySelect categories={categories} value={active?.id ?? ''} hrefFor={categoryHref} />
+            <DropdownPanel
+              className="min-w-0 flex-1"
+              closeOnSelect
+              summaryClassName={dropdownButton(Boolean(active))}
+              summary={
+                <>
+                  <span className="truncate">{active ? active.name : 'Kategorie'}</span>
+                  {chevron}
+                </>
+              }
+            >
+              <div className={`${dropdownPanel} left-0`}>
+                <ul>
+                  {categoryOptions.map((option) => {
+                    const selected = (active?.id ?? '') === option.id;
+                    return (
+                      <li key={option.id || 'wszystkie'}>
+                        <Link
+                          href={option.href}
+                          scroll={false}
+                          aria-current={selected ? 'true' : undefined}
+                          className={`flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-coal ${
+                            option.count === 0 && !selected ? 'opacity-45' : ''
+                          }`}
+                        >
+                          {/* kropka – wybór jednej kategorii */}
+                          <span
+                            className={`grid size-4 shrink-0 place-items-center rounded-full border ${
+                              selected ? 'border-gold' : 'border-cream/40'
+                            }`}
+                          >
+                            {selected && <span className="size-2 rounded-full bg-gold" />}
+                          </span>
+                          <span className={selected ? 'text-gold' : 'text-cream'}>{option.name}</span>
+                          <span className="ml-auto text-sm text-stone">{option.count}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </DropdownPanel>
             {labelOptions.length > 0 && (
               <DropdownPanel
-                className="ml-auto shrink-0"
-                summaryClassName={`flex h-10 items-center gap-2 border px-3.5 font-display text-[0.7rem] uppercase tracking-[0.2em] ${
-                  labels.length ? 'border-gold bg-gold/10 text-gold' : 'border-line text-cream/85'
-                }`}
+                className="shrink-0"
+                summaryClassName={dropdownButton(labels.length > 0)}
                 summary={
                   <>
-                    Etykiety
+                    Wyróżnione
                     {labels.length > 0 && (
                       <span className="grid size-5 place-items-center bg-gold text-[0.65rem] tracking-normal text-ink">
                         {labels.length}
                       </span>
                     )}
-                    <FaChevronDown size={9} aria-hidden className="transition-transform group-open:rotate-180" />
+                    {chevron}
                   </>
                 }
               >
-                <div className="absolute right-0 top-full mt-2 w-60 border border-line bg-ink p-2 shadow-xl shadow-black/40">
+                <div className={`${dropdownPanel} right-0`}>
                   <ul>
                     {labelOptions.map((option) => (
                       <li key={option.key}>
@@ -168,11 +222,11 @@ export default async function OfferPage({
             <li aria-hidden className="w-10 shrink-0" />
           </ul>
 
-          {/* komputer: przełączniki etykiet obok kategorii */}
+          {/* komputer: przełączniki wyróżnionych (etykiet) obok kategorii */}
           {labelOptions.length > 0 && (
             <>
               <div aria-hidden className="hidden h-7 w-px shrink-0 bg-line lg:block" />
-              <ul aria-label="Etykiety" className="hidden shrink-0 gap-2 lg:flex">
+              <ul aria-label="Wyróżnione" className="hidden shrink-0 gap-2 lg:flex">
                 {labelOptions.map((option) => (
                   <li key={option.key}>
                     <Link

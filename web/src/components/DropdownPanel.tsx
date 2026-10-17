@@ -4,18 +4,21 @@ import { useEffect, useRef, type ReactNode } from 'react';
 
 /**
  * Rozwijany panel na <details> (działa bez JS); z JS zamyka się po kliknięciu poza nim i klawiszem Esc.
- * Po wyborze opcji zostaje otwarty – można zaznaczyć kilka etykiet po kolei.
+ * closeOnSelect: zamknięcie po kliknięciu linku w panelu (wybór jednej opcji); bez tego panel zostaje
+ * otwarty – można zaznaczyć kilka opcji po kolei.
  */
 export function DropdownPanel({
   summary,
   summaryClassName,
   children,
   className = '',
+  closeOnSelect = false,
 }: {
   summary: ReactNode;
   summaryClassName: string;
   children: ReactNode;
   className?: string;
+  closeOnSelect?: boolean;
 }) {
   const ref = useRef<HTMLDetailsElement>(null);
 
@@ -36,7 +39,13 @@ export function DropdownPanel({
   }, []);
 
   return (
-    <details ref={ref} className={`group relative ${className}`}>
+    <details
+      ref={ref}
+      className={`group relative ${className}`}
+      onClick={(event) => {
+        if (closeOnSelect && (event.target as HTMLElement).closest('a') && ref.current) ref.current.open = false;
+      }}
+    >
       <summary className={`cursor-pointer list-none [&::-webkit-details-marker]:hidden ${summaryClassName}`}>{summary}</summary>
       {children}
     </details>
