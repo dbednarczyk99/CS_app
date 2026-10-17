@@ -17,6 +17,7 @@ import { MailModule } from './modules/mail/mail.module';
 import { ReservationsModule } from './modules/reservations/reservations.module';
 import { RevalidateModule } from './modules/revalidate/revalidate.module';
 import { ContactMessagesModule } from './modules/contact/messages/contact-messages.module';
+import { AnnouncementsModule } from './modules/announcements/announcements.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { ContactMessagesModule } from './modules/contact/messages/contact-messag
     ReservationsModule,
     RevalidateModule,
     ContactMessagesModule,
+    AnnouncementsModule,
   ],
   controllers: [UploadController, DebugController],
 })

@@ -23,7 +23,7 @@ export default async function ReservationPage() {
     .map((p) => ({ id: p.id, name: p.name, price: p.price, image: p.images?.[0]?.imgUrl }));
 
   return (
-    <div className="mx-auto max-w-7xl px-5 pb-24 pt-28 sm:px-8 sm:pt-32">
+    <div className="mx-auto max-w-7xl px-5 pb-24 pt-header sm:px-8">
       <p className="eyebrow">Rezerwacja</p>
       <h1 className="heading mt-3 text-4xl sm:text-5xl">Zarezerwuj pieczywo</h1>
       <p className="mt-4 max-w-2xl text-lg leading-relaxed text-stone">

@@ -31,7 +31,7 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <>
-      <div className="mx-auto max-w-7xl px-5 pb-20 pt-28 sm:px-8 sm:pt-32">
+      <div className="mx-auto max-w-7xl px-5 pb-20 pt-header sm:px-8">
         <Link href="/oferta" className="link-arrow inline-flex items-center gap-3 text-[0.75rem]">
           <FaArrowLeft aria-hidden /> Oferta
         </Link>

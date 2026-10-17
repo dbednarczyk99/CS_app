@@ -5,13 +5,27 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { FaBars, FaXmark } from 'react-icons/fa6';
+import type { Announcement } from '@/lib/api';
 import { NAV } from '@/lib/nav';
+import { AnnouncementBar, wasDismissed } from './AnnouncementBar';
 import { ReservationButton } from './ReservationButton';
 
-export function Header() {
+export function Header({ announcements = [] }: { announcements?: Announcement[] }) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const showBanner = announcements.length > 0 && !bannerDismissed;
+
+  // baner zamknięty wcześniej w tej wizycie – bez odstępu pod nagłówkiem (html[data-banner])
+  useEffect(() => {
+    if (announcements.length > 0 && wasDismissed(announcements)) dismissBanner();
+  }, [announcements]);
+
+  function dismissBanner() {
+    setBannerDismissed(true);
+    document.documentElement.removeAttribute('data-banner');
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -83,6 +97,10 @@ export function Header() {
           </button>
         </div>
       </div>
+
+      {showBanner && (
+        <AnnouncementBar items={announcements} collapsed={scrolled || open} onDismiss={dismissBanner} />
+      )}
 
       {/* Menu mobilne na pełny ekran */}
       <div

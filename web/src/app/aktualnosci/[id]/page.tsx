@@ -22,7 +22,7 @@ export default async function ArticlePage({ params }: Props) {
   const [cover, ...rest] = article.images ?? [];
 
   return (
-    <article className="mx-auto max-w-3xl px-5 pb-24 pt-28 sm:px-8 sm:pt-32">
+    <article className="mx-auto max-w-3xl px-5 pb-24 pt-header sm:px-8">
       <Link href="/aktualnosci" className="link-arrow inline-flex items-center gap-3 text-[0.75rem]">
         <FaArrowLeft aria-hidden /> Aktualności
       </Link>

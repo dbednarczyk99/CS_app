@@ -13,7 +13,7 @@ export function PageHeader({
   children?: React.ReactNode;
 }) {
   return (
-    <header className="relative flex min-h-[46svh] items-end overflow-hidden pt-28 pb-12 sm:min-h-[52svh] sm:pb-16">
+    <header className="relative flex min-h-[46svh] items-end overflow-hidden pt-header pb-12 sm:min-h-[52svh] sm:pb-16">
       <Image
         src={image}
         alt=""

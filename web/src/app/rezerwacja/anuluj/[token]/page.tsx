@@ -15,7 +15,7 @@ export default async function CancelPage({ params }: { params: Promise<{ token: 
   const reservation = await orFallback(api.reservationByToken(token), null);
 
   return (
-    <div className="mx-auto max-w-2xl px-5 pb-24 pt-28 sm:px-8 sm:pt-32">
+    <div className="mx-auto max-w-2xl px-5 pb-24 pt-header sm:px-8">
       <p className="eyebrow">Rezerwacja</p>
       <h1 className="heading mt-3 text-4xl">Anulowanie rezerwacji</h1>
       <div className="mt-10">

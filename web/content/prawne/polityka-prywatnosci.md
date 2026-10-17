@@ -55,7 +55,11 @@ W Serwisie umieszczamy wyłącznie odnośniki (linki) do naszych profili w serwi
 
 ## 3. Pamięć przeglądarki i pliki cookies
 
-1. Serwis zapisuje w pamięci Twojej przeglądarki (localStorage) wyłącznie listę produktów wybranych do rezerwacji („koszyk rezerwacji”), aby nie zniknęła po odświeżeniu strony. Jest to niezbędne do świadczenia usługi, o którą prosisz, dlatego nie wymaga zgody (art. 399 ust. 3 ustawy z dnia 12 lipca 2024 r. – Prawo komunikacji elektronicznej). Listę możesz w każdej chwili usunąć, czyszcząc dane witryny w przeglądarce.
+1. Serwis zapisuje w pamięci Twojej przeglądarki wyłącznie:
+   - listę produktów wybranych do rezerwacji („koszyk rezerwacji”, localStorage), aby nie zniknęła po odświeżeniu strony,
+   - informację, że zamknięto komunikat na pasku pod menu strony (sessionStorage – usuwana automatycznie po zamknięciu karty przeglądarki), aby nie wyświetlał się ponownie w trakcie tej samej wizyty.
+
+   Jest to niezbędne do świadczenia usługi, o którą prosisz, dlatego nie wymaga zgody (art. 399 ust. 3 ustawy z dnia 12 lipca 2024 r. – Prawo komunikacji elektronicznej). Te dane nie są przesyłane na nasz serwer; możesz je w każdej chwili usunąć, czyszcząc dane witryny w przeglądarce.
 2. Serwis nie wykorzystuje plików cookies ani innych technologii w celach analitycznych lub marketingowych. [[JEŚLI W PRZYSZŁOŚCI ZOSTANIE DODANA ANALITYKA (np. Google Analytics) LUB PIKSELE REKLAMOWE: wymagany baner zgody i aktualizacja tego punktu]]
 3. Mapa Google (pkt 2.4) może zapisywać w Twojej przeglądarce własne pliki cookies Google, zgodnie z polityką Google.
 

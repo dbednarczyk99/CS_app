@@ -15,6 +15,7 @@ import UsersIcon from '@mui/icons-material/Group';
 import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import ChecklistIcon from '@mui/icons-material/Checklist';
+import CampaignIcon from '@mui/icons-material/Campaign';
 
 export const CustomMenu = () => {
   const [open] = useSidebarState();
@@ -125,6 +126,11 @@ export const CustomMenu = () => {
         to="/blog"
         primaryText="Blog posts"
         leftIcon={<ArticleIcon />}
+      />
+      <Menu.Item
+        to="/announcements"
+        primaryText="Baner informacyjny"
+        leftIcon={<CampaignIcon />}
       />
       <Menu.Item
         to="/contact/media"

@@ -79,6 +79,12 @@ Bread reservations (pay on pickup, no customer accounts) span all three apps:
 - **Legal pages:** `/regulamin` and `/polityka-prywatnosci` render Markdown from `web/content/prawne/*.md` (single source; `[[…]]` = placeholder, highlighted) via the tiny renderer in [web/src/lib/markdown.tsx](web/src/lib/markdown.tsx). Notes for the lawyer: [docs/prawne/notatka-dla-prawnika.md](docs/prawne/notatka-dla-prawnika.md). E-mails load Oswald/Lato from `web/public/fonts` (CORS header in next.config), never from Google Fonts.
 - **Admin:** the read-only `reservations` resource (list + show, no edit) and the `/przygotowanie` custom page (daily preparation summary). The data provider passes list filters to the API as query parameters for this resource.
 
+## Announcement banner
+
+- **API:** `backend/src/modules/announcements` – `Announcement` model (message ≤160, optional `linkUrl` starting with `/` or `https://`, `linkLabel`, `isActive`, optional `startsAt`/`endsAt` window, `order`). Public `GET /announcements/active`; CRUD for `CONTENT_ROLES`.
+- **Web:** the root layout fetches active announcements, sets `html[data-banner]` and passes them to `Header`, which renders `AnnouncementBar` under the nav row (collapses on scroll, rotates several messages, dismissal kept in sessionStorage per id+updatedAt). `--banner-h` (globals.css) reserves space; pages below the fixed header use the `pt-header` utility instead of fixed top padding.
+- **Admin:** "Baner informacyjny" (`announcements` resource) with live preview and a blog-post picker that fills `linkUrl`.
+
 ## Frontend architecture
 
 - [App.tsx](frontend/src/App.tsx) registers react-admin `<Resource>`s whose names are backend URL paths (e.g. `products/categories`, `contact/info`, `bread-van/locations`).
