@@ -136,7 +136,14 @@ export interface Announcement {
 export interface ReservationOptions {
   cutoffHour: number;
   dates: string[];
-  stores: { id: string; address: string; slots: Record<string, string[]> }[];
+  stores: {
+    id: string;
+    address: string;
+    /** terminy odbioru co 30 min (ostatni 30 min przed zamknięciem) */
+    slots: Record<string, string[]>;
+    /** godziny otwarcia w danym dniu (z panelu) */
+    hours: Record<string, { open: string; close: string }>;
+  }[];
   vanStops: { id: string; address: string; date: string; startTime: string; endTime: string }[];
 }
 

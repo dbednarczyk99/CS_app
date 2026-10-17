@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FaBreadSlice, FaCheck, FaTrash, FaTruck } from 'react-icons/fa6';
+import { FaBreadSlice, FaCheck, FaChevronDown, FaTrash, FaTruck } from 'react-icons/fa6';
 import type { PublicReservation, ReservationOptions } from '@/lib/api';
 import { formatDay, formatPrice } from '@/lib/format';
 import { useReservationCart } from '@/lib/reservation-cart';
@@ -56,11 +56,15 @@ const field =
   'w-full border border-line bg-coal px-4 py-3 text-cream placeholder:text-stone/70 transition-colors focus:border-gold focus:outline-none';
 const choice = (selected: boolean) =>
   `border px-4 py-3 text-left transition-colors ${
-    selected ? 'border-gold bg-gold/10 text-cream' : 'border-line text-cream/85 hover:border-gold/60'
+    selected
+      ? 'border-gold bg-gold/10 text-cream'
+      : 'border-line text-cream/85 hover:border-gold/60'
   }`;
 const chip = (selected: boolean) =>
   `min-h-11 border px-3 py-2 font-display text-[0.8rem] tracking-wider transition-colors ${
-    selected ? 'border-gold bg-gold text-ink' : 'border-line text-cream/85 hover:border-gold hover:text-gold'
+    selected
+      ? 'border-gold bg-gold text-ink'
+      : 'border-line text-cream/85 hover:border-gold hover:text-gold'
   }`;
 
 const shortStreet = (address: string) => address.split(/,\s*(?=\d{2}-\d{3})/)[0];
@@ -94,7 +98,9 @@ export function ReservationForm({
   }, [cart, reservable]);
 
   const [pickupType, setPickupType] = useState<PickupType>('STORE');
-  const [storeId, setStoreId] = useState<string | null>(options.stores.length === 1 ? options.stores[0].id : null);
+  const [storeId, setStoreId] = useState<string | null>(
+    options.stores.length === 1 ? options.stores[0].id : null,
+  );
   const [date, setDate] = useState<string | null>(null);
   const [time, setTime] = useState<string | null>(null);
   const [vanKey, setVanKey] = useState<string | null>(null);
@@ -117,7 +123,10 @@ export function ReservationForm({
 
   const pickupSummary = useMemo(() => {
     if (pickupType === 'STORE' && store && date && time) {
-      return { where: `Piekarnia: ${shortStreet(store.address)}`, when: `${formatDay(date)}, ${time}` };
+      return {
+        where: `Piekarnia: ${shortStreet(store.address)}`,
+        when: `${formatDay(date)}, ${time}`,
+      };
     }
     if (pickupType === 'VAN' && vanStop) {
       return {
@@ -214,7 +223,9 @@ export function ReservationForm({
             {cart.items.map((item) => (
               <li key={item.productId} className="flex items-center gap-4 py-4">
                 <div className="relative size-16 shrink-0 overflow-hidden bg-graphite">
-                  {item.image && <Image src={item.image} alt="" fill sizes="4rem" className="object-cover" />}
+                  {item.image && (
+                    <Image src={item.image} alt="" fill sizes="4rem" className="object-cover" />
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-display uppercase tracking-wide">{item.name}</p>
@@ -244,8 +255,8 @@ export function ReservationForm({
         {/* 2. ODBIÓR */}
         <Step number={2} title="Odbiór">
           <p className="mb-5 text-sm text-stone">
-            Rezerwacje przyjmujemy do {options.cutoffHour}:00 dnia poprzedzającego odbiór, maksymalnie 5 dni do
-            przodu.
+            Rezerwacje przyjmujemy do {options.cutoffHour}:00 dnia poprzedzającego odbiór,
+            maksymalnie 5 dni do przodu.
           </p>
           <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Miejsce odbioru">
             {(
@@ -283,8 +294,12 @@ export function ReservationForm({
                       className={choice(storeId === s.id)}
                       aria-pressed={storeId === s.id}
                     >
-                      <span className="block font-display uppercase tracking-wide">{shortStreet(s.address)}</span>
-                      <span className="text-sm text-stone">{s.address.split(/,\s*/).slice(1).join(', ')}</span>
+                      <span className="block font-display uppercase tracking-wide">
+                        {shortStreet(s.address)}
+                      </span>
+                      <span className="text-sm text-stone">
+                        {s.address.split(/,\s*/).slice(1).join(', ')}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -313,15 +328,21 @@ export function ReservationForm({
 
               {store && date && (
                 <Fieldset legend="Godzina odbioru">
-                  {/* klucz: nowy punkt/dzień = puste pole */}
-                  <PickupTimeInput key={`${store.id}|${date}`} slots={slots} onChange={setTime} />
+                  <PickupTimeSelect
+                    slots={slots}
+                    hours={store.hours?.[date]}
+                    value={time}
+                    onChange={setTime}
+                  />
                 </Fieldset>
               )}
             </div>
           ) : (
             <div className="mt-6">
               {options.vanStops.length === 0 ? (
-                <p className="text-stone">W najbliższych dniach chlebowóz nie ma postojów dostępnych do rezerwacji.</p>
+                <p className="text-stone">
+                  W najbliższych dniach chlebowóz nie ma postojów dostępnych do rezerwacji.
+                </p>
               ) : (
                 <Fieldset legend="Przystanek i termin">
                   <div className="grid gap-2">
@@ -406,7 +427,13 @@ export function ReservationForm({
           {/* pułapka na boty – niewidoczna dla ludzi */}
           <div aria-hidden className="absolute left-[-9999px] top-auto h-px w-px overflow-hidden">
             <label htmlFor="website">Strona www</label>
-            <input id="website" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
+            <input
+              id="website"
+              tabIndex={-1}
+              autoComplete="off"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+            />
           </div>
 
           <label className="mt-6 flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-stone">
@@ -418,11 +445,19 @@ export function ReservationForm({
             />
             <span>
               Akceptuję{' '}
-              <a href="/regulamin" target="_blank" className="text-gold underline-offset-2 hover:underline">
+              <a
+                href="/regulamin"
+                target="_blank"
+                className="text-gold underline-offset-2 hover:underline"
+              >
                 regulamin rezerwacji
               </a>{' '}
               i zapoznałem/-am się z{' '}
-              <a href="/polityka-prywatnosci" target="_blank" className="text-gold underline-offset-2 hover:underline">
+              <a
+                href="/polityka-prywatnosci"
+                target="_blank"
+                className="text-gold underline-offset-2 hover:underline"
+              >
                 polityką prywatności
               </a>
               .
@@ -463,22 +498,39 @@ export function ReservationForm({
           </div>
 
           {error && (
-            <p role="alert" className="mt-5 border border-red-400/40 bg-red-400/10 px-3 py-2 text-sm text-red-200">
+            <p
+              role="alert"
+              className="mt-5 border border-red-400/40 bg-red-400/10 px-3 py-2 text-sm text-red-200"
+            >
               {error}
             </p>
           )}
 
-          <button type="submit" disabled={submitting} className="btn btn-gold mt-6 w-full disabled:opacity-60">
+          <button
+            type="submit"
+            disabled={submitting}
+            className="btn btn-gold mt-6 w-full disabled:opacity-60"
+          >
             {submitting ? 'Wysyłanie…' : 'Zarezerwuj'}
           </button>
-          <p className="mt-3 text-center text-xs text-stone">Płatność gotówką lub kartą przy odbiorze.</p>
+          <p className="mt-3 text-center text-xs text-stone">
+            Płatność gotówką lub kartą przy odbiorze.
+          </p>
         </div>
       </aside>
     </form>
   );
 }
 
-function Step({ number, title, children }: { number: number; title: string; children: React.ReactNode }) {
+function Step({
+  number,
+  title,
+  children,
+}: {
+  number: number;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <section aria-labelledby={`krok-${number}`} className="relative">
       <div className="mb-6 flex items-baseline gap-4">
@@ -492,57 +544,147 @@ function Step({ number, title, children }: { number: number; title: string; chil
   );
 }
 
-const toMinutes = (t: string) => {
-  const [h, m] = t.split(':').map(Number);
-  return h * 60 + m;
-};
-
 /**
- * Godzina odbioru jako pole „czas”: zakres = godziny otwarcia (pierwszy i ostatni termin z API), krok 30 min.
- * Wpisana godzina spoza siatki (np. z zegara na Androidzie, który ignoruje krok) jest po wyjściu z pola
- * zaokrąglana do najbliższego dostępnego terminu – z krótką informacją.
+ * Wybór godziny odbioru: własna lista w stylu strony (zamiast systemowego pola czasu, które pozwala wybrać
+ * dowolną godzinę). Do wyboru są wyłącznie terminy z API – co 30 min, ostatni 30 min przed zamknięciem.
+ * Lista ma szerokość pola; obsługa klawiaturą (strzałki, Home/End, Enter, Esc).
  */
-function PickupTimeInput({ slots, onChange }: { slots: string[]; onChange: (time: string | null) => void }) {
-  const [value, setValue] = useState('');
-  const [note, setNote] = useState<string | null>(null);
-  const first = slots[0];
-  const last = slots[slots.length - 1];
+function PickupTimeSelect({
+  slots,
+  hours,
+  value,
+  onChange,
+}: {
+  slots: string[];
+  hours?: { open: string; close: string };
+  value: string | null;
+  onChange: (time: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const root = useRef<HTMLDivElement>(null);
+  const list = useRef<HTMLUListElement>(null);
 
-  if (!first) return <p className="text-stone">Brak wolnych terminów odbioru w tym dniu.</p>;
+  // zamknięcie po kliknięciu poza listą
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: PointerEvent) => {
+      if (!root.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', close);
+    return () => document.removeEventListener('pointerdown', close);
+  }, [open]);
 
-  const snap = () => {
-    if (!value || slots.includes(value)) return;
-    const nearest = slots.reduce((best, t) =>
-      Math.abs(toMinutes(t) - toMinutes(value)) < Math.abs(toMinutes(best) - toMinutes(value)) ? t : best,
-    );
-    setValue(nearest);
-    onChange(nearest);
-    setNote(`Zmieniliśmy na ${nearest} – odbiór jest możliwy co 30 minut, w godzinach ${first}–${last}.`);
+  // po otwarciu: fokus na liście, wybrana (albo pierwsza) godzina widoczna
+  useEffect(() => {
+    if (!open) return;
+    list.current?.focus();
+    list.current
+      ?.querySelector('[aria-selected="true"], [data-active="true"]')
+      ?.scrollIntoView({ block: 'nearest' });
+  }, [open]);
+  useEffect(() => {
+    if (open)
+      list.current?.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'nearest' });
+  }, [active, open]);
+
+  if (slots.length === 0)
+    return <p className="text-stone">Brak wolnych terminów odbioru w tym dniu.</p>;
+
+  const openList = () => {
+    setActive(Math.max(0, value ? slots.indexOf(value) : 0));
+    setOpen(true);
+  };
+  const choose = (t: string) => {
+    onChange(t);
+    setOpen(false);
+    root.current?.querySelector('button')?.focus();
   };
 
   return (
     <div>
-      <input
-        id="pickup-time"
-        type="time"
-        min={first}
-        max={last}
-        step={1800}
-        value={value}
-        onChange={(e) => {
-          const v = e.target.value;
-          setValue(v);
-          setNote(null);
-          onChange(slots.includes(v) ? v : null);
-        }}
-        onBlur={snap}
-        required
-        aria-describedby="pickup-time-hint"
-        className={`${field} max-w-48 tabular-nums [color-scheme:dark]`}
-      />
-      <p id="pickup-time-hint" className="mt-2 text-sm text-stone" aria-live="polite">
-        {note ?? `Odbiór między ${first} a ${last}, co 30 minut (np. ${slots[Math.min(1, slots.length - 1)]}).`}
-      </p>
+      {/* lista zaczepiona tuż pod polem (podpowiedź poza tym kontenerem) */}
+      <div ref={root} className="relative max-w-60">
+        <button
+          type="button"
+          id="pickup-time"
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-describedby="pickup-time-hint"
+          onClick={() => (open ? setOpen(false) : openList())}
+          onKeyDown={(e) => {
+            if (['ArrowDown', 'ArrowUp'].includes(e.key)) {
+              e.preventDefault();
+              openList();
+            }
+          }}
+          className={`${field} flex items-center justify-between gap-3 text-left tabular-nums ${open ? 'border-gold' : ''}`}
+        >
+          <span className={value ? 'text-cream' : 'text-stone/70'}>
+            {value ?? 'Wybierz godzinę'}
+          </span>
+          <FaChevronDown
+            size={11}
+            aria-hidden
+            className={`shrink-0 text-stone transition-transform ${open ? 'rotate-180' : ''}`}
+          />
+        </button>
+
+        {open && (
+          <ul
+            ref={list}
+            role="listbox"
+            tabIndex={-1}
+            aria-label="Godzina odbioru"
+            aria-activedescendant={`slot-${slots[active]}`}
+            onKeyDown={(e) => {
+              const move = (i: number) => {
+                e.preventDefault();
+                setActive(Math.min(slots.length - 1, Math.max(0, i)));
+              };
+              if (e.key === 'ArrowDown') move(active + 1);
+              else if (e.key === 'ArrowUp') move(active - 1);
+              else if (e.key === 'Home') move(0);
+              else if (e.key === 'End') move(slots.length - 1);
+              else if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                choose(slots[active]);
+              } else if (e.key === 'Escape' || e.key === 'Tab') setOpen(false);
+            }}
+            // szerokość pola, kolory strony; przewijana przy długich godzinach otwarcia; bez obwódki fokusu
+            // (aktywna pozycja jest podświetlona)
+            className="scrollbar-subtle absolute inset-x-0 top-full z-20 mt-1 max-h-64 overflow-y-auto border border-line bg-ink py-1 shadow-xl shadow-black/40"
+            style={{ outline: 'none' }}
+          >
+            {slots.map((t, i) => {
+              const selected = t === value;
+              return (
+                <li
+                  key={t}
+                  id={`slot-${t}`}
+                  role="option"
+                  aria-selected={selected}
+                  data-active={i === active}
+                  onPointerEnter={() => setActive(i)}
+                  onClick={() => choose(t)}
+                  className={`flex cursor-pointer items-center justify-between px-4 py-2.5 tabular-nums transition-colors ${
+                    i === active ? 'bg-coal' : ''
+                  } ${selected ? 'text-gold' : 'text-cream'}`}
+                >
+                  {t}
+                  {selected && <FaCheck size={11} aria-hidden />}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      {hours && (
+        <p id="pickup-time-hint" className="mt-2 text-sm text-stone">
+          Odbiór między {hours.open} a {hours.close}
+        </p>
+      )}
     </div>
   );
 }
@@ -550,7 +692,9 @@ function PickupTimeInput({ slots, onChange }: { slots: string[]; onChange: (time
 function Fieldset({ legend, children }: { legend: string; children: React.ReactNode }) {
   return (
     <fieldset>
-      <legend className="mb-3 font-display text-[0.7rem] uppercase tracking-[0.25em] text-stone">{legend}</legend>
+      <legend className="mb-3 font-display text-[0.7rem] uppercase tracking-[0.25em] text-stone">
+        {legend}
+      </legend>
       {children}
     </fieldset>
   );
@@ -569,7 +713,10 @@ function Label({
 }) {
   return (
     <div className={wide ? 'sm:col-span-2' : ''}>
-      <label htmlFor={htmlFor} className="mb-2 block font-display text-[0.7rem] uppercase tracking-[0.25em] text-stone">
+      <label
+        htmlFor={htmlFor}
+        className="mb-2 block font-display text-[0.7rem] uppercase tracking-[0.25em] text-stone"
+      >
         {text}
       </label>
       {children}
@@ -585,7 +732,8 @@ function ReservationSuccess({ reservation: r }: { reservation: PublicReservation
       </span>
       <h2 className="heading mt-6 text-3xl">Rezerwacja przyjęta</h2>
       <p className="mt-3 text-stone">
-        Dziękujemy, {r.customerName.split(' ')[0]}! Potwierdzenie wysłaliśmy na <strong className="text-cream">{r.customerEmail}</strong>.
+        Dziękujemy, {r.customerName.split(' ')[0]}! Potwierdzenie wysłaliśmy na{' '}
+        <strong className="text-cream">{r.customerEmail}</strong>.
       </p>
       <p className="mt-8 text-sm text-stone">Numer rezerwacji</p>
       <p className="font-display text-3xl tracking-[0.2em] text-gold">{r.number}</p>
@@ -616,8 +764,8 @@ function ReservationSuccess({ reservation: r }: { reservation: PublicReservation
       </div>
 
       <p className="mt-6 text-sm leading-relaxed text-stone">
-        Rezerwację możesz anulować do {formatDay(r.cancelDeadline.date)}, {r.cancelDeadline.hour} – link znajdziesz w
-        e-mailu.
+        Rezerwację możesz anulować do {formatDay(r.cancelDeadline.date)}, {r.cancelDeadline.hour} –
+        link znajdziesz w e-mailu.
       </p>
       <Link href="/" className="btn btn-outline mt-8">
         Wróć na stronę główną

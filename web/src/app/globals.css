@@ -56,6 +56,12 @@ html[data-banner] {
   }
 }
 
+/* cienki pasek przewijania w kolorach strony (listy rozwijane) */
+@utility scrollbar-subtle {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-gold) 50%, transparent) transparent;
+}
+
 /* odstęp treści od stałego nagłówka (nawigacja + ewentualny baner) */
 @utility pt-header {
   padding-top: calc(7rem + var(--banner-h));
