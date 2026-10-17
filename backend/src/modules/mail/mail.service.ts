@@ -4,6 +4,8 @@ import { createTransport, type Transporter } from 'nodemailer';
 
 export interface MailMessage {
   to: string;
+  /** adres dla „Odpowiedz” (np. nadawca formularza kontaktowego) */
+  replyTo?: string;
   subject: string;
   html: string;
   text: string;

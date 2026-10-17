@@ -37,7 +37,7 @@ Podanie danych jest dobrowolne, ale niezbędne do złożenia rezerwacji.
 
 ### 2.2. Kontakt z nami
 
-Jeżeli kontaktujesz się z nami e-mailem, telefonicznie, przez wiadomości w serwisach Instagram lub Facebook lub [[JEŚLI ZOSTANIE URUCHOMIONY: przez formularz kontaktowy]], przetwarzamy dane podane w wiadomości (np. imię, adres e-mail, numer telefonu, treść) w celu odpowiedzi i prowadzenia korespondencji – na podstawie art. 6 ust. 1 lit. f RODO (nasz prawnie uzasadniony interes, polegający na komunikacji z osobami, które się z nami kontaktują).
+Jeżeli kontaktujesz się z nami e-mailem, telefonicznie, przez wiadomości w serwisach Instagram lub Facebook albo przez formularz kontaktowy w Serwisie, przetwarzamy dane podane w wiadomości (np. imię, adres e-mail, numer telefonu, treść) w celu odpowiedzi i prowadzenia korespondencji – na podstawie art. 6 ust. 1 lit. f RODO (nasz prawnie uzasadniony interes, polegający na komunikacji z osobami, które się z nami kontaktują).
 
 ### 2.3. Korzystanie z Serwisu i bezpieczeństwo
 

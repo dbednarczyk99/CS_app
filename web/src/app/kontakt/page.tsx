@@ -41,14 +41,14 @@ export default async function ContactPage() {
 
         <aside className="space-y-12">
           {instagram && (
-            <div className="border-b border-line pb-12">
-              <div className="flex items-center gap-3">
-                <FaInstagram className="text-gold" size={22} aria-hidden />
-                <h2 className="eyebrow">Instagram</h2>
-              </div>
-              <p className="heading mt-4 text-2xl">Napisz do nas na Instagramie</p>
-              <p className="mt-3 leading-relaxed text-stone">
-                Wolisz wiadomości? Odezwij się do nas na Instagramie – link otworzy od razu rozmowę z{' '}
+            // nagłówek w tym samym stylu i na tej samej wysokości co „Napisz do nas” obok
+            <section aria-labelledby="instagram" className="border-b border-line pb-12">
+              <h2 id="instagram" className="heading text-2xl sm:text-3xl">
+                Wolisz Instagram?
+              </h2>
+              <div className="mt-5 h-px w-16 bg-gold" />
+              <p className="mt-8 leading-relaxed text-stone">
+                Napisz do nas wiadomość – link otworzy od razu rozmowę z{' '}
                 <span className="text-cream">@{instagram.handle}</span>.
               </p>
               <a
@@ -59,7 +59,7 @@ export default async function ContactPage() {
               >
                 <FaInstagram aria-hidden /> Otwórz rozmowę
               </a>
-            </div>
+            </section>
           )}
 
           {email && (
