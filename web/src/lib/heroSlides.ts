@@ -79,7 +79,7 @@ export function buildHeroSlides({
           eyebrow: 'Sezonowo',
           title: ['Tylko', 'przez chwilę'],
           text: 'Wypieki, które pojawiają się w naszych piekarniach tylko w swoim sezonie. Sprawdź, co pieczemy teraz – póki sezon trwa.',
-          ctas: [{ href: '/oferta?sezonowe', label: 'Zobacz sezonowe', primary: true }],
+          ctas: [{ href: '/oferta?etykiety=sezonowe', label: 'Zobacz sezonowe', primary: true }],
           image: { src: seasonalWithImage.images![0].imgUrl, alt: '', position: 'center' },
         }
       : null,

@@ -1,44 +1,78 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { FaCheck, FaChevronDown, FaXmark } from 'react-icons/fa6';
+import { CategorySelect } from '@/components/CategorySelect';
+import { DropdownPanel } from '@/components/DropdownPanel';
 import { PageHeader } from '@/components/PageHeader';
 import { ProductCard } from '@/components/ProductCard';
 import { api, orFallback, type Product } from '@/lib/api';
-import { isAvailable, isOutOfSeason } from '@/lib/products';
+import { LABEL_FILTERS, isAvailable, isOutOfSeason, type LabelFilterKey } from '@/lib/products';
 
 export const metadata: Metadata = {
   title: 'Oferta',
   description: 'Chleby na zakwasie, słodkie wypieki, kanapki i lody rzemieślnicze z piekarni Chleba Smak w Krakowie.',
 };
 
+/** Adres oferty z filtrami (kategoria + etykiety) */
+function offerHref(kategoria: string | undefined, etykiety: LabelFilterKey[]) {
+  const params = new URLSearchParams();
+  if (kategoria) params.set('kategoria', kategoria);
+  if (etykiety.length) params.set('etykiety', etykiety.join(','));
+  const query = params.toString();
+  return query ? `/oferta?${query.replace(/%2C/g, ',')}` : '/oferta';
+}
+
 export default async function OfferPage({
   searchParams,
 }: {
-  searchParams: Promise<{ kategoria?: string; sezonowe?: string }>;
+  searchParams: Promise<{ kategoria?: string; etykiety?: string; sezonowe?: string }>;
 }) {
-  const { kategoria, sezonowe } = await searchParams;
-  // ?sezonowe – tylko produkty sezonowe (link z karuzeli na stronie głównej)
+  const params = await searchParams;
   const all = (await orFallback(api.products(), [])).filter((p) => p.isActive);
   const products = all.filter(isAvailable);
-  const hasSeasonal = all.some((p) => p.isSeasonal);
-  const seasonalOnly = sezonowe !== undefined && hasSeasonal;
 
   // kategorie w kolejności pierwszego wystąpienia, tylko te z produktami
   const categories = [
     ...new Map(all.filter((p) => p.category).map((p) => [p.category!.id, p.category!])).values(),
   ];
-  const active = seasonalOnly ? undefined : categories.find((c) => c.id === kategoria);
-  const inScope = (p: Product) => (active ? p.categoryId === active.id : true) && (!seasonalOnly || p.isSeasonal);
+  const active = categories.find((c) => c.id === params.kategoria);
+  const inCategory = (p: Product) => !active || p.categoryId === active.id;
+
+  // etykiety z adresu; ?sezonowe – stary link z karuzeli na stronie głównej
+  const requested = [...(params.etykiety?.split(',') ?? []), ...(params.sezonowe !== undefined ? ['sezonowe'] : [])];
+  const labels = LABEL_FILTERS.filter((f) => requested.includes(f.key)).map((f) => f.key);
+  const matchesLabels = (p: Product) =>
+    labels.length === 0 || LABEL_FILTERS.some((f) => labels.includes(f.key) && f.test(p));
+
   const groups = (active ? [active] : categories)
     .map((category) => ({
       category,
-      products: products.filter((p) => p.categoryId === category.id && inScope(p)),
+      products: products.filter((p) => p.categoryId === category.id && matchesLabels(p)),
     }))
     .filter((group) => group.products.length > 0);
-  // sezonowe poza sezonem – na końcu, wyciszone (bez ceny i rezerwacji)
-  const outOfSeason = all.filter((p) => isOutOfSeason(p) && inScope(p));
+  // sezonowe poza sezonem – na końcu, wyciszone; przy filtrze etykiet tylko gdy wybrano „Sezonowe”
+  const outOfSeason = all.filter(
+    (p) => isOutOfSeason(p) && inCategory(p) && (labels.length === 0 || labels.includes('sezonowe')),
+  );
 
-  const chip = (selected: boolean) =>
-    `shrink-0 snap-start whitespace-nowrap border px-4 py-2 font-display text-[0.75rem] uppercase tracking-[0.2em] transition-colors ${
+  // przełączniki etykiet: tylko te, które mają produkty (liczba w obrębie wybranej kategorii)
+  const labelOptions = LABEL_FILTERS.map((f) => {
+    const selected = labels.includes(f.key);
+    return {
+      ...f,
+      selected,
+      count: products.filter((p) => inCategory(p) && f.test(p)).length,
+      href: offerHref(active?.id, selected ? labels.filter((k) => k !== f.key) : [...labels, f.key]),
+    };
+  }).filter((f) => f.count > 0 || f.selected);
+  const filtered = Boolean(active) || labels.length > 0;
+
+  const categoryHref = Object.fromEntries(
+    [['', offerHref(undefined, labels)], ...categories.map((c) => [c.id, offerHref(c.id, labels)])],
+  ) as Record<string, string>;
+
+  const categoryChip = (selected: boolean) =>
+    `block shrink-0 whitespace-nowrap border px-4 py-2 font-display text-[0.75rem] uppercase tracking-[0.2em] transition-colors ${
       selected ? 'border-gold bg-gold text-ink' : 'border-line text-cream/85 hover:border-gold hover:text-gold'
     }`;
 
@@ -49,43 +83,142 @@ export default async function OfferPage({
         wypieki sezonowe dostępne teraz mają znaczek „Teraz dostępne”.
       </PageHeader>
 
-      {/* Kategorie – przyklejone pod nagłówkiem strony */}
+      {/* Filtry – przyklejone pod nagłówkiem strony: kategoria + etykiety */}
       <nav
-        aria-label="Kategorie"
+        aria-label="Filtry oferty"
         className="sticky top-[calc(4.5rem+var(--banner-h))] z-30 border-y border-line bg-ink/90 backdrop-blur-md sm:top-[calc(5rem+var(--banner-h))]"
       >
-        <ul className="mx-auto flex max-w-7xl snap-x gap-2 overflow-x-auto px-5 py-3 [scrollbar-width:none] sm:px-8">
-          <li>
-            <Link href="/oferta" scroll={false} className={chip(!active && !seasonalOnly)}>
-              Wszystko
-            </Link>
-          </li>
-          {hasSeasonal && (
-            <li>
-              <Link href="/oferta?sezonowe" scroll={false} className={chip(seasonalOnly)}>
-                Sezonowo
-              </Link>
-            </li>
-          )}
-          {categories.map((category) => (
-            <li key={category.id}>
-              <Link
-                href={`/oferta?kategoria=${category.id}`}
-                scroll={false}
-                className={chip(active?.id === category.id)}
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-5 py-3 sm:px-8">
+          {/* telefon/tablet: lista kategorii + rozwijany panel etykiet */}
+          <div className="flex min-w-0 flex-1 items-center gap-2 lg:hidden">
+            <CategorySelect categories={categories} value={active?.id ?? ''} hrefFor={categoryHref} />
+            {labelOptions.length > 0 && (
+              <DropdownPanel
+                className="ml-auto shrink-0"
+                summaryClassName={`flex h-10 items-center gap-2 border px-3.5 font-display text-[0.7rem] uppercase tracking-[0.2em] ${
+                  labels.length ? 'border-gold bg-gold/10 text-gold' : 'border-line text-cream/85'
+                }`}
+                summary={
+                  <>
+                    Etykiety
+                    {labels.length > 0 && (
+                      <span className="grid size-5 place-items-center bg-gold text-[0.65rem] tracking-normal text-ink">
+                        {labels.length}
+                      </span>
+                    )}
+                    <FaChevronDown size={9} aria-hidden className="transition-transform group-open:rotate-180" />
+                  </>
+                }
               >
-                {category.name}
+                <div className="absolute right-0 top-full mt-2 w-60 border border-line bg-ink p-2 shadow-xl shadow-black/40">
+                  <ul>
+                    {labelOptions.map((option) => (
+                      <li key={option.key}>
+                        <Link
+                          href={option.href}
+                          scroll={false}
+                          aria-pressed={option.selected}
+                          className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-coal"
+                        >
+                          <span
+                            className={`grid size-4 shrink-0 place-items-center border ${
+                              option.selected ? 'border-gold bg-gold text-ink' : 'border-cream/40'
+                            }`}
+                          >
+                            {option.selected && <FaCheck size={9} aria-hidden />}
+                          </span>
+                          <span className={option.selected ? 'text-gold' : 'text-cream'}>{option.label}</span>
+                          <span className="ml-auto text-sm text-stone">{option.count}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                  {filtered && (
+                    <Link
+                      href="/oferta"
+                      scroll={false}
+                      className="mt-1 flex items-center gap-2 border-t border-line px-3 pb-1 pt-3 font-display text-[0.7rem] uppercase tracking-[0.2em] text-stone hover:text-gold"
+                    >
+                      <FaXmark size={11} aria-hidden /> Wyczyść filtry
+                    </Link>
+                  )}
+                </div>
+              </DropdownPanel>
+            )}
+          </div>
+
+          {/* komputer: przewijany rząd zakładek, krawędzie wygaszone */}
+          <ul
+            aria-label="Kategorie"
+            className="hidden min-w-0 flex-1 gap-2 overflow-x-auto [mask-image:linear-gradient(to_right,black_calc(100%-3rem),transparent)] [scrollbar-width:none] lg:flex"
+          >
+            <li>
+              <Link href={categoryHref['']} scroll={false} className={categoryChip(!active)}>
+                Wszystko
               </Link>
             </li>
-          ))}
-        </ul>
+            {categories.map((category) => (
+              <li key={category.id}>
+                <Link href={categoryHref[category.id]} scroll={false} className={categoryChip(active?.id === category.id)}>
+                  {category.name}
+                </Link>
+              </li>
+            ))}
+            {/* miejsce na wygaszenie krawędzi */}
+            <li aria-hidden className="w-10 shrink-0" />
+          </ul>
+
+          {/* komputer: przełączniki etykiet obok kategorii */}
+          {labelOptions.length > 0 && (
+            <>
+              <div aria-hidden className="hidden h-7 w-px shrink-0 bg-line lg:block" />
+              <ul aria-label="Etykiety" className="hidden shrink-0 gap-2 lg:flex">
+                {labelOptions.map((option) => (
+                  <li key={option.key}>
+                    <Link
+                      href={option.href}
+                      scroll={false}
+                      aria-pressed={option.selected}
+                      className={`flex h-10 items-center gap-2 whitespace-nowrap border px-3.5 font-display text-[0.7rem] uppercase tracking-[0.2em] transition-colors ${
+                        option.selected
+                          ? 'border-gold bg-gold/10 text-gold'
+                          : 'border-line text-cream/80 hover:border-gold/60 hover:text-gold'
+                      }`}
+                    >
+                      {option.selected && <FaCheck size={10} aria-hidden />}
+                      {option.label}
+                      <span className={option.selected ? 'text-gold/70' : 'text-stone'}>{option.count}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {filtered && (
+            <Link
+              href="/oferta"
+              scroll={false}
+              className="hidden shrink-0 items-center gap-2 whitespace-nowrap px-2 font-display text-[0.7rem] uppercase tracking-[0.2em] text-stone transition-colors hover:text-gold lg:flex"
+            >
+              <FaXmark size={11} aria-hidden /> Wyczyść
+            </Link>
+          )}
+        </div>
       </nav>
 
       <div className="mx-auto max-w-7xl space-y-20 px-5 py-16 sm:px-8 md:py-24">
         {groups.length === 0 && (
-          <p className="text-center text-stone">
-            {outOfSeason.length > 0 ? 'Teraz nie ma tu dostępnych produktów.' : 'Oferta pojawi się wkrótce.'}
-          </p>
+          <div className="text-center">
+            <p className="text-stone">
+              {filtered ? 'Brak dostępnych produktów dla wybranych filtrów.' : 'Oferta pojawi się wkrótce.'}
+            </p>
+            {filtered && (
+              <Link href="/oferta" scroll={false} className="link-arrow mt-4 inline-flex">
+                Pokaż całą ofertę
+              </Link>
+            )}
+          </div>
         )}
         {groups.map(({ category, products }) => (
           <section key={category.id} aria-labelledby={`kat-${category.id}`}>
