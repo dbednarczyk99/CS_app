@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaArrowRight, FaInstagram } from 'react-icons/fa6';
+import { GalleryCarousel } from '@/components/GalleryCarousel';
 import { HeroCarousel } from '@/components/HeroCarousel';
 import { LocationCard } from '@/components/LocationCard';
 import { ProductCard } from '@/components/ProductCard';
@@ -255,19 +256,12 @@ export default async function HomePage() {
             </a>
           )}
         </div>
-        <ul className="mt-12 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-4 sm:px-8 [scrollbar-width:thin]">
-          {GALLERY.map((name, i) => (
-            <li key={name} className="relative aspect-[3/4] w-[70vw] shrink-0 snap-start overflow-hidden sm:w-[38vw] lg:w-[22vw]">
-              <Image
-                src={`/images/galeria/${name}.jpg`}
-                alt={`Wypieki Chleba Smak – zdjęcie ${i + 1}`}
-                fill
-                sizes="(min-width: 1024px) 22vw, (min-width: 640px) 38vw, 70vw"
-                className="object-cover transition-transform duration-700 hover:scale-105"
-              />
-            </li>
-          ))}
-        </ul>
+        <GalleryCarousel
+          images={GALLERY.map((name, i) => ({
+            src: `/images/galeria/${name}.jpg`,
+            alt: `Wypieki Chleba Smak – zdjęcie ${i + 1}`,
+          }))}
+        />
       </section>
     </>
   );
