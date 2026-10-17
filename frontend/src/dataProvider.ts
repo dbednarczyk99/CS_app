@@ -20,7 +20,7 @@ const httpClient = (url: string, options: fetchUtils.Options = {}) => {
 };
 
 // zasoby z galerią zdjęć (upload plików + mapowanie imgUrl → src dla ImageInput)
-const WITH_IMAGES = ['products', 'contact/locations'];
+const WITH_IMAGES = ['products', 'contact/locations', 'blog'];
 
 interface ImageFormValue {
   id?: string;

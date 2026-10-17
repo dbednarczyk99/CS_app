@@ -15,6 +15,7 @@ import {
 } from 'react-admin';
 import { Alert, Chip, Stack } from '@mui/material';
 import TagInput from '../common/TagInput';
+import { NewsletterSaveToolbar } from '../common/NewsletterSaveToolbar';
 import SortableImageInput from '../common/SortableImageInput';
 
 interface NewsletterInfo {
@@ -87,7 +88,7 @@ export const BlogList = () => (
 
 export const BlogCreate = () => (
   <Create>
-    <SimpleForm>
+    <SimpleForm toolbar={<NewsletterSaveToolbar />}>
       <TextInput source="title" validate={[required()]} />
       <TextInput source="shortDescription" multiline />
       <TextInput source="content" multiline />
@@ -102,7 +103,7 @@ export const BlogCreate = () => (
 
 export const BlogEdit = () => (
   <Edit>
-    <SimpleForm>
+    <SimpleForm toolbar={<NewsletterSaveToolbar deletable />}>
       <TextInput source="title" validate={[required()]} />
       <TextInput source="shortDescription" multiline />
       <TextInput source="content" multiline />
