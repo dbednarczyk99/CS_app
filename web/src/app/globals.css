@@ -43,7 +43,25 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 6rem;
+  scroll-padding-top: calc(6rem + var(--banner-h));
+  /* wysokość banera pod nawigacją (0, gdy brak komunikatów albo baner zamknięty) */
+  --banner-h: 0px;
+}
+html[data-banner] {
+  --banner-h: 3.75rem; /* telefon: do 3 linii tekstu */
+}
+@media (min-width: 640px) {
+  html[data-banner] {
+    --banner-h: 2.5rem;
+  }
+}
+
+/* odstęp treści od stałego nagłówka (nawigacja + ewentualny baner) */
+@utility pt-header {
+  padding-top: calc(7rem + var(--banner-h));
+  @media (min-width: 640px) {
+    padding-top: calc(8rem + var(--banner-h));
+  }
 }
 
 body {

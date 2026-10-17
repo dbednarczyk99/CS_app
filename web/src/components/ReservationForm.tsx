@@ -402,7 +402,7 @@ export function ReservationForm({
       </div>
 
       {/* PODSUMOWANIE */}
-      <aside className="lg:sticky lg:top-28 lg:self-start">
+      <aside className="lg:sticky lg:top-[calc(7rem+var(--banner-h))] lg:self-start">
         <div className="border border-line bg-coal p-6">
           <h2 className="heading text-xl">Podsumowanie</h2>
           <ul className="mt-5 space-y-2 text-sm">

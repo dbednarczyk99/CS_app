@@ -293,3 +293,20 @@ model ReservationItem {
   unitPrice     Decimal     @db.Decimal(10, 2)
   quantity      Int
 }
+
+// Baner informacyjny pod nawigacją strony (np. zamknięty lokal, promocja, przerwa chlebowozu)
+model Announcement {
+  id        String    @id @default(uuid())
+  message   String    @db.VarChar(160)
+  // link: ścieżka na stronie (/aktualnosci/...) albo pełny adres https://...
+  linkUrl   String?   @db.VarChar(500)
+  linkLabel String?   @db.VarChar(40)
+  isActive  Boolean   @default(true)
+  // okres wyświetlania; puste = od razu / bezterminowo
+  startsAt  DateTime?
+  endsAt    DateTime?
+  // kolejność przy kilku aktywnych komunikatach
+  order     Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}

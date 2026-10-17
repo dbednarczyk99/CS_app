@@ -517,7 +517,41 @@ async function main() {
     ],
   });
 
+  // wpis do przykładowego banera (przerwa techniczna chlebowozu)
+  const vanBreakArticle = await prisma.article.create({
+    data: {
+      title: 'Przerwa techniczna chlebowozu',
+      shortDescription:
+        'Nasz chlebowóz jedzie na przegląd i drobne naprawy. Przez najbliższe dwa tygodnie zapraszamy do piekarni.',
+      content: [
+        'Nasz chlebowóz przejechał w tym roku tysiące kilometrów po Krakowie i potrzebuje chwili odpoczynku. Na najbliższe dwa tygodnie trafia do serwisu na przegląd i drobne naprawy.',
+        'W tym czasie chlebowóz nie będzie zatrzymywał się na przystankach, a rezerwacje z odbiorem z chlebowozu są wstrzymane. Wszystkie nasze piekarnie działają normalnie – zapraszamy po świeże pieczywo, a rezerwację możesz złożyć z odbiorem w dowolnej z nich.',
+        'Dziękujemy za cierpliwość – wrócimy na trasę wypoczęci i z pełnym bagażnikiem wypieków.',
+      ].join('\n\n'),
+      images: {
+        create: [{ imgUrl: `${API_PUBLIC_URL}/uploads/seed/chlebowoz-1.jpg`, order: 0 }],
+      },
+    },
+  });
+  await prisma.tagOnArticle.create({
+    data: { articleId: vanBreakArticle.id, tagId: breadTag.id },
+  });
+
   console.log('✅ Articles & tags seeded');
+
+  // --- BANER INFORMACYJNY ---
+  await prisma.announcement.deleteMany();
+  await prisma.announcement.create({
+    data: {
+      message:
+        'Chlebowóz jest w serwisie – przez najbliższe dwa tygodnie nie kursuje. Piekarnie działają normalnie.',
+      linkUrl: `/aktualnosci/${vanBreakArticle.id}`,
+      // bez napisu – przycisk „Dowiedz się więcej”
+      // wygasa sam po dwóch tygodniach
+      endsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+    },
+  });
+  console.log('✅ Announcements seeded');
 
   // --- RESERVATIONS (przykładowe, fikcyjni klienci) ---
   const warsawToday = new Intl.DateTimeFormat('en-CA', {

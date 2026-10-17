@@ -119,6 +119,15 @@ export interface Article {
   tags: { tag: { id: string; name: string } }[];
 }
 
+/** Komunikat na banerze pod nawigacją (aktywny teraz, kolejność z panelu) */
+export interface Announcement {
+  id: string;
+  message: string;
+  linkUrl: string | null;
+  linkLabel: string | null;
+  updatedAt: string;
+}
+
 /** Terminy i punkty odbioru dostępne teraz do rezerwacji (liczone przez API w czasie polskim) */
 export interface ReservationOptions {
   cutoffHour: number;
@@ -160,6 +169,7 @@ export const api = {
   media: () => get<Media[]>('/contact/media'),
   articles: () => get<Article[]>('/blog'),
   article: (id: string) => get<Article | null>(`/blog/${encodeURIComponent(id)}`),
+  announcements: () => get<Announcement[]>('/announcements/active'),
 };
 
 // Strona ma się wyświetlić nawet wtedy, gdy część API nie odpowiada

@@ -29,6 +29,7 @@ import PreparationPage from './admin/pages/PreparationPage';
 import { ReservationList, ReservationShow } from './admin/components/reservations';
 import { CustomMenu } from './admin/common/CustomMenu';
 import { BlogCreate, BlogEdit, BlogList } from './admin/components/blog';
+import { AnnouncementCreate, AnnouncementEdit, AnnouncementList } from './admin/components/announcements';
 
 const MyLayout = (props: LayoutProps) => <Layout {...props} menu={CustomMenu} />;
 
@@ -100,6 +101,14 @@ function App() {
         list={BlogList}
         create={BlogCreate}
         edit={BlogEdit}
+      />
+
+      <Resource
+        name="announcements"
+        options={{ label: 'Baner informacyjny' }}
+        list={AnnouncementList}
+        create={AnnouncementCreate}
+        edit={AnnouncementEdit}
       />
     </Admin>
   );

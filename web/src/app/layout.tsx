@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Lato, Oswald } from 'next/font/google';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
+import { api, orFallback } from '@/lib/api';
 import { ReservationCartProvider } from '@/lib/reservation-cart';
 import './globals.css';
 
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
     template: '%s · Chleba Smak',
   },
   description:
-    'Rzemieślnicza piekarnia z Krakowa: chleb na naturalnym zakwasie, słodkie wypieki i chlebowóz. Cztery piekarnie w Krakowie.',
+    'Rzemieślnicza piekarnia z Krakowa: chleb na naturalnym zakwasie, słodkie wypieki i chlebowóz. Nasze piekarnie znajdziesz w różnych częściach Krakowa.',
   icons: { icon: '/images/icon.png' },
 };
 
@@ -32,13 +33,16 @@ export const viewport: Viewport = {
   themeColor: '#141618',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const announcements = await orFallback(api.announcements(), []);
+
   return (
-    <html lang="pl">
+    // data-banner: miejsce na baner pod nawigacją (--banner-h w globals.css)
+    <html lang="pl" data-banner={announcements.length > 0 ? '' : undefined}>
       <body className={`${lato.variable} ${oswald.variable}`}>
         <a
           href="#tresc"
@@ -47,7 +51,7 @@ export default function RootLayout({
           Przejdź do treści
         </a>
         <ReservationCartProvider>
-          <Header />
+          <Header announcements={announcements} />
           <main id="tresc">{children}</main>
           <Footer />
         </ReservationCartProvider>
