@@ -37,7 +37,7 @@ Podanie danych jest dobrowolne, ale niezbędne do złożenia rezerwacji.
 
 ### 2.2. Kontakt z nami
 
-Jeżeli kontaktujesz się z nami e-mailem, telefonicznie lub [[JEŚLI ZOSTANIE URUCHOMIONY: przez formularz kontaktowy]], przetwarzamy dane podane w wiadomości (np. imię, adres e-mail, numer telefonu, treść) w celu odpowiedzi i prowadzenia korespondencji – na podstawie art. 6 ust. 1 lit. f RODO (nasz prawnie uzasadniony interes, polegający na komunikacji z osobami, które się z nami kontaktują).
+Jeżeli kontaktujesz się z nami e-mailem, telefonicznie, przez wiadomości w serwisach Instagram lub Facebook albo przez formularz kontaktowy w Serwisie, przetwarzamy dane podane w wiadomości (np. imię, adres e-mail, numer telefonu, treść) w celu odpowiedzi i prowadzenia korespondencji – na podstawie art. 6 ust. 1 lit. f RODO (nasz prawnie uzasadniony interes, polegający na komunikacji z osobami, które się z nami kontaktują).
 
 ### 2.3. Korzystanie z Serwisu i bezpieczeństwo
 
@@ -51,7 +51,7 @@ Dostawcą usługi jest [[DO WERYFIKACJI: Google Ireland Limited, Gordon House, B
 
 ### 2.5. Odnośniki do mediów społecznościowych
 
-W Serwisie umieszczamy wyłącznie odnośniki (linki) do naszych profili w serwisach Instagram, Facebook i TikTok. Nie stosujemy wtyczek tych serwisów – do czasu kliknięcia w link żadne dane nie są im przekazywane. Po przejściu na profil zastosowanie mają polityki prywatności tych serwisów.
+W Serwisie umieszczamy wyłącznie odnośniki (linki) do naszych profili w serwisach Instagram i Facebook. Nie stosujemy wtyczek tych serwisów – do czasu kliknięcia w link żadne dane nie są im przekazywane. Po przejściu na profil zastosowanie mają polityki prywatności tych serwisów. Wiadomości wysyłane do nas przez Instagram lub Facebook są przesyłane za pośrednictwem Meta Platforms Ireland Limited, która przetwarza je zgodnie z własną polityką prywatności: https://privacycenter.instagram.com/policy. [[DO WERYFIKACJI PRZEZ PRAWNIKA: rola Meta i ewentualne współadministrowanie – zob. notatka dla prawnika]]
 
 ## 3. Pamięć przeglądarki i pliki cookies
 

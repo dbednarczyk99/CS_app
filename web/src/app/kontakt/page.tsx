@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import { FaEnvelope, FaLocationArrow, FaPhone } from 'react-icons/fa6';
+import { FaEnvelope, FaInstagram, FaLocationArrow, FaPhone } from 'react-icons/fa6';
 import { ContactForm } from '@/components/ContactForm';
 import { PageHeader } from '@/components/PageHeader';
 import { SocialLinks } from '@/components/SocialLinks';
 import { api, orFallback } from '@/lib/api';
-import { telHref } from '@/lib/format';
+import { instagramProfile, telHref } from '@/lib/format';
 
 export const metadata: Metadata = {
   title: 'Kontakt',
@@ -18,6 +18,8 @@ export default async function ContactPage() {
     orFallback(api.media(), []),
   ]);
   const email = contact.find((c) => c.type === 'EMAIL')?.value;
+  const instagramUrl = media.find((m) => m.name === 'INSTAGRAM')?.url;
+  const instagram = instagramUrl ? instagramProfile(instagramUrl) : null;
 
   return (
     <>
@@ -38,6 +40,28 @@ export default async function ContactPage() {
         </section>
 
         <aside className="space-y-12">
+          {instagram && (
+            // nagłówek w tym samym stylu i na tej samej wysokości co „Napisz do nas” obok
+            <section aria-labelledby="instagram" className="border-b border-line pb-12">
+              <h2 id="instagram" className="heading text-2xl sm:text-3xl">
+                Wolisz Instagram?
+              </h2>
+              <div className="mt-5 h-px w-16 bg-gold" />
+              <p className="mt-8 leading-relaxed text-stone">
+                Napisz do nas wiadomość – link otworzy od razu rozmowę z{' '}
+                <span className="text-cream">@{instagram.handle}</span>.
+              </p>
+              <a
+                href={instagram.dmUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-gold mt-6 w-full sm:w-auto"
+              >
+                <FaInstagram aria-hidden /> Otwórz rozmowę
+              </a>
+            </section>
+          )}
+
           {email && (
             <div>
               <h2 className="eyebrow">E-mail</h2>
