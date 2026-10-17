@@ -41,7 +41,7 @@ export default async function ContactPage() {
 
         <aside className="space-y-12">
           {instagram && (
-            <div className="border border-line bg-coal p-6 sm:p-8">
+            <div className="border-b border-line pb-12">
               <div className="flex items-center gap-3">
                 <FaInstagram className="text-gold" size={22} aria-hidden />
                 <h2 className="eyebrow">Instagram</h2>
