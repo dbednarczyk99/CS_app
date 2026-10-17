@@ -41,18 +41,8 @@ export default async function ContactPage() {
             <ContactForm email={email} />
           </div>
 
-          {/* newsletter pod formularzem */}
-          <div className="mt-16 border-t border-line pt-12">
-            <p className="eyebrow">Newsletter</p>
-            <h2 className="heading mt-3 text-2xl">Bądź na bieżąco</h2>
-            <p className="mt-4 max-w-lg leading-relaxed text-stone">
-              Zapisz się, a damy znać o nowościach, wypiekach sezonowych i promocjach. Bez spamu – wypisać
-              możesz się w każdej chwili.
-            </p>
-            <NewsletterButton className="btn btn-outline mt-6">
-              <FaEnvelope size={12} aria-hidden /> Zapisz się do newslettera
-            </NewsletterButton>
-          </div>
+          {/* komputer: newsletter pod formularzem */}
+          <NewsletterSection className="mt-16 hidden border-t border-line pt-12 lg:block" />
         </section>
 
         <aside className="space-y-12">
@@ -77,6 +67,9 @@ export default async function ContactPage() {
               </a>
             </section>
           )}
+
+          {/* telefon/tablet: newsletter pod sekcją Instagrama */}
+          <NewsletterSection className="border-b border-line pb-12 lg:hidden" />
 
           {phone && (
             <div>
@@ -142,5 +135,22 @@ export default async function ContactPage() {
         </aside>
       </div>
     </>
+  );
+}
+
+/** Zapis do newslettera – na komputerze pod formularzem, na telefonie pod sekcją Instagrama */
+function NewsletterSection({ className }: { className: string }) {
+  return (
+    <section aria-label="Newsletter" className={className}>
+      <p className="eyebrow">Newsletter</p>
+      <h2 className="heading mt-3 text-2xl">Bądź na bieżąco</h2>
+      <p className="mt-4 max-w-lg leading-relaxed text-stone">
+        Nowości, wypieki sezonowe, promocje i konkursy – a do tego ważne informacje, np. o przerwie w
+        kursowaniu chlebowozu czy zmianie godzin piekarni. Bez spamu, wypiszesz się w każdej chwili.
+      </p>
+      <NewsletterButton className="btn btn-gold mt-6 w-full sm:w-auto">
+        <FaEnvelope aria-hidden /> Zapisz się do newslettera
+      </NewsletterButton>
+    </section>
   );
 }

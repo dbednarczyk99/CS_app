@@ -126,8 +126,8 @@ export function NewsletterDialog() {
         ) : (
           <form onSubmit={submit} className="mt-5">
             <p className="leading-relaxed text-stone">
-              Nowości, wypieki sezonowe i promocje – prosto na Twoją skrzynkę. Bez spamu, możesz się wypisać
-              w każdej chwili.
+              Nowości, wypieki sezonowe, promocje i konkursy, a także ważne informacje – np. o przerwie
+              w kursowaniu chlebowozu czy zmianie godzin piekarni. Bez spamu, wypiszesz się w każdej chwili.
             </p>
             <label htmlFor="newsletter-email" className="mt-6 block font-display text-[0.7rem] uppercase tracking-[0.25em] text-stone">
               Adres e-mail

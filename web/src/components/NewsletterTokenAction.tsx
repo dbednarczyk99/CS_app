@@ -9,7 +9,7 @@ type Action = 'potwierdz' | 'wypisz';
 const TEXT: Record<Action, { title: string; lead: string; button: string; done: string; doneLead: string }> = {
   potwierdz: {
     title: 'Potwierdź zapis do newslettera',
-    lead: 'Kliknij przycisk, aby potwierdzić, że chcesz otrzymywać od nas wiadomości o nowościach, wypiekach sezonowych i promocjach.',
+    lead: 'Kliknij przycisk, aby potwierdzić, że chcesz otrzymywać od nas wiadomości o nowościach, wypiekach sezonowych, promocjach i konkursach oraz o ważnych zmianach, np. przerwach w kursowaniu chlebowozu.',
     button: 'Potwierdzam zapis',
     done: 'Gotowe – jesteś zapisany(-a)!',
     doneLead: 'Dziękujemy. Pierwsza wiadomość od nas wkrótce. Wypisać możesz się w każdej chwili linkiem z e-maila.',

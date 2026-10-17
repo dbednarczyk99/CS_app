@@ -55,7 +55,7 @@ W Serwisie umieszczamy wyłącznie odnośniki (linki) do naszych profili w serwi
 
 ### 2.6. Newsletter
 
-Jeżeli zapiszesz się do newslettera, przetwarzamy Twój **adres e-mail** oraz daty wyrażenia zgody, potwierdzenia zapisu i ewentualnego wypisania się – w celu wysyłania informacji o nowościach, wypiekach sezonowych i promocjach. Podstawą jest Twoja zgoda (art. 6 ust. 1 lit. a RODO), a w zakresie wysyłania informacji handlowych drogą elektroniczną – także art. 398 ustawy z dnia 12 lipca 2024 r. – Prawo komunikacji elektronicznej. [[DO WERYFIKACJI PRZEZ PRAWNIKA]]
+Jeżeli zapiszesz się do newslettera, przetwarzamy Twój **adres e-mail** oraz daty wyrażenia zgody, potwierdzenia zapisu i ewentualnego wypisania się – w celu wysyłania informacji o nowościach, wypiekach sezonowych, promocjach i konkursach oraz o istotnych zmianach w działaniu piekarni i chlebowozu (np. przerwach, zmianach godzin otwarcia). Podstawą jest Twoja zgoda (art. 6 ust. 1 lit. a RODO), a w zakresie wysyłania informacji handlowych drogą elektroniczną – także art. 398 ustawy z dnia 12 lipca 2024 r. – Prawo komunikacji elektronicznej. [[DO WERYFIKACJI PRZEZ PRAWNIKA]]
 
 1. Zapis wymaga potwierdzenia – na podany adres wysyłamy wiadomość z linkiem potwierdzającym. Jeżeli zapis nie zostanie potwierdzony w ciągu 7 dni, adres jest automatycznie usuwany.
 2. Zgodę możesz wycofać w każdej chwili, klikając link „wypisz się” w wiadomości od nas albo kontaktując się z nami (pkt 1). Wycofanie zgody nie wpływa na zgodność z prawem przetwarzania przed jej wycofaniem.

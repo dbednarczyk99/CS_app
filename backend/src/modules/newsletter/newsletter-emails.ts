@@ -24,7 +24,7 @@ export function newsletterConfirmEmail(
   const content = `
 ${eyebrow('Newsletter')}
 ${heading('Potwierdź zapis')}
-${paragraph('Dziękujemy za zapis do newslettera Chleba Smak! Aby zacząć otrzymywać wiadomości o nowościach, wypiekach sezonowych i promocjach, potwierdź swój adres e-mail.')}
+${paragraph('Dziękujemy za zapis do newslettera Chleba Smak! Aby zacząć otrzymywać wiadomości o nowościach, wypiekach sezonowych, promocjach i konkursach oraz o ważnych zmianach (np. przerwach w kursowaniu chlebowozu), potwierdź swój adres e-mail.')}
 <div style="margin-top:26px">${button(confirmUrl, 'Potwierdź zapis', 'gold')}</div>
 ${paragraph(
   `Jeśli to nie Ty zapisałeś(-aś) ten adres, po prostu zignoruj tę wiadomość – bez potwierdzenia nie wyślemy nic więcej, a dane usuniemy po 7 dniach.`,

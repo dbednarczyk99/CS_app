@@ -37,7 +37,7 @@ export async function Footer() {
           </div>
           <h2 className="eyebrow mt-10">Newsletter</h2>
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-stone">
-            Nowości, wypieki sezonowe i promocje – prosto na Twoją skrzynkę.
+            Nowości, promocje, konkursy i ważne zmiany – prosto na Twoją skrzynkę.
           </p>
           <NewsletterButton className="btn btn-outline mt-4 min-h-10 px-4 py-2 text-[0.7rem]">
             <FaEnvelope size={11} aria-hidden /> Zapisz się
