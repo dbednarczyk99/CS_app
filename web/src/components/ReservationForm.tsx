@@ -32,7 +32,7 @@ function RedirectCountdown({ href, seconds }: { href: string; seconds: number })
   return (
     <div className="mx-auto mt-10 max-w-xs" role="status">
       <p className="text-xs text-stone">
-        Za {seconds} sekund przeniesiemy Cię do oferty.{' '}
+        Za chwilę przeniesiemy Cię do oferty.{' '}
         <button
           type="button"
           onClick={() => setCancelled(true)}

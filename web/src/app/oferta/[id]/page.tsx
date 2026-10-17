@@ -88,8 +88,8 @@ export default async function ProductPage({ params }: Props) {
                 <div className="border-l-2 border-line py-1 pl-5">
                   <p className="heading text-lg">Obecnie poza sezonem</p>
                   <p className="mt-2 leading-relaxed text-stone">
-                    Ten wypiek pieczemy tylko w swoim sezonie. Wróci do oferty, gdy pozwolą na to
-                    składniki – do tego czasu nie można go zarezerwować.
+                    Ten produkt jest dostępny tylko w swoim sezonie. Wróci do oferty, gdy sezon znów
+                    się zacznie – do tego czasu nie można go zarezerwować.
                   </p>
                   <Link href="/oferta" className="link-arrow mt-4 inline-flex items-center gap-3 text-[0.75rem]">
                     Zobacz, co mamy teraz <FaArrowRight aria-hidden />
