@@ -253,7 +253,6 @@ export default async function HomePage() {
             <LoopCarousel
               label="Zdjęcia z piekarni"
               perView="[--n:1] sm:[--n:2] lg:[--n:4]"
-              overlayArrows
               items={GALLERY.map((name, i) => ({
                 key: name,
                 node: (
