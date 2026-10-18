@@ -104,11 +104,19 @@ export default function PreparationPage() {
           onChange={(e) => e.target.value && setDate(e.target.value)}
           size="small"
           InputLabelProps={{ shrink: true }}
+          fullWidth={false}
+          sx={{ width: 200 }}
         />
-        <Button variant="outlined" startIcon={<PrintIcon />} onClick={() => window.print()}>
+        <Button variant="outlined" startIcon={<PrintIcon />} onClick={() => window.print()} sx={{ whiteSpace: 'nowrap' }}>
           Drukuj
         </Button>
-        <Button variant="outlined" startIcon={<MailIcon />} onClick={sendEmail} disabled={sending}>
+        <Button
+          variant="outlined"
+          startIcon={<MailIcon />}
+          onClick={sendEmail}
+          disabled={sending}
+          sx={{ whiteSpace: 'nowrap' }}
+        >
           Wyślij e-mailem
         </Button>
         {loading && <CircularProgress size={20} />}

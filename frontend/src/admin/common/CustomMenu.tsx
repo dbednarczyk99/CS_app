@@ -1,171 +1,84 @@
 import { Menu, useSidebarState } from 'react-admin';
 import { Box, Typography, Divider } from '@mui/material';
+import { useLocation } from 'react-router-dom';
 
 import BakeryDiningIcon from '@mui/icons-material/BakeryDining';
 import CategoryIcon from '@mui/icons-material/Category';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
+import StorefrontIcon from '@mui/icons-material/Storefront';
 import PhoneIcon from '@mui/icons-material/Phone';
 import DirectionsBusFilledIcon from '@mui/icons-material/DirectionsBusFilled';
 import ArticleIcon from '@mui/icons-material/Article';
 import ShareIcon from '@mui/icons-material/Share';
-import HomeIcon from '@mui/icons-material/Home';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import HelpIcon from '@mui/icons-material/Help';
-import ImageIcon from '@mui/icons-material/Image';
-import UsersIcon from '@mui/icons-material/Group';
 import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 
-export const CustomMenu = () => {
+/** Nagłówek grupy w menu (widoczny przy rozwiniętym menu) */
+const Section = ({ title }: { title: string }) => {
   const [open] = useSidebarState();
+  if (!open) return <Divider sx={{ my: 1 }} />;
+  return (
+    <>
+      <Divider sx={{ my: 1 }} />
+      <Box sx={{ px: 2, pt: 1, pb: 0.5 }}>
+        <Typography variant="overline" color="primary" sx={{ lineHeight: 1.4, display: 'block' }}>
+          {title}
+        </Typography>
+      </Box>
+    </>
+  );
+};
 
+// „Produkty” (/products) nie podświetla się na stronach kategorii (/products/categories)
+const notActive = {
+  '&.RaMenuItemLink-active': {
+    borderLeftColor: 'transparent',
+    color: 'text.secondary',
+    '& .RaMenuItemLink-icon': { color: 'action.active' },
+  },
+};
+
+export const CustomMenu = () => {
+  const { pathname } = useLocation();
   return (
     <Menu>
-      <Menu.Item
-        to="/"
-        primaryText="Home Page"
-        leftIcon={<HomeIcon />}
-      />
-      <Menu.Item
-        to="/help"
-        primaryText="Help"
-        leftIcon={<HelpIcon />}
-      />
+      <Menu.Item to="/" primaryText="Pulpit" leftIcon={<DashboardIcon />} />
+      <Menu.Item to="/help" primaryText="Pomoc" leftIcon={<HelpIcon />} />
 
-      {open && <Divider sx={{ my: 1 }} />}
-      {open && (
-        <Box sx={{ px: 2, pt: 1, pb: 0.5 }}>
-          <Typography variant="subtitle2" color="text.secondary">
-            Rezerwacje
-          </Typography>
-        </Box>
-      )}
-      <Menu.Item
-        to="/reservations"
-        primaryText="Rezerwacje"
-        leftIcon={<ReceiptLongIcon />}
-      />
-      <Menu.Item
-        to="/przygotowanie"
-        primaryText="Do przygotowania"
-        leftIcon={<ChecklistIcon />}
-      />
+      <Section title="Rezerwacje" />
+      <Menu.Item to="/reservations" primaryText="Rezerwacje" leftIcon={<ReceiptLongIcon />} />
+      <Menu.Item to="/przygotowanie" primaryText="Do przygotowania" leftIcon={<ChecklistIcon />} />
 
-      {open && <Divider sx={{ my: 1 }} />}
-      {open && (
-        <Box sx={{ px: 2, pt: 1, pb: 0.5 }}>
-          <Typography variant="subtitle2" color="text.secondary">
-            Bakery catalog
-          </Typography>
-        </Box>
-      )}
+      <Section title="Oferta" />
       <Menu.Item
         to="/products"
-        primaryText="Products"
+        primaryText="Produkty"
         leftIcon={<BakeryDiningIcon />}
+        sx={pathname.startsWith('/products/categories') ? notActive : undefined}
       />
-      <Menu.Item
-        to="/products/categories"
-        primaryText="Categories"
-        leftIcon={<CategoryIcon />}
-      />
+      <Menu.Item to="/products/categories" primaryText="Kategorie" leftIcon={<CategoryIcon />} />
 
-      {open && <Divider sx={{ my: 1 }} />}
+      <Section title="Piekarnie i kontakt" />
+      <Menu.Item to="/contact/locations" primaryText="Piekarnie" leftIcon={<StorefrontIcon />} />
+      <Menu.Item to="/contact/info" primaryText="Dane kontaktowe" leftIcon={<PhoneIcon />} />
+      <Menu.Item to="/contact/media" primaryText="Media społecznościowe" leftIcon={<ShareIcon />} />
 
-      {open && (
-        <Box sx={{ px: 2, pt: 0.5, pb: 0.5 }}>
-          <Typography variant="subtitle2" color="text.secondary">
-            Locations & contact
-          </Typography>
-        </Box>
-      )}
-      <Menu.Item
-        to="/contact/info"
-        primaryText="Contact info"
-        leftIcon={<PhoneIcon />}
-      />
-      <Menu.Item
-        to="/contact/locations"
-        primaryText="Locations"
-        leftIcon={<LocationOnIcon />}
-      />
-
-      {open && <Divider sx={{ my: 1 }} />}
-
-      {open && (
-        <Box sx={{ px: 2, pt: 0.5, pb: 0.5 }}>
-          <Typography variant="subtitle2" color="text.secondary">
-            Bread-van
-          </Typography>
-        </Box>
-      )}
-
+      <Section title="Chlebowóz" />
+      <Menu.Item to="/bread-van/locations" primaryText="Trasa" leftIcon={<EditCalendarIcon />} />
       <Menu.Item
         to="/bread-van/description/view/show"
-        primaryText="Description"
+        primaryText="Opis i zdjęcia"
         leftIcon={<DirectionsBusFilledIcon />}
       />
 
-      <Menu.Item
-        to="/bread-van/locations"
-        primaryText="Schedule"
-        leftIcon={<EditCalendarIcon />}
-      />
-
-      {open && <Divider sx={{ my: 1 }} />}
-
-      {open && (
-        <Box sx={{ px: 2, pt: 0.5, pb: 0.5 }}>
-          <Typography variant="subtitle2" color="text.secondary">
-            Marketing & blog
-          </Typography>
-        </Box>
-      )}
-      <Menu.Item
-        to="/blog"
-        primaryText="Blog posts"
-        leftIcon={<ArticleIcon />}
-      />
-      <Menu.Item
-        to="/announcements"
-        primaryText="Baner informacyjny"
-        leftIcon={<CampaignIcon />}
-      />
-      <Menu.Item
-        to="/newsletter"
-        primaryText="Newsletter"
-        leftIcon={<MarkEmailReadIcon />}
-      />
-      <Menu.Item
-        to="/contact/media"
-        primaryText="Social links"
-        leftIcon={<ShareIcon />}
-      />
-
-      {open && <Divider sx={{ my: 1 }} />}
-
-      {open && (
-        <Box sx={{ px: 2, pt: 0.5, pb: 0.5 }}>
-          <Typography variant="subtitle2" color="text.secondary">
-            Site settings
-          </Typography>
-        </Box>
-      )}
-
-      <Menu.Item
-        to="/graphics"
-        primaryText="Graphics"
-        leftIcon={<ImageIcon />}
-      />
-
-      <Menu.Item
-        to="/users"
-        primaryText="Users"
-        leftIcon={<UsersIcon />}
-      />
-
+      <Section title="Komunikacja" />
+      <Menu.Item to="/blog" primaryText="Aktualności (blog)" leftIcon={<ArticleIcon />} />
+      <Menu.Item to="/announcements" primaryText="Baner informacyjny" leftIcon={<CampaignIcon />} />
+      <Menu.Item to="/newsletter" primaryText="Newsletter" leftIcon={<MarkEmailReadIcon />} />
     </Menu>
   );
 };

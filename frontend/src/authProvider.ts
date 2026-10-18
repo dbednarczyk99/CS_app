@@ -13,7 +13,11 @@ export const authProvider: AuthProvider = {
     return fetch(request)
       .then((response) => {
         if (response.status < 200 || response.status >= 300) {
-          throw new Error(response.statusText);
+          throw new Error(
+            response.status === 401 || response.status === 400
+              ? 'Nieprawidłowy login lub hasło'
+              : 'Nie udało się połączyć z serwerem – spróbuj ponownie za chwilę',
+          );
         }
         return response.json();
       })

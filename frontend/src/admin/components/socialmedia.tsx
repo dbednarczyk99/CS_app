@@ -37,10 +37,10 @@ const getMediaChoice = (id: string) =>
   mediaChoices.find(choice => choice.id === id);
 
 export const MediaList = () => (
-  <List>
+  <List title="Media społecznościowe">
     <Datagrid rowClick='edit'>
       <FunctionField
-        label="Website"
+        label="Serwis"
         render={record => {
           const choice = getMediaChoice(record?.name);
           return (
@@ -67,21 +67,21 @@ export const MediaCreate = () => {
   }));
 
   return (
-    <Create>
+    <Create title="Nowy profil">
       <SimpleForm>
         <SelectInput
           source="name"
-          label="Medium"
+          label="Serwis"
           choices={availableChoices}
           validate={[required()]}
           optionText={(choice: { id: string; name: string; disabled?: boolean }) => (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: choice.disabled ? '#aaa' : undefined }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: choice.disabled ? 0.45 : 1 }}>
               {mediaIconsAdmin[choice.id]} {choice.name}
             </span>
           )}
           optionValue="id"
         />
-        <TextInput source="url" label="URL" validate={[required()]} fullWidth />
+        <TextInput source="url" label="Adres profilu (URL)" validate={[required()]} fullWidth />
       </SimpleForm>
     </Create>
   );
@@ -92,7 +92,7 @@ export const MediaEdit = () => (
     <SimpleForm>
       <SelectInput
         source="name"
-        label="Medium"
+        label="Serwis"
         choices={mediaChoices}
         validate={[required()]}
         optionText={choice => (
@@ -103,7 +103,7 @@ export const MediaEdit = () => (
         optionValue="id"
         disabled // nie pozwalaj zmieniać platformy przy edycji
       />
-      <TextInput source="url" label="URL" validate={[required()]} fullWidth />
+      <TextInput source="url" label="Adres profilu (URL)" validate={[required()]} fullWidth />
     </SimpleForm>
   </Edit>
 );
