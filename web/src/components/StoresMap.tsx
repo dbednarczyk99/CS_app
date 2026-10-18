@@ -16,6 +16,8 @@ const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? '';
 // Map ID ze stylem z docs/mapa-styl.json; DEMO_MAP_ID = domyślna ciemna mapa Google (z obcymi pinezkami)
 const MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID';
 const KRAKOW = { lat: 50.0647, lng: 19.945 };
+/** Pinezka przystanku, na którym chlebowozu nie ma dziś ani jutro */
+const INACTIVE_PIN = '#8a857d';
 
 /** Zdarzenie wysyłane przez przyciski „Pokaż na mapie” w kartach piekarni */
 export const SHOW_ON_MAP_EVENT = 'pokaz-na-mapie';
@@ -280,11 +282,12 @@ function PointMarker({
         <div
           className={`relative origin-bottom transition-transform duration-200 ease-out group-hover:scale-110 ${
             active ? 'scale-115' : ''
-          } ${dimmed && !hoverSide ? 'opacity-70' : ''}`}
+          }`}
         >
           <Pin
-            // piekarnia złota, chlebowóz kremowy; dziś / wybrany przystanek – złota obwódka
-            fill={isStore ? 'var(--color-gold)' : 'var(--color-cream)'}
+            // piekarnia złota, chlebowóz kremowy; przystanek bez postoju dziś i jutro – szary (po najechaniu kremowy);
+            // dziś / wybrany przystanek – złota obwódka
+            fill={isStore ? 'var(--color-gold)' : dimmed && !hoverSide ? INACTIVE_PIN : 'var(--color-cream)'}
             stroke={!isStore && (vanToday || active) ? 'var(--color-gold)' : 'var(--color-ink)'}
             strokeWidth={!isStore && (vanToday || active) ? 3 : 1.5}
           />
