@@ -11,7 +11,8 @@ import {
   MaxLength,
 } from 'class-validator';
 
-const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
+const trim = ({ value }: { value: unknown }) =>
+  typeof value === 'string' ? value.trim() : value;
 // puste pole z panelu = brak wartości
 const emptyToNull = ({ value }: { value: unknown }) =>
   typeof value === 'string' && value.trim() === '' ? null : value;
@@ -26,8 +27,10 @@ export class CreateAnnouncementDto {
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  @Matches(/^(\/|https?:\/\/)\S*$/, {
-    message: 'Link musi zaczynać się od „/” (strona piekarni) albo „https://”',
+  // #newsletter – otwiera na stronie okienko zapisu do newslettera
+  @Matches(/^(\/\S*|https?:\/\/\S+|#newsletter)$/, {
+    message:
+      'Link musi zaczynać się od „/” (strona piekarni) albo „https://”, ewentualnie „#newsletter”',
   })
   linkUrl?: string | null;
 

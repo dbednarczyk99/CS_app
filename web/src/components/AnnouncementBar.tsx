@@ -139,6 +139,13 @@ function BannerContent({ item }: { item: Announcement }) {
     </>
   );
   // link do podstrony piekarni w tej samej karcie, zewnętrzny – w nowej
+  // #newsletter – otwiera okienko zapisu (obsługa w NewsletterDialog)
+  if (item.linkUrl.startsWith('#'))
+    return (
+      <a href={item.linkUrl} className={className}>
+        {content}
+      </a>
+    );
   return item.linkUrl.startsWith('/') ? (
     <Link href={item.linkUrl} className={className}>
       {content}

@@ -1,6 +1,13 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import type { CreateAnnouncementDto, UpdateAnnouncementDto } from './dto/announcement.dto';
+import type {
+  CreateAnnouncementDto,
+  UpdateAnnouncementDto,
+} from './dto/announcement.dto';
 
 const ORDER = [{ order: 'asc' as const }, { createdAt: 'desc' as const }];
 
@@ -20,7 +27,13 @@ export class AnnouncementsService {
         ],
       },
       orderBy: ORDER,
-      select: { id: true, message: true, linkUrl: true, linkLabel: true, updatedAt: true },
+      select: {
+        id: true,
+        message: true,
+        linkUrl: true,
+        linkLabel: true,
+        updatedAt: true,
+      },
     });
   }
 
@@ -29,14 +42,18 @@ export class AnnouncementsService {
   }
 
   async findOne(id: string) {
-    const announcement = await this.prisma.announcement.findUnique({ where: { id } });
+    const announcement = await this.prisma.announcement.findUnique({
+      where: { id },
+    });
     if (!announcement) throw new NotFoundException('Nie ma takiego komunikatu');
     return announcement;
   }
 
   create(dto: CreateAnnouncementDto) {
     this.checkDates(dto.startsAt, dto.endsAt);
-    return this.prisma.announcement.create({ data: this.data(dto) as CreateAnnouncementDto });
+    return this.prisma.announcement.create({
+      data: this.data(dto) as CreateAnnouncementDto,
+    });
   }
 
   async update(id: string, dto: UpdateAnnouncementDto) {
@@ -45,7 +62,10 @@ export class AnnouncementsService {
       dto.startsAt === undefined ? current.startsAt : dto.startsAt,
       dto.endsAt === undefined ? current.endsAt : dto.endsAt,
     );
-    return this.prisma.announcement.update({ where: { id }, data: this.data(dto) });
+    return this.prisma.announcement.update({
+      where: { id },
+      data: this.data(dto),
+    });
   }
 
   async remove(id: string) {
@@ -56,14 +76,25 @@ export class AnnouncementsService {
   private data(dto: UpdateAnnouncementDto) {
     return {
       ...dto,
-      startsAt: dto.startsAt === undefined ? undefined : dto.startsAt && new Date(dto.startsAt),
-      endsAt: dto.endsAt === undefined ? undefined : dto.endsAt && new Date(dto.endsAt),
+      startsAt:
+        dto.startsAt === undefined
+          ? undefined
+          : dto.startsAt && new Date(dto.startsAt),
+      endsAt:
+        dto.endsAt === undefined
+          ? undefined
+          : dto.endsAt && new Date(dto.endsAt),
     };
   }
 
-  private checkDates(startsAt?: string | Date | null, endsAt?: string | Date | null) {
+  private checkDates(
+    startsAt?: string | Date | null,
+    endsAt?: string | Date | null,
+  ) {
     if (startsAt && endsAt && new Date(endsAt) <= new Date(startsAt)) {
-      throw new BadRequestException('Data zakończenia musi być późniejsza niż data rozpoczęcia');
+      throw new BadRequestException(
+        'Data zakończenia musi być późniejsza niż data rozpoczęcia',
+      );
     }
   }
 }

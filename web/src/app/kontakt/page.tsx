@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { FaEnvelope, FaInstagram, FaLocationArrow, FaPhone } from 'react-icons/fa6';
 import { ContactForm } from '@/components/ContactForm';
+import { NewsletterButton } from '@/components/Newsletter';
 import { PageHeader } from '@/components/PageHeader';
 import { SocialLinks } from '@/components/SocialLinks';
 import { api, orFallback } from '@/lib/api';
@@ -39,6 +40,9 @@ export default async function ContactPage() {
           <div className="mt-8">
             <ContactForm email={email} />
           </div>
+
+          {/* komputer: newsletter pod formularzem */}
+          <NewsletterSection className="mt-16 hidden border-t border-line pt-12 lg:block" />
         </section>
 
         <aside className="space-y-12">
@@ -63,6 +67,9 @@ export default async function ContactPage() {
               </a>
             </section>
           )}
+
+          {/* telefon/tablet: newsletter pod sekcją Instagrama */}
+          <NewsletterSection className="border-b border-line pb-12 lg:hidden" />
 
           {phone && (
             <div>
@@ -128,5 +135,22 @@ export default async function ContactPage() {
         </aside>
       </div>
     </>
+  );
+}
+
+/** Zapis do newslettera – na komputerze pod formularzem, na telefonie pod sekcją Instagrama */
+function NewsletterSection({ className }: { className: string }) {
+  return (
+    <section aria-label="Newsletter" className={className}>
+      <p className="eyebrow">Newsletter</p>
+      <h2 className="heading mt-3 text-2xl">Bądź na bieżąco</h2>
+      <p className="mt-4 max-w-lg leading-relaxed text-stone">
+        Nowości, wypieki sezonowe, promocje i konkursy – a do tego ważne informacje, np. o przerwie w
+        kursowaniu chlebowozu czy zmianie godzin piekarni. Bez spamu, wypiszesz się w każdej chwili.
+      </p>
+      <NewsletterButton className="btn btn-gold mt-6 w-full sm:w-auto">
+        <FaEnvelope aria-hidden /> Zapisz się do newslettera
+      </NewsletterButton>
+    </section>
   );
 }

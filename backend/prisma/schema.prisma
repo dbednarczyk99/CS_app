@@ -215,6 +215,12 @@ model Article {
   content          String          @db.Text
   images           ArticleImages[]
   tags             TagOnArticle[]
+  // false = wpis tylko dla subskrybentów newslettera (niewidoczny na stronie)
+  isPublished          Boolean   @default(true)
+  // wysyłka do zapisanych w newsletterze – raz, przy zapisaniu artykułu z zaznaczoną flagą
+  sendAsNewsletter     Boolean   @default(true)
+  newsletterSentAt     DateTime?
+  newsletterRecipients Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -314,4 +320,24 @@ model Announcement {
   order     Int       @default(0)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+}
+
+enum NewsletterStatus {
+  PENDING // zapis czeka na potwierdzenie linkiem z e-maila (double opt-in)
+  CONFIRMED
+  UNSUBSCRIBED
+}
+
+// Zapisy do newslettera (zgoda: art. 6 ust. 1 lit. a RODO); niepotwierdzone usuwane po 7 dniach
+model NewsletterSubscriber {
+  id             String           @id @default(uuid())
+  email          String           @unique @db.VarChar(200)
+  status         NewsletterStatus @default(PENDING)
+  // jeden token do potwierdzenia i wypisania (losowy, w linkach z e-maili)
+  token          String           @unique @db.VarChar(64)
+  consentAt      DateTime
+  confirmedAt    DateTime?
+  unsubscribedAt DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 }

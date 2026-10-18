@@ -8,11 +8,72 @@ import {
   FunctionField,
   SimpleForm,
   TextInput,
+  BooleanInput,
   required,
+  useGetList,
+  useRecordContext,
 } from 'react-admin';
-import { Chip, Stack } from '@mui/material';
+import { Alert, Chip, Stack } from '@mui/material';
+import { useWatch } from 'react-hook-form';
 import TagInput from '../common/TagInput';
+import { NewsletterSaveToolbar } from '../common/NewsletterSaveToolbar';
 import SortableImageInput from '../common/SortableImageInput';
+
+interface NewsletterInfo {
+  sendAsNewsletter?: boolean;
+  newsletterSentAt?: string | null;
+  newsletterRecipients?: number | null;
+}
+
+/**
+ * Wysyłka wpisu do newslettera: przełącznik (domyślnie włączony) albo – gdy już wysłano – informacja
+ * kiedy i do ilu osób (wpis wysyła się tylko raz, poprawki nie wysyłają go ponownie).
+ */
+const NewsletterToggle = () => {
+  const record = useRecordContext<NewsletterInfo>();
+  const { data: subscribers = [] } = useGetList<{ id: string; status: string }>('newsletter', {
+    pagination: { page: 1, perPage: 1000 },
+  });
+  const confirmed = subscribers.filter((s) => s.status === 'CONFIRMED').length;
+
+  if (record?.newsletterSentAt) {
+    return (
+      <Alert severity="success" sx={{ mb: 2, width: '100%' }}>
+        Wysłano jako newsletter {new Date(record.newsletterSentAt).toLocaleString('pl-PL')}
+        {record.newsletterRecipients == null ? ' (wysyłanie w toku)' : ` do ${record.newsletterRecipients} os.`}. Poprawki w
+        treści nie wysyłają go ponownie.
+      </Alert>
+    );
+  }
+  return (
+    <BooleanInput
+      source="sendAsNewsletter"
+      label="Wyślij jako newsletter"
+      defaultValue={true}
+      helperText={`Po zapisaniu wpis trafi e-mailem do potwierdzonych subskrybentów (obecnie: ${confirmed}) – tylko raz. Wyłącz dla wpisów, których nie chcesz wysyłać.`}
+    />
+  );
+};
+
+/** Publikacja na stronie – wyłączona = wpis tylko do newslettera (albo szkic, gdy bez wysyłki) */
+const PublishToggle = () => {
+  const [published, send] = useWatch({ name: ['isPublished', 'sendAsNewsletter'] }) as [boolean | undefined, boolean | undefined];
+  return (
+    <>
+      <BooleanInput
+        source="isPublished"
+        label="Opublikuj na stronie"
+        defaultValue={true}
+        helperText="Wyłącz, aby wysłać wpis tylko jako newsletter – nie pojawi się w Aktualnościach, a subskrybenci dostaną w e-mailu całą treść."
+      />
+      {published === false && send === false && (
+        <Alert severity="info" sx={{ mb: 2, width: '100%' }}>
+          Wpis bez publikacji i bez wysyłki to szkic – nikt go nie zobaczy, dopóki nie włączysz jednej z opcji.
+        </Alert>
+      )}
+    </>
+  );
+};
 
 export const BlogList = () => (
   <List>
@@ -33,18 +94,36 @@ export const BlogList = () => (
       />
 
       <DateField source="createdAt" />
+      <FunctionField
+        label="Na stronie"
+        render={(r: { isPublished?: boolean }) => (r.isPublished === false ? 'nie (tylko newsletter)' : 'tak')}
+      />
+      <FunctionField
+        label="Newsletter"
+        render={(r: NewsletterInfo) =>
+          r.newsletterSentAt
+            ? r.newsletterRecipients == null
+              ? 'wysyłanie…'
+              : `wysłano (${r.newsletterRecipients} os.)`
+            : r.sendAsNewsletter
+              ? 'czeka na wysyłkę'
+              : '—'
+        }
+      />
     </Datagrid>
   </List>
 );
 
 export const BlogCreate = () => (
   <Create>
-    <SimpleForm>
+    <SimpleForm toolbar={<NewsletterSaveToolbar />}>
       <TextInput source="title" validate={[required()]} />
       <TextInput source="shortDescription" multiline />
       <TextInput source="content" multiline />
 
       <TagInput />
+      <PublishToggle />
+      <NewsletterToggle />
 
       <SortableImageInput source="images" maxQty={5} />
     </SimpleForm>
@@ -53,12 +132,14 @@ export const BlogCreate = () => (
 
 export const BlogEdit = () => (
   <Edit>
-    <SimpleForm>
+    <SimpleForm toolbar={<NewsletterSaveToolbar deletable />}>
       <TextInput source="title" validate={[required()]} />
       <TextInput source="shortDescription" multiline />
       <TextInput source="content" multiline />
 
       <TagInput />
+      <PublishToggle />
+      <NewsletterToggle />
 
       <SortableImageInput source="images" maxQty={5} />
     </SimpleForm>

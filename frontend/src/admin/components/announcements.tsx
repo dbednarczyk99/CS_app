@@ -58,8 +58,8 @@ export const AnnouncementList = () => (
 );
 
 const validateLink = (value?: string | null) =>
-  value && !/^(\/|https?:\/\/)\S*$/.test(value)
-    ? 'Link musi zaczynać się od „/” (strona piekarni) albo „https://”'
+  value && !/^(\/\S*|https?:\/\/\S+|#newsletter)$/.test(value)
+    ? 'Link musi zaczynać się od „/” (strona piekarni) albo „https://”, ewentualnie „#newsletter”'
     : undefined;
 
 const validateEnd = (value: string | null, all: AnnouncementRecord) =>
@@ -109,33 +109,40 @@ const Preview = () => {
   );
 };
 
-/** Wybór wpisu z bloga – wpisuje link do artykułu */
+const NEWSLETTER_LINK = '#newsletter';
+
+/** Szybki wybór celu przycisku: okienko newslettera albo wpis z bloga – wpisuje link poniżej */
 const ArticlePicker = () => {
   const { setValue } = useFormContext();
   const linkUrl = useWatch({ name: 'linkUrl' }) as string | undefined;
-  const { data = [] } = useGetList<{ id: string; title: string }>('blog', {
+  const { data: articles = [] } = useGetList<{ id: string; title: string; isPublished?: boolean }>('blog', {
     pagination: { page: 1, perPage: 100 },
   });
-  const selected = data.find((a) => linkUrl === `/aktualnosci/${a.id}`)?.id ?? '';
+  // tylko wpisy widoczne na stronie (nieopublikowany wpis = link do pustej strony)
+  const data = articles.filter((a) => a.isPublished !== false);
+  const selected =
+    linkUrl === NEWSLETTER_LINK ? NEWSLETTER_LINK : (data.find((a) => linkUrl === `/aktualnosci/${a.id}`)?.id ?? '');
 
   return (
     <MuiTextField
       select
-      label="Powiąż z wpisem na blogu (opcjonalnie)"
+      label="Przycisk prowadzi do… (opcjonalnie)"
       value={selected}
       onChange={(e) => {
         const id = e.target.value;
-        setValue('linkUrl', id ? `/aktualnosci/${id}` : '', { shouldDirty: true, shouldValidate: true });
+        const link = id === NEWSLETTER_LINK ? NEWSLETTER_LINK : id ? `/aktualnosci/${id}` : '';
+        setValue('linkUrl', link, { shouldDirty: true, shouldValidate: true });
       }}
-      helperText="Wybór wpisu sam uzupełni link poniżej"
+      helperText="Wybór sam uzupełni link poniżej"
       fullWidth
       variant="filled"
       size="small"
       sx={{ mb: 2 }}
     >
       <MenuItem value="">
-        <em>— bez wpisu —</em>
+        <em>— wpiszę link ręcznie —</em>
       </MenuItem>
+      <MenuItem value={NEWSLETTER_LINK}>Okienko zapisu do newslettera</MenuItem>
       {data.map((article) => (
         <MenuItem key={article.id} value={article.id}>
           {article.title}
@@ -167,7 +174,7 @@ const AnnouncementForm = () => (
       label="Link"
       fullWidth
       validate={validateLink}
-      helperText="Strona piekarni, np. /aktualnosci/… lub /chlebowoz, albo pełny adres https://…; puste = bez przycisku"
+      helperText="Strona piekarni, np. /aktualnosci/… lub /chlebowoz, pełny adres https://… albo #newsletter (okienko zapisu); puste = bez przycisku"
     />
     <TextInput
       source="linkLabel"

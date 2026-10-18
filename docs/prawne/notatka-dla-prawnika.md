@@ -38,6 +38,7 @@ Miejsca wymagające uzupełnienia lub decyzji oznaczono w dokumentach jako `[[�
 | E-maile transakcyjne | adres e-mail, treść potwierdzenia | system | dostawca wysyłki e-mail | dostawca (podmiot przetwarzający) | wg ustawień dostawcy [[do ustalenia]] |
 | Logi serwera | adres IP, czas, adres podstrony, przeglądarka | automatycznie | serwer hostingu | hosting, wykonawca IT | [[do ustalenia, np. 30 dni]] |
 | Wiadomości z formularza kontaktowego | imię, e-mail, temat, treść | formularz „Kontakt” | wyłącznie skrzynka e-mail piekarni (nie w bazie); adres IP tylko w pamięci serwera przez 15 min (limit wysyłek) | osoby obsługujące skrzynkę | [[do ustalenia, np. 12 miesięcy]] |
+| Newsletter | e-mail, status (oczekuje / potwierdzony / wypisany), daty zgody, potwierdzenia, wypisania, losowy token do linków | okienko „Newsletter” na stronie (pasek komunikatów, stopka, Kontakt) | baza danych | administrator, osoby z dostępem do panelu (lista + eksport CSV) | do wypisania; niepotwierdzone – automatycznie usuwane po 7 dniach; po wypisaniu [[do ustalenia]] |
 | Koszyk rezerwacji | identyfikatory i ilości produktów | przeglądarka klienta | localStorage w przeglądarce klienta (nie na serwerze) | tylko klient | do wyczyszczenia przez klienta lub złożenia rezerwacji |
 | Mapa Google | adres IP, podstrona, dane przeglądarki | automatycznie przy wyświetleniu mapy | serwery Google | Google | wg Google |
 | Konta pracowników | login, hasło (zahaszowane bcrypt), rola | administrator | baza danych | administrator | do czasu usunięcia konta |
@@ -45,7 +46,7 @@ Miejsca wymagające uzupełnienia lub decyzji oznaczono w dokumentach jako `[[�
 Dodatkowo:
 - Pracownik może w panelu użyć przycisku **„Usuń dane klienta”**, który działa jak anonimizacja, ale natychmiast. Służy do obsługi żądań z art. 17 RODO.
 - Formularz kontaktowy wysyła wiadomość e-mailem na skrzynkę piekarni (zob. pkt 5.15).
-- **Brak** analityki (Google Analytics itp.), pikseli reklamowych, wtyczek mediów społecznościowych i newslettera.
+- **Brak** analityki (Google Analytics itp.), pikseli reklamowych i wtyczek mediów społecznościowych. Newsletter – zob. pkt 5.16.
 
 ## 4. Podmioty zewnętrzne
 
@@ -77,6 +78,7 @@ Dodatkowo:
 13. **Treść zgody/akceptacji w formularzu**: czy obecne brzmienie checkboxa (pkt 2.3 powyżej) jest prawidłowe.
 14. **Kontakt przez wiadomości na Instagramie / Facebooku** (polityka pkt 2.2 i 2.5). Na stronie „Kontakt” jest link otwierający okno wiadomości na Instagramie (ig.me). Piekarnia prowadzi profile tylko na Instagramie i Facebooku. Prosimy o ocenę roli Meta (odrębny administrator czy współadministrowanie w zakresie profilu, por. wyrok TSUE C-210/16 Wirtschaftsakademie) i treści informacji w polityce.
 15. **Formularz kontaktowy** (polityka pkt 2.2). Pola: imię, e-mail, temat (opcjonalnie), treść. Wiadomość nie jest zapisywana w bazie – trafia wyłącznie e-mailem na skrzynkę piekarni (z ustawionym „Odpowiedz do” na adres nadawcy). Pod formularzem jest krótka informacja z linkiem do polityki (bez checkboxa – podstawa art. 6 ust. 1 lit. f). Ochrona przed nadużyciami: ukryte pole na boty i limit wiadomości z jednego adresu IP (adres IP trzymany tylko w pamięci serwera przez 15 minut). Do potwierdzenia: okres przechowywania korespondencji (polityka pkt 6 – obecnie „[[np. 12 miesięcy]]”).
+16. **Newsletter** (polityka pkt 2.6, 6, 7). Zapis w okienku: e-mail + checkbox zgody (niezaznaczony domyślnie) z treścią: *„Chcę otrzymywać newsletter Chleba Smak na podany adres e-mail. Zgodę mogę wycofać w każdej chwili – link do wypisania jest w każdej wiadomości. Więcej w polityce prywatności.”* Podwójne potwierdzenie (double opt-in): e-mail z linkiem, zapis aktywny dopiero po kliknięciu przycisku na stronie (nie przy samym otwarciu linku – skanery poczty). Zapisywane są daty zgody, potwierdzenia i wypisania; niepotwierdzone zapisy są usuwane po 7 dniach. Pytania: (a) czy treść zgody spełnia wymogi RODO i art. 398 Prawa komunikacji elektronicznej, (b) jak długo przechowywać adres i daty po wypisaniu jako dowód zgody, (c) wysyłka: newsletterem są wpisy z bloga – przy zapisaniu wpisu z zaznaczoną opcją „Wyślij jako newsletter” system wysyła go (jednorazowo) do potwierdzonych subskrybentów przez tego samego dostawcę e-mail co potwierdzenia rezerwacji; każda wiadomość ma link „Wypisz się” i nagłówek List-Unsubscribe. Czy to wymaga dodatkowych zapisów w umowie powierzenia z dostawcą e-mail?
 
 ## 6. Obowiązki organizacyjne po stronie właściciela (do zapewnienia przed startem)
 

@@ -30,6 +30,7 @@ import { ReservationList, ReservationShow } from './admin/components/reservation
 import { CustomMenu } from './admin/common/CustomMenu';
 import { BlogCreate, BlogEdit, BlogList } from './admin/components/blog';
 import { AnnouncementCreate, AnnouncementEdit, AnnouncementList } from './admin/components/announcements';
+import { NewsletterList } from './admin/components/newsletter';
 
 const MyLayout = (props: LayoutProps) => <Layout {...props} menu={CustomMenu} />;
 
@@ -110,6 +111,8 @@ function App() {
         create={AnnouncementCreate}
         edit={AnnouncementEdit}
       />
+
+      <Resource name="newsletter" options={{ label: 'Newsletter' }} list={NewsletterList} />
     </Admin>
   );
 }

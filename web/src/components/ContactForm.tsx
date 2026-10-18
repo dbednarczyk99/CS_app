@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { FaPaperPlane } from 'react-icons/fa6';
 import { useState } from 'react';
 
 const fieldClass =
@@ -111,8 +112,8 @@ export function ContactForm({ email }: { email?: string }) {
       </p>
 
       <div className="flex flex-wrap items-center gap-6 pt-2">
-        <button type="submit" className="btn btn-gold" disabled={status === 'sending'}>
-          {status === 'sending' ? 'Wysyłanie…' : 'Wyślij wiadomość'}
+        <button type="submit" className="btn btn-gold w-full sm:w-auto" disabled={status === 'sending'}>
+          <FaPaperPlane aria-hidden /> {status === 'sending' ? 'Wysyłanie…' : 'Wyślij wiadomość'}
         </button>
         {error && (
           <p role="alert" className="basis-full border border-red-400/40 bg-red-400/10 px-3 py-2 text-sm text-red-200">
