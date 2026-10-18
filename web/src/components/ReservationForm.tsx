@@ -4,12 +4,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FaBreadSlice, FaCheck, FaLocationDot, FaTrash, FaTruck } from 'react-icons/fa6';
+import { FaCheck, FaTrash } from 'react-icons/fa6';
 import type { PublicReservation, ReservationOptions } from '@/lib/api';
-import { formatDay, formatPrice } from '@/lib/format';
+import { formatDay, formatPrice, plural } from '@/lib/format';
 import { useReservationCart } from '@/lib/reservation-cart';
 import { QuantityStepper } from './AddToReservation';
 import { DropdownSelect } from './DropdownSelect';
+import { PickupPointPicker, type PickupPoint } from './PickupPointPicker';
 
 type ReservableProduct = { id: string; name: string; price: number; image?: string };
 
@@ -51,16 +52,68 @@ function RedirectCountdown({ href, seconds }: { href: string; seconds: number })
     </div>
   );
 }
-type PickupType = 'STORE' | 'VAN';
+type DayPoint = PickupPoint & { id: string; slots: string[] };
+
+/** Punkty odbioru czynne danego dnia: piekarnie i postoje chlebowozu */
+function pointsOn(options: ReservationOptions, date: string): DayPoint[] {
+  return [
+    ...options.stores
+      .filter((s) => s.slots[date])
+      .map((s) => ({
+        key: `STORE:${s.id}`,
+        id: s.id,
+        kind: 'STORE' as const,
+        address: s.address,
+        hours: s.hours[date] ? `${s.hours[date].open}–${s.hours[date].close}` : '',
+        lat: s.lat,
+        lng: s.lng,
+        slots: s.slots[date],
+      })),
+    ...options.vanStops
+      .filter((v) => v.date === date)
+      .map((v) => ({
+        key: `VAN:${v.id}`,
+        id: v.id,
+        kind: 'VAN' as const,
+        address: v.address,
+        hours: `${v.startTime}–${v.endTime}`,
+        lat: v.lat,
+        lng: v.lng,
+        slots: v.slots,
+      })),
+  ];
+}
+
+/** „Poniedziałek, 19 października: 4 piekarnie i 1 postój chlebowozu” */
+function dayHeading(date: string, points: DayPoint[]) {
+  const stores = points.filter((p) => p.kind === 'STORE').length;
+  const stops = points.length - stores;
+  const parts = [
+    stores > 0 && `${stores} ${plural(stores, ['piekarnia', 'piekarnie', 'piekarni'])}`,
+    stops > 0 && `${stops} ${plural(stops, ['postój', 'postoje', 'postojów'])} chlebowozu`,
+  ].filter(Boolean);
+  return `${formatDay(date)}: ${parts.join(' i ')}`;
+}
+
+// ostatni punkt odbioru – zapamiętany w przeglądarce klienta, zaznaczany przy kolejnej rezerwacji
+const LAST_POINT_KEY = 'chlebasmak-punkt-odbioru';
+function readRememberedPoint() {
+  try {
+    return localStorage.getItem(LAST_POINT_KEY);
+  } catch {
+    return null;
+  }
+}
+function rememberPoint(key: string) {
+  try {
+    localStorage.setItem(LAST_POINT_KEY, key);
+  } catch {
+    // brak dostępu do pamięci przeglądarki – bez zapamiętywania
+  }
+}
 
 const field =
   'w-full border border-line bg-coal px-4 py-3 text-cream placeholder:text-stone/70 transition-colors focus:border-gold focus:outline-none';
-const choice = (selected: boolean) =>
-  `border px-4 py-3 text-left transition-colors ${
-    selected
-      ? 'border-gold bg-gold/10 text-cream'
-      : 'border-line text-cream/85 hover:border-gold/60'
-  }`;
 const chip = (selected: boolean) =>
   `min-h-11 border px-3 py-2 font-display text-[0.8rem] tracking-wider transition-colors ${
     selected
@@ -98,13 +151,13 @@ export function ReservationForm({
     );
   }, [cart, reservable]);
 
-  const [pickupType, setPickupType] = useState<PickupType>('STORE');
-  const [storeId, setStoreId] = useState<string | null>(
-    options.stores.length === 1 ? options.stores[0].id : null,
-  );
+  // odbiór: najpierw dzień, potem punkt (piekarnia lub postój chlebowozu), na końcu szacowana godzina
   const [date, setDate] = useState<string | null>(null);
+  const [pointKey, setPointKey] = useState<string | null>(null);
   const [time, setTime] = useState<string | null>(null);
-  const [vanKey, setVanKey] = useState<string | null>(null);
+  const [pointNotice, setPointNotice] = useState<string | null>(null);
+  const [rememberedKey, setRememberedKey] = useState<string | null>(null);
+  useEffect(() => setRememberedKey(readRememberedPoint()), []);
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -117,26 +170,48 @@ export function ReservationForm({
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PublicReservation | null>(null);
 
-  const store = options.stores.find((s) => s.id === storeId) ?? null;
-  const storeDates = store ? options.dates.filter((d) => store.slots[d]) : [];
-  const slots = store && date ? (store.slots[date] ?? []) : [];
-  const vanStop = options.vanStops.find((s) => `${s.id}|${s.date}` === vanKey) ?? null;
+  const days = useMemo(() => options.dates.filter((d) => pointsOn(options, d).length > 0), [options]);
+  const points = useMemo(() => (date ? pointsOn(options, date) : []), [options, date]);
+  const point = points.find((p) => p.key === pointKey) ?? null;
 
-  const pickupSummary = useMemo(() => {
-    if (pickupType === 'STORE' && store && date && time) {
-      return {
-        where: `Piekarnia: ${shortStreet(store.address)}`,
-        when: `${formatDay(date)}, ${time}`,
-      };
+  function pickDate(d: string) {
+    setDate(d);
+    const next = pointsOn(options, d);
+    const current = pointKey ? (next.find((p) => p.key === pointKey) ?? null) : null;
+    if (pointKey && !current) {
+      // wybrany punkt nie działa w nowym dniu – informacja zamiast cichego odznaczenia
+      const previous = point ?? pointsOn(options, date!).find((p) => p.key === pointKey);
+      setPointNotice(
+        `${previous ? `${shortStreet(previous.address)}: ` : ''}${
+          previous?.kind === 'VAN' ? 'w tym dniu chlebowóz tu nie stoi' : 'w tym dniu piekarnia jest nieczynna'
+        }. Wybierz inny punkt odbioru.`,
+      );
+      setPointKey(null);
+      setTime(null);
+    } else if (!pointKey && rememberedKey && next.some((p) => p.key === rememberedKey)) {
+      // stały klient: ostatni punkt odbioru od razu zaznaczony, jeśli działa tego dnia
+      setPointKey(rememberedKey);
+      setPointNotice(null);
+    } else {
+      setPointNotice(null);
+      if (current && time && !current.slots.includes(time)) setTime(null);
     }
-    if (pickupType === 'VAN' && vanStop) {
-      return {
-        where: `Chlebowóz: ${vanStop.address}`,
-        when: `${formatDay(vanStop.date)}, ${vanStop.startTime}–${vanStop.endTime}`,
-      };
-    }
-    return null;
-  }, [pickupType, store, date, time, vanStop]);
+  }
+
+  function pickPoint(key: string) {
+    const next = points.find((p) => p.key === key);
+    setPointKey(key);
+    setPointNotice(null);
+    if (time && !next?.slots.includes(time)) setTime(null);
+  }
+
+  const pickupSummary =
+    point && date && time
+      ? {
+          where: `${point.kind === 'VAN' ? 'Chlebowóz' : 'Piekarnia'}: ${shortStreet(point.address)}`,
+          when: `${formatDay(date)}, ${time}`,
+        }
+      : null;
 
   const phoneDigits = phone.replace(/\D/g, '').replace(/^48(?=\d{9}$)/, '');
   const missing = [
@@ -161,10 +236,10 @@ export function ReservationForm({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          pickupType,
-          pointId: pickupType === 'STORE' ? storeId : vanStop!.id,
-          pickupDate: pickupType === 'STORE' ? date : vanStop!.date,
-          pickupTime: pickupType === 'STORE' ? time : undefined,
+          pickupType: point!.kind,
+          pointId: point!.id,
+          pickupDate: date,
+          pickupTime: time,
           customerName: name,
           customerPhone: phone,
           customerEmail: email,
@@ -181,6 +256,7 @@ export function ReservationForm({
         return;
       }
       setResult(body as PublicReservation);
+      rememberPoint(point!.key);
       cart.clear();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch {
@@ -259,114 +335,55 @@ export function ReservationForm({
             Rezerwacje przyjmujemy do {options.cutoffHour}:00 dnia poprzedzającego odbiór,
             maksymalnie 5 dni do przodu.
           </p>
-          <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Miejsce odbioru">
-            {(
-              [
-                ['STORE', 'Piekarnia', <FaBreadSlice key="s" aria-hidden />],
-                ['VAN', 'Chlebowóz', <FaTruck key="v" aria-hidden />],
-              ] as const
-            ).map(([value, label, icon]) => (
-              <button
-                key={value}
-                type="button"
-                role="radio"
-                aria-checked={pickupType === value}
-                onClick={() => setPickupType(value)}
-                className={`${chip(pickupType === value)} inline-flex items-center justify-center gap-2 uppercase`}
-              >
-                {icon} {label}
-              </button>
-            ))}
-          </div>
-
-          {pickupType === 'STORE' ? (
-            <div className="mt-6 space-y-6">
-              <Fieldset legend="Piekarnia">
-                {/* rozwijana lista – wygodna także przy większej liczbie piekarni */}
-                <DropdownSelect
-                  id="pickup-store"
-                  label="Piekarnia"
-                  placeholder="Wybierz piekarnię"
-                  icon={<FaLocationDot size={13} aria-hidden className="shrink-0 text-gold" />}
-                  options={options.stores.map((s) => ({
-                    value: s.id,
-                    label: shortStreet(s.address),
-                    detail: s.address.split(/,\s*/).slice(1).join(', '),
-                  }))}
-                  value={storeId}
-                  onChange={(id) => {
-                    const s = options.stores.find((x) => x.id === id);
-                    setStoreId(id);
-                    if (date && !s?.slots[date]) setDate(null);
-                    setTime(null);
-                  }}
-                  className="max-w-md"
-                  buttonClassName={field}
-                />
+          {days.length === 0 ? (
+            <p className="text-stone">W najbliższych dniach nie ma terminów dostępnych do rezerwacji.</p>
+          ) : (
+            <div className="space-y-8">
+              <Fieldset legend="Dzień odbioru">
+                <div className="flex flex-wrap gap-2">
+                  {days.map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => pickDate(d)}
+                      className={chip(date === d)}
+                      aria-pressed={date === d}
+                    >
+                      {formatDay(d, 'short')}
+                    </button>
+                  ))}
+                </div>
               </Fieldset>
 
-              {store && (
-                <Fieldset legend="Dzień odbioru">
-                  <div className="flex flex-wrap gap-2">
-                    {storeDates.map((d) => (
-                      <button
-                        key={d}
-                        type="button"
-                        onClick={() => {
-                          setDate(d);
-                          setTime(null);
-                        }}
-                        className={chip(date === d)}
-                        aria-pressed={date === d}
-                      >
-                        {formatDay(d, 'short')}
-                      </button>
-                    ))}
-                  </div>
-                </Fieldset>
-              )}
-
-              {store && date && (
-                <Fieldset legend="Godzina odbioru">
-                  <PickupTimeSelect
-                    slots={slots}
-                    hours={store.hours?.[date]}
-                    value={time}
-                    onChange={setTime}
+              {date && (
+                <Fieldset legend="Punkt odbioru">
+                  {pointNotice && (
+                    <p role="status" className="mb-3 border border-gold/40 bg-gold/10 px-4 py-3 text-sm">
+                      {pointNotice}
+                    </p>
+                  )}
+                  <PickupPointPicker
+                    points={points}
+                    value={pointKey}
+                    onChange={pickPoint}
+                    rememberedKey={rememberedKey}
+                    heading={dayHeading(date, points)}
                   />
                 </Fieldset>
               )}
-            </div>
-          ) : (
-            <div className="mt-6">
-              {options.vanStops.length === 0 ? (
-                <p className="text-stone">
-                  W najbliższych dniach chlebowóz nie ma postojów dostępnych do rezerwacji.
-                </p>
-              ) : (
-                <Fieldset legend="Przystanek i termin">
-                  <div className="grid gap-2">
-                    {options.vanStops.map((s) => {
-                      const key = `${s.id}|${s.date}`;
-                      return (
-                        <button
-                          key={key}
-                          type="button"
-                          onClick={() => setVanKey(key)}
-                          className={`${choice(vanKey === key)} grid gap-1 sm:grid-cols-[11rem_1fr_auto] sm:items-center sm:gap-4`}
-                          aria-pressed={vanKey === key}
-                        >
-                          <span className="font-display uppercase tracking-wide first-letter:uppercase">
-                            {formatDay(s.date, 'short')}
-                          </span>
-                          <span>{s.address}</span>
-                          <span className="font-display tabular-nums text-gold">
-                            {s.startTime}–{s.endTime}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
+
+              {date && point && (
+                <Fieldset legend="Godzina odbioru">
+                  <PickupTimeSelect
+                    slots={point.slots}
+                    hint={
+                      point.kind === 'VAN'
+                        ? `Podaj szacowaną godzinę odbioru – chlebowóz stoi w godzinach ${point.hours}.`
+                        : `Podaj szacowaną godzinę odbioru – piekarnia jest czynna w godzinach ${point.hours}.`
+                    }
+                    value={time}
+                    onChange={setTime}
+                  />
                 </Fieldset>
               )}
             </div>
@@ -544,15 +561,18 @@ function Step({
   );
 }
 
-/** Godzina odbioru: tylko terminy z API (co 30 min, ostatni 30 min przed zamknięciem) + godziny otwarcia */
+/**
+ * Szacowana godzina odbioru: tylko terminy z API (piekarnia co 30 min, ostatni 30 min przed zamknięciem;
+ * chlebowóz co 15 min w czasie postoju) + podpowiedź z godzinami punktu
+ */
 function PickupTimeSelect({
   slots,
-  hours,
+  hint,
   value,
   onChange,
 }: {
   slots: string[];
-  hours?: { open: string; close: string };
+  hint: string;
   value: string | null;
   onChange: (time: string) => void;
 }) {
@@ -570,11 +590,9 @@ function PickupTimeSelect({
         className="max-w-60"
         buttonClassName={field}
       />
-      {hours && (
-        <p id="pickup-time-hint" className="mt-2 text-sm text-stone">
-          Odbiór między {hours.open} a {hours.close}
-        </p>
-      )}
+      <p id="pickup-time-hint" className="mt-2 text-sm text-stone">
+        {hint}
+      </p>
     </div>
   );
 }
