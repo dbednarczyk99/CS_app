@@ -6,7 +6,7 @@ export const MAX_DAYS_AHEAD = 5; // najdalej 5 dni do przodu
 export const MAX_ACTIVE_PER_PHONE = 3;
 export const DEFAULT_STORE_HOURS: [string, string] = ['07:00', '18:00'];
 const SLOT_MINUTES = 30;
-const VAN_SLOT_MINUTES = 15; // postoje chlebowozu są krótkie – gęstsze terminy
+
 
 const TIME_ZONE = 'Europe/Warsaw';
 const WEEKDAYS: Weekday[] = [
@@ -126,9 +126,9 @@ export function pickupSlots(
   return slots;
 }
 
-/** Szacowana godzina przyjścia do chlebowozu: co 15 min w czasie postoju (bardzo krótki postój = sam początek) */
+/** Szacowana godzina przyjścia do chlebowozu: co 30 min jak w piekarni (ostatnia 30 min przed odjazdem; bardzo krótki postój = sam początek) */
 export function vanPickupSlots(from: string, to: string): string[] {
-  const slots = pickupSlots([from, to], VAN_SLOT_MINUTES);
+  const slots = pickupSlots([from, to]);
   return slots.length ? slots : [toHHMM(toMinutes(from))];
 }
 

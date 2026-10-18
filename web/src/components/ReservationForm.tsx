@@ -84,6 +84,13 @@ function pointsOn(options: ReservationOptions, date: string): DayPoint[] {
   ];
 }
 
+/** Kafelek dnia na telefonie: „pon” nad „19.10” */
+const weekdayShort = (date: string) =>
+  new Intl.DateTimeFormat('pl-PL', { weekday: 'short', timeZone: 'UTC' })
+    .format(new Date(`${date}T12:00:00Z`))
+    .replace('.', '');
+const dayMonth = (date: string) => `${date.slice(8, 10)}.${date.slice(5, 7)}`;
+
 /** „Poniedziałek, 19 października: 4 piekarnie i 1 postój chlebowozu” */
 function dayHeading(date: string, points: DayPoint[]) {
   const stores = points.filter((p) => p.kind === 'STORE').length;
@@ -340,16 +347,23 @@ export function ReservationForm({
           ) : (
             <div className="space-y-8">
               <Fieldset legend="Dzień odbioru">
-                <div className="flex flex-wrap gap-2">
+                {/* telefon: jeden rząd kafelków (dzień tygodnia nad datą – najwyżej 5 dni); od tabletu – przyciski w linii */}
+                <div
+                  className="grid gap-1.5 sm:flex sm:flex-wrap sm:gap-2"
+                  style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}
+                >
                   {days.map((d) => (
                     <button
                       key={d}
                       type="button"
                       onClick={() => pickDate(d)}
-                      className={chip(date === d)}
+                      className={`${chip(date === d)} flex flex-col items-center max-sm:px-1 max-sm:py-1.5 sm:block`}
                       aria-pressed={date === d}
+                      aria-label={formatDay(d)}
                     >
-                      {formatDay(d, 'short')}
+                      <span className="text-[0.7rem] uppercase sm:hidden">{weekdayShort(d)}</span>
+                      <span className="text-[0.9rem] tabular-nums sm:hidden">{dayMonth(d)}</span>
+                      <span className="hidden sm:inline">{formatDay(d, 'short')}</span>
                     </button>
                   ))}
                 </div>
@@ -563,7 +577,7 @@ function Step({
 
 /**
  * Szacowana godzina odbioru: tylko terminy z API (piekarnia co 30 min, ostatni 30 min przed zamknięciem;
- * chlebowóz co 15 min w czasie postoju) + podpowiedź z godzinami punktu
+ * chlebowóz tak samo w czasie postoju) + podpowiedź z godzinami punktu
  */
 function PickupTimeSelect({
   slots,

@@ -152,7 +152,7 @@ export interface ReservationOptions {
     date: string;
     startTime: string;
     endTime: string;
-    /** szacowana godzina przyjścia – co 15 min w czasie postoju */
+    /** szacowana godzina przyjścia – co 30 min w czasie postoju (ostatnia 30 min przed odjazdem) */
     slots: string[];
     lat: number | null;
     lng: number | null;
