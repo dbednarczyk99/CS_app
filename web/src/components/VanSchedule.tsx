@@ -23,7 +23,7 @@ export function VanSchedule({ stops }: { stops: BreadVanStop[] }) {
         return (
           <li
             key={day.key}
-            className={`grid gap-2 px-4 py-5 sm:grid-cols-[10rem_1fr] sm:items-center sm:px-6 ${
+            className={`grid gap-2 px-4 py-5 sm:grid-cols-[13rem_1fr] sm:items-center sm:px-6 ${
               isToday ? 'bg-gold/10' : ''
             }`}
           >

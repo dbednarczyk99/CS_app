@@ -24,7 +24,14 @@ type Filter = 'all' | 'stores' | 'van';
 
 type Point =
   | { kind: 'store'; id: string; lat: number; lng: number; location: Location }
-  | { kind: 'van'; id: string; lat: number; lng: number; stop: BreadVanStop };
+  // jeden przystanek w kilka dni tygodnia = jedna pinezka ze wszystkimi terminami (od poniedziałku)
+  | { kind: 'van'; id: string; lat: number; lng: number; address: string; stops: BreadVanStop[] };
+
+const weekdayIndex = (day: Weekday) => WEEKDAYS.findIndex((d) => d.key === day);
+
+/** Termin postoju z perspektywy dziś: „Dziś” / „Jutro” / nazwa dnia */
+const stopDay = (stop: BreadVanStop, today: Weekday | null, tomorrow: Weekday | null) =>
+  stop.dayOfTheWeek === today ? 'Dziś' : stop.dayOfTheWeek === tomorrow ? 'Jutro' : dayLabel(stop.dayOfTheWeek);
 
 const navigateHref = (p: Point) =>
   `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`;
@@ -65,10 +72,17 @@ export function StoresMap({
       }
     }
     if (filter !== 'stores') {
+      // przystanki w tym samym miejscu (te same współrzędne) łączone w jedną pinezkę
+      const byPlace = new Map<string, BreadVanStop[]>();
       for (const stop of stops) {
-        if (stop.lat != null && stop.lng != null) {
-          result.push({ kind: 'van', id: stop.id, lat: stop.lat, lng: stop.lng, stop });
-        }
+        if (stop.lat == null || stop.lng == null) continue;
+        const key = `${stop.lat.toFixed(5)},${stop.lng.toFixed(5)}`;
+        byPlace.set(key, [...(byPlace.get(key) ?? []), stop]);
+      }
+      for (const group of byPlace.values()) {
+        const sorted = [...group].sort((a, b) => weekdayIndex(a.dayOfTheWeek) - weekdayIndex(b.dayOfTheWeek));
+        const first = sorted[0];
+        result.push({ kind: 'van', id: first.id, lat: first.lat!, lng: first.lng!, address: first.address, stops: sorted });
       }
     }
     return result;
@@ -209,18 +223,18 @@ function PointMarker({
   onSelect: () => void;
 }) {
   const isStore = point.kind === 'store';
-  const vanToday = point.kind === 'van' && point.stop.dayOfTheWeek === today;
-  const vanTomorrow = point.kind === 'van' && point.stop.dayOfTheWeek === tomorrow;
+  const vanToday = point.kind === 'van' && point.stops.some((s) => s.dayOfTheWeek === today);
+  const vanTomorrow = point.kind === 'van' && point.stops.some((s) => s.dayOfTheWeek === tomorrow);
   const dimmed = point.kind === 'van' && today !== null && !vanToday && !vanTomorrow && !active;
 
-  const title = isStore ? splitAddress(point.location.address).street : point.stop.address;
-  let subtitle: string;
+  const title = isStore ? splitAddress(point.location.address).street : point.address;
+  // podgląd: piekarnia – dzisiejsze godziny; przystanek – wszystkie terminy postoju
+  let subtitles: string[];
   if (point.kind === 'store') {
     const hours = today ? hoursFor(point.location.openingHours, today) : null;
-    subtitle = hours ? `Dziś ${hours[0]}–${hours[1]}` : 'Piekarnia';
+    subtitles = [hours ? `Dziś ${hours[0]}–${hours[1]}` : 'Piekarnia'];
   } else {
-    const when = vanToday ? 'Dziś' : vanTomorrow ? 'Jutro' : dayLabel(point.stop.dayOfTheWeek);
-    subtitle = `${when} ${point.stop.startTime}–${point.stop.endTime}`;
+    subtitles = point.stops.map((s) => `${stopDay(s, today, tomorrow)} ${s.startTime}–${s.endTime}`);
   }
 
   // strona, po której pokazać podgląd: domyślnie z prawej, przy prawej krawędzi mapy – z lewej
@@ -254,7 +268,11 @@ function PointMarker({
               {isStore ? 'Piekarnia' : 'Chlebowóz'}
             </p>
             <p className="mt-0.5 text-sm text-cream">{title}</p>
-            <p className="text-xs text-stone">{subtitle}</p>
+            {subtitles.map((line) => (
+              <p key={line} className="text-xs text-stone">
+                {line}
+              </p>
+            ))}
           </div>
         )}
 
@@ -340,7 +358,7 @@ function DetailsCard({
       {point.kind === 'store' ? (
         <StoreDetails location={point.location} today={today} />
       ) : (
-        <VanDetails stop={point.stop} today={today} tomorrow={tomorrow} />
+        <VanDetails address={point.address} stops={point.stops} today={today} tomorrow={tomorrow} />
       )}
 
       <div className="mt-5 flex gap-2">
@@ -381,37 +399,46 @@ function StoreDetails({ location, today }: { location: Location; today: Weekday 
   );
 }
 
+/** Przystanek ze wszystkimi terminami postoju (ten sam adres w kilka dni tygodnia) */
 function VanDetails({
-  stop,
+  address,
+  stops,
   today,
   tomorrow,
 }: {
-  stop: BreadVanStop;
+  address: string;
+  stops: BreadVanStop[];
   today: Weekday | null;
   tomorrow: Weekday | null;
 }) {
-  const isToday = stop.dayOfTheWeek === today;
-  const isTomorrow = stop.dayOfTheWeek === tomorrow;
   return (
     <>
       <p className="eyebrow text-[0.65rem]">Chlebowóz</p>
-      <h3 className="heading mt-2 pr-8 text-xl">{stop.address}</h3>
-      <p className="mt-4 flex items-center gap-3 text-sm">
-        {isToday && (
-          <span className="bg-gold px-2 py-0.5 font-display text-[0.6rem] uppercase tracking-[0.2em] text-ink">
-            Dziś
-          </span>
-        )}
-        {isTomorrow && (
-          <span className="border border-cream px-2 py-0.5 font-display text-[0.6rem] uppercase tracking-[0.2em] text-cream">
-            Jutro
-          </span>
-        )}
-        <span className="text-cream">{dayLabel(stop.dayOfTheWeek)}</span>
-        <span className="font-display tracking-wider text-gold">
-          {stop.startTime}–{stop.endTime}
-        </span>
-      </p>
+      <h3 className="heading mt-2 pr-8 text-xl">{address}</h3>
+      <ul className="mt-4 space-y-1.5 text-sm">
+        {stops.map((stop) => {
+          const isToday = stop.dayOfTheWeek === today;
+          const isTomorrow = stop.dayOfTheWeek === tomorrow;
+          return (
+            <li key={stop.id} className="flex items-center gap-3">
+              {isToday && (
+                <span className="bg-gold px-2 py-0.5 font-display text-[0.6rem] uppercase tracking-[0.2em] text-ink">
+                  Dziś
+                </span>
+              )}
+              {isTomorrow && (
+                <span className="border border-cream px-2 py-0.5 font-display text-[0.6rem] uppercase tracking-[0.2em] text-cream">
+                  Jutro
+                </span>
+              )}
+              <span className="text-cream">{dayLabel(stop.dayOfTheWeek)}</span>
+              <span className="font-display tracking-wider text-gold">
+                {stop.startTime}–{stop.endTime}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
     </>
   );
 }
