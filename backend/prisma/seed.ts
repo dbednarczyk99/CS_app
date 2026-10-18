@@ -5,6 +5,7 @@ import {
   Weekday,
   MediaName,
 } from '@prisma/client';
+import { randomBytes } from 'crypto';
 import 'dotenv/config';
 import * as bcrypt from 'bcrypt';
 
@@ -585,6 +586,31 @@ async function main() {
     },
   });
   console.log('✅ Announcements seeded');
+
+  // --- NEWSLETTER (fikcyjni subskrybenci – do zrzutów i testów) ---
+  await prisma.newsletterSubscriber.deleteMany();
+  const daysAgo = (d: number) => new Date(Date.now() - d * 24 * 60 * 60 * 1000);
+  const subscribers: [string, 'CONFIRMED' | 'PENDING' | 'UNSUBSCRIBED', number][] = [
+    ['magdalena@example.com', 'CONFIRMED', 21],
+    ['tomasz@example.com', 'CONFIRMED', 14],
+    ['ewa.nowak@example.com', 'CONFIRMED', 9],
+    ['jan.kowalski@example.com', 'CONFIRMED', 3],
+    ['anna.zielinska@example.com', 'PENDING', 1],
+    ['piotr.wisniewski@example.com', 'UNSUBSCRIBED', 30],
+  ];
+  for (const [email, status, ago] of subscribers) {
+    await prisma.newsletterSubscriber.create({
+      data: {
+        email,
+        status,
+        token: randomBytes(24).toString('hex'),
+        consentAt: daysAgo(ago),
+        confirmedAt: status === 'PENDING' ? null : daysAgo(ago),
+        unsubscribedAt: status === 'UNSUBSCRIBED' ? daysAgo(ago - 10) : null,
+      },
+    });
+  }
+  console.log('✅ Newsletter subscribers seeded');
 
   // --- RESERVATIONS (przykładowe, fikcyjni klienci) ---
   const warsawToday = new Intl.DateTimeFormat('en-CA', {
