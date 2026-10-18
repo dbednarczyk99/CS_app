@@ -10,13 +10,13 @@ import {
   TextInput,
   BooleanInput,
   required,
-  useGetList,
   useRecordContext,
 } from 'react-admin';
 import { Alert, Chip, Stack } from '@mui/material';
 import { useWatch } from 'react-hook-form';
 import TagInput from '../common/TagInput';
 import { NewsletterSaveToolbar } from '../common/NewsletterSaveToolbar';
+import { useSubscriberCount } from '../common/useSubscriberCount';
 import SortableImageInput from '../common/SortableImageInput';
 
 interface NewsletterInfo {
@@ -31,10 +31,7 @@ interface NewsletterInfo {
  */
 const NewsletterToggle = () => {
   const record = useRecordContext<NewsletterInfo>();
-  const { data: subscribers = [] } = useGetList<{ id: string; status: string }>('newsletter', {
-    pagination: { page: 1, perPage: 1000 },
-  });
-  const confirmed = subscribers.filter((s) => s.status === 'CONFIRMED').length;
+  const confirmed = useSubscriberCount() ?? '…';
 
   if (record?.newsletterSentAt) {
     return (

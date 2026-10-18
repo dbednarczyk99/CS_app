@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Title, useGetList } from 'react-admin';
+import { Title, useGetIdentity, usePermissions } from 'react-admin';
+import { useSubscriberCount } from '../common/useSubscriberCount';
 import { useNavigate } from 'react-router-dom';
 import { Box, Button, Card, CardActionArea, CardContent, CircularProgress, Stack, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -20,9 +21,10 @@ const warsawDate = (days = 0) => {
 };
 
 /** Liczba rezerwacji (bez anulowanych) na dany dzień – z tego samego zestawienia co „Do przygotowania” */
-function useReservationCount(date: string) {
+function useReservationCount(date: string, enabled: boolean) {
   const [count, setCount] = useState<number | null | undefined>(undefined);
   useEffect(() => {
+    if (!enabled) return;
     let cancelled = false;
     fetch(`${apiUrl}/reservations/summary?date=${date}`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token') ?? ''}` },
@@ -33,7 +35,7 @@ function useReservationCount(date: string) {
     return () => {
       cancelled = true;
     };
-  }, [date]);
+  }, [date, enabled]);
   return count;
 }
 
@@ -72,19 +74,22 @@ const Action = ({ icon, label, onClick }: { icon: ReactNode; label: string; onCl
 );
 
 const greeting = () => {
-  const hour = Number(new Intl.DateTimeFormat('pl-PL', { hour: 'numeric', timeZone: 'Europe/Warsaw' }).format(new Date()));
+  const hour = Number(
+    new Intl.DateTimeFormat('pl-PL', { hour: 'numeric', timeZone: 'Europe/Warsaw' }).format(new Date()),
+  );
   return hour >= 18 || hour < 4 ? 'Dobry wieczór' : 'Dzień dobry';
 };
 
 const HomePage = () => {
   const navigate = useNavigate();
   const today = warsawDate(0);
-  const todayCount = useReservationCount(today);
-  const tomorrowCount = useReservationCount(warsawDate(1));
-  const { data: subscribers, isPending } = useGetList<{ id: string; status: string }>('newsletter', {
-    pagination: { page: 1, perPage: 1000 },
-  });
-  const confirmed = isPending ? undefined : (subscribers ?? []).filter((s) => s.status === 'CONFIRMED').length;
+  // rezerwacje (dane klientów) widzi tylko właściciel
+  const { permissions } = usePermissions();
+  const isOwner = permissions === 'ADMIN';
+  const { identity } = useGetIdentity();
+  const todayCount = useReservationCount(today, isOwner);
+  const tomorrowCount = useReservationCount(warsawDate(1), isOwner);
+  const confirmed = useSubscriberCount();
   const todayLabel = new Intl.DateTimeFormat('pl-PL', {
     weekday: 'long',
     day: 'numeric',
@@ -99,30 +104,39 @@ const HomePage = () => {
         Panel Chleba Smak
       </Typography>
       <Typography variant="h4" sx={{ mt: 0.5 }}>
-        {greeting()}!
+        {greeting()}
+        {identity?.fullName ? `, ${identity.fullName}` : ''}!
       </Typography>
       <Typography color="text.secondary" sx={{ mt: 1, '&::first-letter': { textTransform: 'uppercase' } }}>
         {todayLabel}
       </Typography>
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 4 }}>
-        <StatCard
-          label="Rezerwacje na dziś"
-          value={todayCount}
-          hint="Zobacz listę rezerwacji na dziś"
-          onClick={() => navigate(`/reservations?filter=${encodeURIComponent(JSON.stringify({ pickupDate: today }))}`)}
-        />
-        <StatCard
-          label="Rezerwacje na jutro"
-          value={tomorrowCount}
-          hint="Do przygotowania – zestawienie, wydruk, e-mail"
-          onClick={() => navigate('/przygotowanie')}
-        />
+        {isOwner && (
+          <>
+            <StatCard
+              label="Rezerwacje na dziś"
+              value={todayCount}
+              hint="Zobacz listę rezerwacji na dziś"
+              onClick={() =>
+                navigate(`/reservations?filter=${encodeURIComponent(JSON.stringify({ pickupDate: today }))}`)
+              }
+            />
+            <StatCard
+              label="Rezerwacje na jutro"
+              value={tomorrowCount}
+              hint="Do przygotowania – zestawienie, wydruk, e-mail"
+              onClick={() => navigate('/przygotowanie')}
+            />
+          </>
+        )}
         <StatCard
           label="Newsletter"
           value={confirmed}
-          hint="Potwierdzeni subskrybenci"
-          onClick={() => navigate('/newsletter')}
+          hint={
+            isOwner ? 'Potwierdzeni subskrybenci' : 'Potwierdzeni subskrybenci – wyślesz do nich wpis z „Aktualności”'
+          }
+          onClick={() => navigate(isOwner ? '/newsletter' : '/blog/create')}
         />
       </Stack>
 
@@ -134,14 +148,21 @@ const HomePage = () => {
         <Action icon={<ArticleIcon />} label="Nowy wpis / newsletter" onClick={() => navigate('/blog/create')} />
         <Action icon={<CampaignIcon />} label="Baner informacyjny" onClick={() => navigate('/announcements')} />
         <Action icon={<EditCalendarIcon />} label="Trasa chlebowozu" onClick={() => navigate('/bread-van/locations')} />
-        <Button variant="outlined" startIcon={<OpenInNewIcon />} href={webUrl} target="_blank" rel="noreferrer" sx={{ justifyContent: 'flex-start' }}>
+        <Button
+          variant="outlined"
+          startIcon={<OpenInNewIcon />}
+          href={webUrl}
+          target="_blank"
+          rel="noreferrer"
+          sx={{ justifyContent: 'flex-start' }}
+        >
           Otwórz stronę piekarni
         </Button>
       </Box>
 
       <Typography variant="body2" color="text.secondary" sx={{ mt: 5 }}>
-        Zmiany zapisane w panelu pojawiają się na stronie po kilku sekundach. Odpowiedzi na najczęstsze pytania znajdziesz
-        w zakładce „Pomoc”.
+        Zmiany zapisane w panelu pojawiają się na stronie po kilku sekundach. Odpowiedzi na najczęstsze pytania
+        znajdziesz w zakładce „Pomoc”.
       </Typography>
     </Box>
   );

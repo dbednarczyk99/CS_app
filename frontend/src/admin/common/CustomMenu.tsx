@@ -1,4 +1,4 @@
-import { Menu, useSidebarState } from 'react-admin';
+import { Menu, usePermissions, useSidebarState } from 'react-admin';
 import { Box, Typography, Divider } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 
@@ -16,6 +16,7 @@ import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
+import GroupIcon from '@mui/icons-material/Group';
 
 /** Nagłówek grupy w menu (widoczny przy rozwiniętym menu) */
 const Section = ({ title }: { title: string }) => {
@@ -44,14 +45,21 @@ const notActive = {
 
 export const CustomMenu = () => {
   const { pathname } = useLocation();
+  // rezerwacje, lista subskrybentów i konta – tylko właściciel
+  const { permissions } = usePermissions();
+  const isOwner = permissions === 'ADMIN';
   return (
     <Menu>
       <Menu.Item to="/" primaryText="Pulpit" leftIcon={<DashboardIcon />} />
       <Menu.Item to="/help" primaryText="Pomoc" leftIcon={<HelpIcon />} />
 
-      <Section title="Rezerwacje" />
-      <Menu.Item to="/reservations" primaryText="Rezerwacje" leftIcon={<ReceiptLongIcon />} />
-      <Menu.Item to="/przygotowanie" primaryText="Do przygotowania" leftIcon={<ChecklistIcon />} />
+      {isOwner && (
+        <>
+          <Section title="Rezerwacje" />
+          <Menu.Item to="/reservations" primaryText="Rezerwacje" leftIcon={<ReceiptLongIcon />} />
+          <Menu.Item to="/przygotowanie" primaryText="Do przygotowania" leftIcon={<ChecklistIcon />} />
+        </>
+      )}
 
       <Section title="Oferta" />
       <Menu.Item
@@ -78,7 +86,14 @@ export const CustomMenu = () => {
       <Section title="Komunikacja" />
       <Menu.Item to="/blog" primaryText="Aktualności (blog)" leftIcon={<ArticleIcon />} />
       <Menu.Item to="/announcements" primaryText="Baner informacyjny" leftIcon={<CampaignIcon />} />
-      <Menu.Item to="/newsletter" primaryText="Newsletter" leftIcon={<MarkEmailReadIcon />} />
+      {isOwner && <Menu.Item to="/newsletter" primaryText="Newsletter" leftIcon={<MarkEmailReadIcon />} />}
+
+      {isOwner && (
+        <>
+          <Section title="Ustawienia" />
+          <Menu.Item to="/users" primaryText="Konta" leftIcon={<GroupIcon />} />
+        </>
+      )}
     </Menu>
   );
 };

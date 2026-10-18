@@ -56,6 +56,23 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
     ],
   },
   {
+    section: 'Konta i hasła',
+    items: [
+      {
+        q: 'Kto ma dostęp do czego?',
+        a: 'Właściciel widzi wszystko, w tym rezerwacje z danymi klientów, listę subskrybentów newslettera i konta. Konto „Treści strony” (social media) edytuje produkty, piekarnie, chlebowóz, aktualności, baner i media społecznościowe – bez dostępu do danych klientów.',
+      },
+      {
+        q: 'Jak zmienić swoje hasło?',
+        a: 'Kliknij ikonę konta w prawym górnym rogu → „Moje konto”. Nowe hasło musi mieć co najmniej 10 znaków; po zmianie inne urządzenia zostaną wylogowane.',
+      },
+      {
+        q: 'Ktoś zapomniał hasła',
+        a: 'Właściciel ustawia nowe hasło w „Konta” → wybierz osobę → „Nowe hasło”. Gdy hasła zapomni właściciel, osoba administrująca serwerem może je zresetować poleceniem awaryjnym.',
+      },
+    ],
+  },
+  {
     section: 'Komunikacja z klientami',
     items: [
       {

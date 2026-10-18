@@ -23,6 +23,8 @@ import { weekdayName } from './admin/common/weekdays';
 import HomePage from './admin/pages/HomePage';
 import HelpPage from './admin/pages/HelpPage';
 import PreparationPage from './admin/pages/PreparationPage';
+import AccountPage from './admin/pages/AccountPage';
+import { UserCreate, UserEdit, UserList } from './admin/components/users';
 import { ReservationList, ReservationShow } from './admin/components/reservations';
 import { AdminLayout } from './admin/common/AdminLayout';
 import { LoginPage } from './admin/common/LoginPage';
@@ -30,7 +32,8 @@ import { BlogCreate, BlogEdit, BlogList } from './admin/components/blog';
 import { AnnouncementCreate, AnnouncementEdit, AnnouncementList } from './admin/components/announcements';
 import { NewsletterList } from './admin/components/newsletter';
 
-// nazwy sekcji i pól są w i18n.ts; recordRepresentation = jak rekord nazywa się w tytułach („Produkt: Jagodzianka”)
+// nazwy sekcji i pól są w i18n.ts; recordRepresentation = jak rekord nazywa się w tytułach („Produkt: Jagodzianka”).
+// Rezerwacje, lista subskrybentów i konta tylko dla właściciela (ADMIN) – serwer pilnuje tego niezależnie.
 function App() {
   return (
     <Admin
@@ -45,51 +48,87 @@ function App() {
       layout={AdminLayout}
       loginPage={LoginPage}
     >
-      <CustomRoutes>
-        <Route path="/help" element={<HelpPage />} />
-        <Route path="/przygotowanie" element={<PreparationPage />} />
-      </CustomRoutes>
-      <Resource name="reservations" list={ReservationList} show={ReservationShow} recordRepresentation="number" />
-      <Resource name="products" list={ProductList} create={ProductCreate} edit={ProductEdit} recordRepresentation="name" />
-      <Resource
-        name="products/categories"
-        list={CategoryList}
-        create={CategoryCreate}
-        edit={CategoryEdit}
-        recordRepresentation="name"
-      />
-      <Resource
-        name="contact/info"
-        list={ContactInfoList}
-        create={ContactInfoCreate}
-        edit={ContactInfoEdit}
-        recordRepresentation="value"
-      />
-      <Resource
-        name="contact/locations"
-        list={LocationList}
-        create={LocationCreate}
-        edit={LocationEdit}
-        recordRepresentation="address"
-      />
-      <Resource name="contact/media" list={MediaList} create={MediaCreate} edit={MediaEdit} recordRepresentation="name" />
-      <Resource name="bread-van/description" show={BreadVanDescriptionShow} edit={BreadVanDescriptionEdit} />
-      <Resource
-        name="bread-van/locations"
-        list={BreadVanScheduleList}
-        create={BreadVanScheduleCreate}
-        edit={BreadVanScheduleEdit}
-        recordRepresentation={(r) => `${weekdayName(r.dayOfTheWeek)} – ${r.address}`}
-      />
-      <Resource name="blog" list={BlogList} create={BlogCreate} edit={BlogEdit} recordRepresentation="title" />
-      <Resource
-        name="announcements"
-        list={AnnouncementList}
-        create={AnnouncementCreate}
-        edit={AnnouncementEdit}
-        recordRepresentation="message"
-      />
-      <Resource name="newsletter" list={NewsletterList} recordRepresentation="email" />
+      {(permissions) => {
+        const isOwner = permissions === 'ADMIN';
+        return (
+          <>
+            <CustomRoutes>
+              <Route path="/help" element={<HelpPage />} />
+              <Route path="/konto" element={<AccountPage />} />
+              {isOwner && <Route path="/przygotowanie" element={<PreparationPage />} />}
+            </CustomRoutes>
+            {isOwner && (
+              <Resource
+                name="reservations"
+                list={ReservationList}
+                show={ReservationShow}
+                recordRepresentation="number"
+              />
+            )}
+            <Resource
+              name="products"
+              list={ProductList}
+              create={ProductCreate}
+              edit={ProductEdit}
+              recordRepresentation="name"
+            />
+            <Resource
+              name="products/categories"
+              list={CategoryList}
+              create={CategoryCreate}
+              edit={CategoryEdit}
+              recordRepresentation="name"
+            />
+            <Resource
+              name="contact/info"
+              list={ContactInfoList}
+              create={ContactInfoCreate}
+              edit={ContactInfoEdit}
+              recordRepresentation="value"
+            />
+            <Resource
+              name="contact/locations"
+              list={LocationList}
+              create={LocationCreate}
+              edit={LocationEdit}
+              recordRepresentation="address"
+            />
+            <Resource
+              name="contact/media"
+              list={MediaList}
+              create={MediaCreate}
+              edit={MediaEdit}
+              recordRepresentation="name"
+            />
+            <Resource name="bread-van/description" show={BreadVanDescriptionShow} edit={BreadVanDescriptionEdit} />
+            <Resource
+              name="bread-van/locations"
+              list={BreadVanScheduleList}
+              create={BreadVanScheduleCreate}
+              edit={BreadVanScheduleEdit}
+              recordRepresentation={(r) => `${weekdayName(r.dayOfTheWeek)} – ${r.address}`}
+            />
+            <Resource name="blog" list={BlogList} create={BlogCreate} edit={BlogEdit} recordRepresentation="title" />
+            <Resource
+              name="announcements"
+              list={AnnouncementList}
+              create={AnnouncementCreate}
+              edit={AnnouncementEdit}
+              recordRepresentation="message"
+            />
+            {isOwner && <Resource name="newsletter" list={NewsletterList} recordRepresentation="email" />}
+            {isOwner && (
+              <Resource
+                name="users"
+                list={UserList}
+                create={UserCreate}
+                edit={UserEdit}
+                recordRepresentation={(r) => r.name || r.login}
+              />
+            )}
+          </>
+        );
+      }}
     </Admin>
   );
 }

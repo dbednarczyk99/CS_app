@@ -22,10 +22,15 @@ enum Role {
 }
 
 model User {
-  id       String @id @default(uuid())
-  role     Role
-  login    String @unique
-  password String
+  id           String   @id @default(uuid())
+  role         Role
+  login        String   @unique
+  // nazwa wyświetlana w panelu, np. „Właściciel”
+  name         String?  @db.VarChar(60)
+  password     String
+  // zwiększana przy zmianie hasła – wcześniejsze tokeny (sesje) przestają działać
+  tokenVersion Int      @default(0)
+  createdAt    DateTime @default(now())
 }
 
 // PRODUCTS

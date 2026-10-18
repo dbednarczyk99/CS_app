@@ -16,27 +16,20 @@ async function main() {
 
   // --- USERS ---
   await prisma.user.deleteMany();
+  // dwa konta jak docelowo: właściciel (wszystko) i social media (treści strony, bez danych klientów)
   await prisma.user.createMany({
     data: [
       {
         login: 'admin',
+        name: 'Właściciel',
         password: bcrypt.hashSync('admin123', 10),
         role: Role.ADMIN,
       },
       {
-        login: 'editor',
-        password: bcrypt.hashSync('editor123', 10),
+        login: 'social',
+        name: 'Social media',
+        password: bcrypt.hashSync('social12345', 10),
         role: Role.EDITOR,
-      },
-      {
-        login: 'blogger',
-        password: bcrypt.hashSync('blogger123', 10),
-        role: Role.BLOGGER,
-      },
-      {
-        login: 'viewer',
-        password: bcrypt.hashSync('viewer123', 10),
-        role: Role.VIEWER,
       },
     ],
   });

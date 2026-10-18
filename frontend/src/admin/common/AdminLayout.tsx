@@ -1,11 +1,35 @@
-import { AppBar, Layout, TitlePortal, type LayoutProps } from 'react-admin';
-import { Box } from '@mui/material';
+import { forwardRef } from 'react';
+import { AppBar, Layout, Logout, TitlePortal, UserMenu, useUserMenu, type LayoutProps } from 'react-admin';
+import { Link } from 'react-router-dom';
+import { Box, ListItemIcon, ListItemText, MenuItem } from '@mui/material';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import { CustomMenu } from './CustomMenu';
 import { COLORS } from '../../theme';
 
-/** Górny pasek: logo piekarni (w obu trybach pasek jest ciemny), tytuł bieżącej strony */
+/** „Moje konto” w menu konta (prawy górny róg) – dla każdego zalogowanego */
+const AccountMenuItem = forwardRef<HTMLAnchorElement>((props, ref) => {
+  const userMenu = useUserMenu();
+  return (
+    <MenuItem ref={ref} component={Link} to="/konto" onClick={() => userMenu?.onClose()} {...props}>
+      <ListItemIcon>
+        <ManageAccountsIcon fontSize="small" />
+      </ListItemIcon>
+      <ListItemText>Moje konto</ListItemText>
+    </MenuItem>
+  );
+});
+
+/** Górny pasek: logo piekarni (w obu trybach pasek jest ciemny), tytuł bieżącej strony, menu konta */
 const AdminAppBar = () => (
-  <AppBar color="inherit">
+  <AppBar
+    color="inherit"
+    userMenu={
+      <UserMenu>
+        <AccountMenuItem />
+        <Logout />
+      </UserMenu>
+    }
+  >
     <Box
       component="img"
       src="/logo-poziome-biale.png"

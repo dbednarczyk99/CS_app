@@ -110,7 +110,7 @@ const ra: TranslationMessages['ra'] = {
     invalid_form: 'Formularz zawiera błędy – sprawdź zaznaczone pola',
     loading: 'Proszę czekać',
     no: 'Nie',
-    not_found: 'Ten adres jest nieprawidłowy albo link prowadzi do nieistniejącej strony.',
+    not_found: 'Ten adres jest nieprawidłowy albo link prowadzi do nieistniejącej strony',
     select_all_limit_reached: 'Pozycji jest zbyt wiele, by zaznaczyć wszystkie. Zaznaczono pierwsze %{max}.',
     unsaved_changes: 'Część zmian nie została zapisana. Na pewno chcesz je porzucić?',
     yes: 'Tak',
@@ -279,6 +279,7 @@ const resources = {
   },
   announcements: { name: 'Komunikat |||| Baner informacyjny |||| Komunikatów' },
   newsletter: { name: 'Subskrybent |||| Newsletter |||| Subskrybentów' },
+  users: { name: 'Konto |||| Konta |||| Kont' },
 };
 
 const polishMessages = { ra, resources } as unknown as TranslationMessages;
