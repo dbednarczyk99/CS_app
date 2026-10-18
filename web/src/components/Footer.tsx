@@ -19,34 +19,27 @@ export async function Footer() {
 
   return (
     <footer className="border-t border-line bg-coal">
-      <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 md:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr]">
+      {/* komputer: 4 kolumny; telefon/tablet bez „Na skróty” – te same linki są w menu */}
+      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-8 md:grid-cols-2 md:py-14 lg:grid-cols-[1.25fr_1.35fr_1fr_0.7fr] lg:gap-12">
         <div>
           <Image
             src="/images/logo-poziome-biale.png"
             alt="Chleba Smak"
             width={769}
             height={112}
-            className="w-56"
+            className="w-52"
           />
-          <p className="mt-6 max-w-sm leading-relaxed text-stone">
-            Rzemieślnicza piekarnia z Krakowa. Chleb na naturalnym zakwasie i słodkie wypieki
-            przygotowywane każdego dnia od świtu.
+          <p className="mt-5 max-w-xs text-sm leading-relaxed text-stone">
+            Rzemieślnicza piekarnia z Krakowa. Chleb na naturalnym zakwasie i słodkie wypieki – codziennie od świtu.
           </p>
-          <div className="mt-6">
-            <SocialLinks media={media} size={22} />
+          <div className="mt-5">
+            <SocialLinks media={media} size={20} />
           </div>
-          <h2 className="eyebrow mt-10">Newsletter</h2>
-          <p className="mt-3 max-w-sm text-sm leading-relaxed text-stone">
-            Nowości, promocje, konkursy i ważne zmiany – prosto na Twoją skrzynkę.
-          </p>
-          <NewsletterButton className="btn btn-outline mt-4 min-h-10 px-4 py-2 text-[0.7rem]">
-            <FaEnvelope size={11} aria-hidden /> Zapisz się
-          </NewsletterButton>
         </div>
 
         <div>
           <h2 className="eyebrow">Nasze piekarnie</h2>
-          <ul className="mt-5 space-y-4 text-sm">
+          <ul className="mt-4 space-y-3 text-sm">
             {locations.map((location) => (
               <li key={location.id}>
                 <a
@@ -71,8 +64,37 @@ export async function Footer() {
         </div>
 
         <div>
+          {(phone || email) && (
+            <>
+              <h2 className="eyebrow">Kontakt</h2>
+              <ul className="mt-4 space-y-2 text-sm">
+                {phone && (
+                  <li>
+                    <a href={telHref(phone)} className="text-cream transition-colors hover:text-gold">
+                      {phone}
+                    </a>
+                  </li>
+                )}
+                {email && (
+                  <li>
+                    <a href={`mailto:${email}`} className="break-all text-cream transition-colors hover:text-gold">
+                      {email}
+                    </a>
+                  </li>
+                )}
+              </ul>
+            </>
+          )}
+          <h2 className={`eyebrow ${phone || email ? 'mt-8' : ''}`}>Newsletter</h2>
+          <p className="mt-3 max-w-xs text-sm leading-relaxed text-stone">Nowości, promocje i konkursy – prosto na skrzynkę.</p>
+          <NewsletterButton className="btn btn-outline mt-4 min-h-10 px-4 py-2 text-[0.7rem]">
+            <FaEnvelope size={11} aria-hidden /> Zapisz się
+          </NewsletterButton>
+        </div>
+
+        <div className="hidden lg:block">
           <h2 className="eyebrow">Na skróty</h2>
-          <ul className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 text-sm lg:grid-cols-1">
+          <ul className="mt-4 space-y-2.5 text-sm">
             {NAV.map((item) => (
               <li key={item.href}>
                 <Link href={item.href} className="text-stone transition-colors hover:text-gold">
@@ -81,27 +103,11 @@ export async function Footer() {
               </li>
             ))}
           </ul>
-          {phone && (
-            <>
-              <h2 className="eyebrow mt-10">Zadzwoń do nas</h2>
-              <a href={telHref(phone)} className="mt-4 block text-sm text-cream transition-colors hover:text-gold">
-                {phone}
-              </a>
-            </>
-          )}
-          {email && (
-            <>
-              <h2 className="eyebrow mt-10">Napisz do nas</h2>
-              <a href={`mailto:${email}`} className="mt-4 block text-sm text-cream transition-colors hover:text-gold">
-                {email}
-              </a>
-            </>
-          )}
         </div>
       </div>
 
       <div className="border-t border-line">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 py-6 text-xs tracking-wide text-stone sm:px-8">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 py-5 text-xs tracking-wide text-stone sm:px-8">
           <p>© {new Date().getFullYear()} Chleba Smak · Piekarnia Rzemieślnicza · Kraków</p>
           <nav aria-label="Dokumenty" className="flex gap-5">
             <Link href="/regulamin" className="transition-colors hover:text-gold">

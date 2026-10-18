@@ -11,21 +11,18 @@ const MIDDLE = Math.floor(COPIES / 2);
  * Zapętlona karuzela w szerokości kontenera: widać tyle elementów, ile mieści się w całości (liczba na
  * ekran z klas `perView`, np. „[--n:1] sm:[--n:2] lg:[--n:4]”). Po dojechaniu do kopii pozycja niezauważalnie
  * wraca na oryginał. Przewija się co 4 s (pauza po najechaniu/dotknięciu, bez automatu przy
- * prefers-reduced-motion), strzałki i gest palcem.
- * overlayArrows: strzałki na elementach od tabletu (na telefonie zawsze pod spodem, przy paskach pozycji).
+ * prefers-reduced-motion), strzałki pod spodem (przy paskach pozycji) i gest palcem.
  */
 export function LoopCarousel({
   items,
   label,
   perView,
   gap = '[--gap:0.75rem]',
-  overlayArrows = false,
 }: {
   items: { key: string; node: ReactNode }[];
   label: string;
   perView: string;
   gap?: string;
-  overlayArrows?: boolean;
 }) {
   const n = items.length;
   const viewport = useRef<HTMLDivElement>(null);
@@ -91,13 +88,8 @@ export function LoopCarousel({
   const position = loop ? index : 0;
   const current = ((index % n) + n) % n;
 
-  // strzałki na elementach (tablet/komputer)
-  const overlayArrow =
-    'absolute top-1/2 z-10 hidden size-11 -translate-y-1/2 place-items-center border border-cream/30 bg-ink/70 text-cream backdrop-blur-sm transition-colors hover:border-gold hover:text-gold sm:grid';
   // strzałki pod karuzelą – bez tła, niczego nie zasłaniają
-  const rowArrow = `grid size-10 shrink-0 place-items-center text-cream/60 transition-colors hover:text-gold ${
-    overlayArrows ? 'sm:hidden' : ''
-  }`;
+  const rowArrow = 'grid size-10 shrink-0 place-items-center text-cream/60 transition-colors hover:text-gold';
 
   return (
     <div
@@ -148,18 +140,6 @@ export function LoopCarousel({
             })}
           </ul>
         </div>
-
-        {/* strzałki wyśrodkowane względem elementów */}
-        {loop && overlayArrows && (
-          <>
-            <button type="button" onClick={() => go(index - 1)} aria-label="Poprzednie" className={`${overlayArrow} left-3`}>
-              <FaChevronLeft size={14} aria-hidden />
-            </button>
-            <button type="button" onClick={() => go(index + 1)} aria-label="Następne" className={`${overlayArrow} right-3`}>
-              <FaChevronRight size={14} aria-hidden />
-            </button>
-          </>
-        )}
       </div>
 
       {/* pod karuzelą: paski pozycji (jeden na element) i strzałki po bokach */}
