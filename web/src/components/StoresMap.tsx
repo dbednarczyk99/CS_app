@@ -11,6 +11,7 @@ import { FaBreadSlice, FaLocationArrow, FaPhone, FaTruck, FaXmark } from 'react-
 import type { BreadVanStop, Location, Weekday } from '@/lib/api';
 import { WEEKDAYS, hoursFor, telHref, weekdayOf } from '@/lib/format';
 import { OpenStatus } from './OpenStatus';
+import { MapLoadCounter } from './MapLoadCounter';
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? '';
 // Map ID ze stylem z docs/mapa-styl.json; DEMO_MAP_ID = domyślna ciemna mapa Google (z obcymi pinezkami)
@@ -156,6 +157,7 @@ export function StoresMap({
             >
               <FitBounds points={points} />
               <PanTo point={selected} />
+              <MapLoadCounter source={initialFilter === 'van' ? 'chlebowoz' : 'piekarnie'} />
               {points.map((point) => (
                 <PointMarker
                   key={point.id}

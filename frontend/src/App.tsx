@@ -24,6 +24,7 @@ import HomePage from './admin/pages/HomePage';
 import HelpPage from './admin/pages/HelpPage';
 import PreparationPage from './admin/pages/PreparationPage';
 import AccountPage from './admin/pages/AccountPage';
+import StatsPage from './admin/pages/StatsPage';
 import { UserCreate, UserEdit, UserList } from './admin/components/users';
 import { ReservationList, ReservationShow } from './admin/components/reservations';
 import { AdminLayout } from './admin/common/AdminLayout';
@@ -56,6 +57,7 @@ function App() {
               <Route path="/help" element={<HelpPage />} />
               <Route path="/konto" element={<AccountPage />} />
               {isOwner && <Route path="/przygotowanie" element={<PreparationPage />} />}
+              {isOwner && <Route path="/statystyki" element={<StatsPage />} />}
             </CustomRoutes>
             {isOwner && (
               <Resource

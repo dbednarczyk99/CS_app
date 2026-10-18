@@ -82,6 +82,7 @@ ${
     .join('\n');
 
   return {
+    category: 'kontakt',
     to,
     replyTo: `${m.name.replace(/[<>"]/g, '')} <${m.email}>`,
     subject,

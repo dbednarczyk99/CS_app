@@ -17,6 +17,7 @@ import ChecklistIcon from '@mui/icons-material/Checklist';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import GroupIcon from '@mui/icons-material/Group';
+import InsightsIcon from '@mui/icons-material/Insights';
 
 /** Nagłówek grupy w menu (widoczny przy rozwiniętym menu) */
 const Section = ({ title }: { title: string }) => {
@@ -51,6 +52,7 @@ export const CustomMenu = () => {
   return (
     <Menu>
       <Menu.Item to="/" primaryText="Pulpit" leftIcon={<DashboardIcon />} />
+      {isOwner && <Menu.Item to="/statystyki" primaryText="Statystyki" leftIcon={<InsightsIcon />} />}
       <Menu.Item to="/help" primaryText="Pomoc" leftIcon={<HelpIcon />} />
 
       {isOwner && (

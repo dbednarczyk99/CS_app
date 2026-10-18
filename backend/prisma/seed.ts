@@ -6,6 +6,7 @@ import {
   MediaName,
 } from '@prisma/client';
 import { randomBytes } from 'crypto';
+import { seedStats } from './seed-stats';
 import 'dotenv/config';
 import * as bcrypt from 'bcrypt';
 
@@ -767,6 +768,10 @@ async function main() {
   }
 
   console.log('✅ Reservations seeded');
+
+  // --- STATYSTYKI (fikcyjna historia) ---
+  await seedStats(prisma, warsawToday);
+  console.log('✅ Stats seeded');
   console.log('✅ All seed data created');
 }
 

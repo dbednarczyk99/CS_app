@@ -19,6 +19,7 @@ import { RevalidateModule } from './modules/revalidate/revalidate.module';
 import { ContactMessagesModule } from './modules/contact/messages/contact-messages.module';
 import { AnnouncementsModule } from './modules/announcements/announcements.module';
 import { NewsletterModule } from './modules/newsletter/newsletter.module';
+import { StatsModule } from './modules/stats/stats.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { NewsletterModule } from './modules/newsletter/newsletter.module';
     ContactInfoModule,
     LocationsModule,
     MailModule,
+    StatsModule,
     ReservationsModule,
     RevalidateModule,
     ContactMessagesModule,

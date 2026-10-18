@@ -54,6 +54,7 @@ ${paragraph(
 )}`;
 
   return {
+    category: 'newsletter',
     to: to.email,
     subject: `${article.title} – Chleba Smak`,
     html: layout(
@@ -96,6 +97,7 @@ ${paragraph(
 ${paragraph(`Link nie działa? Skopiuj go do przeglądarki:<br><span style="color:${C.cream};word-break:break-all">${esc(confirmUrl)}</span>`, '#8f877b')}`;
 
   return {
+    category: 'newsletter-zapis',
     to: email,
     subject: 'Potwierdź zapis do newslettera – Chleba Smak',
     html: layout(

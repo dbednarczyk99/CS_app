@@ -46,7 +46,8 @@ Miejsca wymagające uzupełnienia lub decyzji oznaczono w dokumentach jako `[[�
 Dodatkowo:
 - Pracownik może w panelu użyć przycisku **„Usuń dane klienta”**, który działa jak anonimizacja, ale natychmiast. Służy do obsługi żądań z art. 17 RODO.
 - Formularz kontaktowy wysyła wiadomość e-mailem na skrzynkę piekarni (zob. pkt 5.15).
-- **Brak** analityki (Google Analytics itp.), pikseli reklamowych i wtyczek mediów społecznościowych. Newsletter – zob. pkt 5.16.
+- **Brak** zewnętrznej analityki (Google Analytics itp.), pikseli reklamowych i wtyczek mediów społecznościowych. Newsletter – zob. pkt 5.16.
+- **Własne anonimowe statystyki** (panel „Statystyki”, polityka pkt 2.3): dzienne liczniki odsłon podstron (ścieżki bez identyfikatorów, np. „strony produktów”), wczytań mapy Google i wysłanych e-maili. Bez cookies i bez zapisywania IP; adres IP tylko chwilowo w pamięci serwera do limitu zdarzeń (300 / 10 min z jednego adresu). Pytanie: czy przy takim zakresie wystarczy informacja w polityce prywatności (założenie: brak danych osobowych w zapisanych statystykach, brak dostępu do urządzenia użytkownika w rozumieniu art. 399 Prawa komunikacji elektronicznej poza samym wysłaniem żądania przez stronę).
 
 ## 4. Podmioty zewnętrzne
 

@@ -8,6 +8,7 @@ import ArticleIcon from '@mui/icons-material/Article';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import InsightsIcon from '@mui/icons-material/Insights';
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const webUrl = import.meta.env.VITE_WEB_URL || 'http://localhost:3001';
@@ -148,6 +149,7 @@ const HomePage = () => {
         <Action icon={<ArticleIcon />} label="Nowy wpis / newsletter" onClick={() => navigate('/blog/create')} />
         <Action icon={<CampaignIcon />} label="Baner informacyjny" onClick={() => navigate('/announcements')} />
         <Action icon={<EditCalendarIcon />} label="Trasa chlebowozu" onClick={() => navigate('/bread-van/locations')} />
+        {isOwner && <Action icon={<InsightsIcon />} label="Statystyki i koszty" onClick={() => navigate('/statystyki')} />}
         <Button
           variant="outlined"
           startIcon={<OpenInNewIcon />}

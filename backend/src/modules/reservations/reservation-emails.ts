@@ -256,6 +256,7 @@ ${r.notes ? `<div style="margin-top:22px">${eyebrow('Twoje uwagi')}</div>${parag
     .join('\n');
 
   return {
+    category: 'rezerwacja',
     to: r.customerEmail,
     subject: `Rezerwacja ${r.number} przyjęta – Chleba Smak`,
     html: layout(
@@ -281,6 +282,7 @@ ${itemsTable(r)}
 <div style="margin-top:30px">${button(`${ctx.webUrl}/oferta`, 'Zarezerwuj ponownie', 'gold')}</div>`;
 
   return {
+    category: 'anulowanie',
     to: r.customerEmail,
     subject: `Rezerwacja ${r.number} anulowana – Chleba Smak`,
     html: layout(`Rezerwacja ${r.number} została anulowana`, content, ctx),
