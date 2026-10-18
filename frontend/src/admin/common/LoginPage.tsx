@@ -41,9 +41,10 @@ export const LoginPage = () => (
       {/* formularz react-admina: login, hasło, przycisk; komunikaty błędów po polsku (i18n) */}
       <Box
         sx={{
-          px: { xs: 1, sm: 3 },
-          pb: 3,
-          '& .MuiCardContent-root': { pt: 0 },
+          // te same marginesy co logo i nagłówek; pola na całą szerokość okienka (react-admin ma stałe 300 px)
+          px: { xs: 3, sm: 5 },
+          pb: 4,
+          '& .RaLoginForm-content': { width: 'auto', p: 0, pb: '0 !important' },
           '& .MuiButton-root': { mt: 1, py: 1.25 },
         }}
       >
