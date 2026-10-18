@@ -7,6 +7,7 @@ export const MAX_ACTIVE_PER_PHONE = 3;
 export const DEFAULT_STORE_HOURS: [string, string] = ['07:00', '18:00'];
 const SLOT_MINUTES = 30;
 
+
 const TIME_ZONE = 'Europe/Warsaw';
 const WEEKDAYS: Weekday[] = [
   Weekday.SUNDAY,
@@ -115,15 +116,20 @@ const toHHMM = (minutes: number) =>
   `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 
 /** Godziny odbioru co 30 min w godzinach otwarcia (ostatnia 30 min przed zamknięciem) */
-export function pickupSlots([from, to]: [string, string]): string[] {
+export function pickupSlots(
+  [from, to]: [string, string],
+  step = SLOT_MINUTES,
+): string[] {
   const slots: string[] = [];
-  for (
-    let m = toMinutes(from);
-    m <= toMinutes(to) - SLOT_MINUTES;
-    m += SLOT_MINUTES
-  )
+  for (let m = toMinutes(from); m <= toMinutes(to) - step; m += step)
     slots.push(toHHMM(m));
   return slots;
+}
+
+/** Szacowana godzina przyjścia do chlebowozu: co 30 min jak w piekarni (ostatnia 30 min przed odjazdem; bardzo krótki postój = sam początek) */
+export function vanPickupSlots(from: string, to: string): string[] {
+  const slots = pickupSlots([from, to]);
+  return slots.length ? slots : [toHHMM(toMinutes(from))];
 }
 
 /** Numer telefonu w formacie +48XXXXXXXXX (polskie numery) lub null, gdy niepoprawny */

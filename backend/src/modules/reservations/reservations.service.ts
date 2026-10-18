@@ -27,6 +27,7 @@ import {
   isValidDateString,
   normalizePhone,
   pickupSlots,
+  vanPickupSlots,
   storeHoursOn,
   warsawNow,
   weekdayOf,
@@ -46,6 +47,8 @@ export interface ReservationOptions {
     slots: Record<string, string[]>;
     /** godziny otwarcia w danym dniu (z panelu) – do podpowiedzi „Odbiór między …” */
     hours: Record<string, { open: string; close: string }>;
+    lat: number | null;
+    lng: number | null;
   }[];
   vanStops: {
     id: string;
@@ -53,6 +56,10 @@ export interface ReservationOptions {
     date: string;
     startTime: string;
     endTime: string;
+    /** szacowana godzina przyjścia – co 30 min w czasie postoju (ostatnia 30 min przed odjazdem) */
+    slots: string[];
+    lat: number | null;
+    lng: number | null;
   }[];
 }
 
@@ -89,6 +96,8 @@ export class ReservationsService {
           address: location.address,
           slots,
           hours: openingHours,
+          lat: location.lat,
+          lng: location.lng,
         };
       })
       .filter((store) => Object.keys(store.slots).length > 0);
@@ -102,6 +111,9 @@ export class ReservationsService {
           date,
           startTime: stop.startTime,
           endTime: stop.endTime,
+          slots: vanPickupSlots(stop.startTime, stop.endTime),
+          lat: stop.lat,
+          lng: stop.lng,
         })),
     );
 
@@ -151,8 +163,11 @@ export class ReservationsService {
         throw new BadRequestException(
           'Chlebowóz nie zatrzymuje się w tym miejscu w wybranym dniu',
         );
+      if (!dto.pickupTime || !stop.slots.includes(dto.pickupTime)) {
+        throw new BadRequestException('Wybierz godzinę odbioru z listy');
+      }
       pickupLabel = stop.address;
-      pickupTime = `${stop.startTime}–${stop.endTime}`;
+      pickupTime = dto.pickupTime;
     }
 
     // produkty: aktywne, dostępne do rezerwacji i (sezonowe) w sezonie, każdy tylko raz
@@ -549,6 +564,7 @@ export class ReservationsService {
     return {
       webUrl: this.webUrl(),
       pointPhone: location?.phone ?? null,
+      vanHours: stop ? `${stop.startTime}–${stop.endTime}` : null,
       navigateUrl,
       contactEmail: contact?.value ?? null,
       social: media

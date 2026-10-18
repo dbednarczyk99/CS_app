@@ -39,7 +39,7 @@ export class CreateReservationDto {
   @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'Nieprawidłowa data odbioru' })
   pickupDate: string;
 
-  /** wymagana dla piekarni, ignorowana dla chlebowozu */
+  /** szacowana godzina odbioru – z listy terminów piekarni lub postoju chlebowozu */
   @IsOptional()
   @Matches(/^\d{2}:\d{2}$/, { message: 'Nieprawidłowa godzina odbioru' })
   pickupTime?: string;

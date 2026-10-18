@@ -289,7 +289,7 @@ function PointMarker({
 }
 
 /** Smukła pinezka w kształcie kropli: okrągła główka (na ikonę) i wydłużony czubek */
-function Pin({ fill, stroke, strokeWidth }: { fill: string; stroke: string; strokeWidth: number }) {
+export function Pin({ fill, stroke, strokeWidth }: { fill: string; stroke: string; strokeWidth: number }) {
   return (
     <svg
       width="34"

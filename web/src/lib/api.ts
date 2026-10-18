@@ -143,8 +143,20 @@ export interface ReservationOptions {
     slots: Record<string, string[]>;
     /** godziny otwarcia w danym dniu (z panelu) */
     hours: Record<string, { open: string; close: string }>;
+    lat: number | null;
+    lng: number | null;
   }[];
-  vanStops: { id: string; address: string; date: string; startTime: string; endTime: string }[];
+  vanStops: {
+    id: string;
+    address: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    /** szacowana godzina przyjścia – co 30 min w czasie postoju (ostatnia 30 min przed odjazdem) */
+    slots: string[];
+    lat: number | null;
+    lng: number | null;
+  }[];
 }
 
 /** Rezerwacja widoczna dla klienta (potwierdzenie, anulowanie) */

@@ -27,6 +27,8 @@ export interface EmailContext {
   webUrl: string;
   /** telefon punktu odbioru (piekarni); dla chlebowozu zwykle brak */
   pointPhone?: string | null;
+  /** godziny postoju chlebowozu, np. 07:00–09:00 (klient podaje szacowaną godzinę w tym przedziale) */
+  vanHours?: string | null;
   /** link do nawigacji do punktu odbioru */
   navigateUrl?: string | null;
   contactEmail?: string | null;
@@ -170,6 +172,7 @@ function pickupBlock(r: ReservationForEmail, ctx: EmailContext): string {
   ${eyebrow('Odbiór')}
   <div style="margin-top:8px;font-family:${BODY};font-weight:700;font-size:19px;line-height:1.4;color:${C.cream}">${esc(when)}</div>
   <div style="margin-top:6px;font-family:${BODY};font-size:15px;line-height:1.5;color:${C.stone}">${where}: <span style="color:${C.cream}">${esc(r.pickupLabel)}</span></div>
+  ${ctx.vanHours ? `<div style="margin-top:6px;font-family:${BODY};font-size:15px;color:${C.stone}">Chlebowóz stoi w godzinach <span style="color:${C.cream}">${esc(ctx.vanHours)}</span></div>` : ''}
   ${
     ctx.pointPhone
       ? `<div style="margin-top:6px;font-family:${BODY};font-size:15px;color:${C.stone}">Telefon: <a href="tel:${ctx.pointPhone.replace(/\s/g, '')}" style="color:${C.cream};text-decoration:none">${esc(formatPhone(ctx.pointPhone.replace(/\s/g, '').replace(/^(\+48)?/, '+48')))}</a></div>`
@@ -237,6 +240,7 @@ ${r.notes ? `<div style="margin-top:22px">${eyebrow('Twoje uwagi')}</div>${parag
     '',
     `Odbiór: ${formatPickupDate(r.pickupDate)}${r.pickupTime ? `, ${r.pickupTime}` : ''}`,
     `${r.pickupType === 'VAN' ? 'Chlebowóz' : 'Piekarnia'}: ${r.pickupLabel}`,
+    ctx.vanHours ? `Chlebowóz stoi w godzinach ${ctx.vanHours}` : '',
     ctx.pointPhone ? `Telefon: ${ctx.pointPhone}` : '',
     ctx.navigateUrl ? `Nawigacja: ${ctx.navigateUrl}` : '',
     '',
