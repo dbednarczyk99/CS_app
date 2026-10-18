@@ -275,7 +275,9 @@ export const dataProvider: DataProvider = {
     return { data: [] };
   },
 
-  async deleteMany() {
-    return { data: [] };
+  // usuwanie zaznaczonych na liście – po kolei tym samym endpointem co pojedyncze
+  async deleteMany(resource, params) {
+    await Promise.all(params.ids.map((id) => dataProvider.delete(resource, { id })));
+    return { data: params.ids };
   },
 };
