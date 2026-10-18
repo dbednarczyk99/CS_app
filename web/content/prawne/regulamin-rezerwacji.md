@@ -55,7 +55,7 @@ Obowiązuje od: [[DATA WEJŚCIA W ŻYCIE]]
 1. Rezerwacja polega na wskazaniu w Formularzu:
    1. Produktów i ich ilości,
    2. Punktu Odbioru – piekarni albo przystanku Chlebowozu,
-   3. dnia odbioru oraz – w przypadku piekarni – godziny odbioru (w przypadku Chlebowozu godziną odbioru jest przedział czasu postoju na danym przystanku),
+   3. dnia odbioru oraz szacowanej godziny odbioru – w przypadku piekarni w godzinach jej otwarcia, a w przypadku Chlebowozu w czasie postoju na wybranym przystanku,
    4. imienia, numeru telefonu i adresu e-mail Klienta,
    5. opcjonalnie – uwag do Rezerwacji,
 
