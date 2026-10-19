@@ -79,7 +79,8 @@ export default async function ProductPage({ params }: Props) {
             )}
             {!outOfSeason && isOnPromo(product) && product.promoTo && (
               <p className="mt-2 text-sm text-stone">
-                Promocja trwa do {formatDate(`${product.promoTo}T12:00:00`)} – przy rezerwacji obejmuje odbiór do tego dnia.
+                Promocja trwa do {formatDate(`${product.promoTo}T12:00:00`)}.
+                {product.isReservable && ' Rezerwując, wybierz odbiór najpóźniej tego dnia, żeby zapłacić cenę promocyjną.'}
               </p>
             )}
             {badges.length > 0 && (
