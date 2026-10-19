@@ -6,13 +6,34 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaCheck, FaTrash } from 'react-icons/fa6';
 import type { PublicReservation, ReservationOptions } from '@/lib/api';
-import { formatDay, formatPrice, plural } from '@/lib/format';
+import { formatDay, formatDayMonth, formatPrice, plural } from '@/lib/format';
+import { inPromoWindow, priceOn, type PromoWindow } from '@/lib/products';
 import { useReservationCart } from '@/lib/reservation-cart';
 import { QuantityStepper } from './AddToReservation';
 import { DropdownSelect } from './DropdownSelect';
 import { PickupPointPicker, type PickupPoint } from './PickupPointPicker';
 
-type ReservableProduct = { id: string; name: string; price: number; image?: string };
+// price – cena regularna; promo – promocja obniżająca cenę (płaci się cenę z dnia odbioru)
+type ReservableProduct = { id: string; name: string; price: number; promo?: PromoWindow | null; image?: string };
+
+/**
+ * Uwaga o promocji przy produkcie, gdy cena zależy od dnia odbioru (promocja nie obejmuje wszystkich
+ * dostępnych dni). `date` – wybrany dzień odbioru (null – jeszcze nie wybrany).
+ */
+function promoNote(promo: PromoWindow | null | undefined, days: string[], date: string | null) {
+  if (!promo || days.every((d) => inPromoWindow(promo, d)) || !days.some((d) => inPromoWindow(promo, d)))
+    return null;
+  const startsLater = promo.from !== null && days.some((d) => d < promo.from!);
+  const endsEarlier = promo.to !== null && days.some((d) => d > promo.to!);
+  const range = [
+    startsLater && `od ${formatDayMonth(promo.from!)}`,
+    endsEarlier && `do ${formatDayMonth(promo.to!)}`,
+  ]
+    .filter(Boolean)
+    .join(' ');
+  // warn – wybrany dzień odbioru jest poza promocją (zapłaci cenę regularną)
+  return { warn: date !== null && !inPromoWindow(promo, date), range, promoPrice: formatPrice(promo.price) };
+}
 
 const EMPTY_CART_REDIRECT_S = 10;
 
@@ -181,6 +202,19 @@ export function ReservationForm({
   const points = useMemo(() => (date ? pointsOn(options, date) : []), [options, date]);
   const point = points.find((p) => p.key === pointKey) ?? null;
 
+  // ceny na dzień odbioru (tak liczy je API): przed wyborem dnia – na najbliższy dostępny dzień
+  const productById = useMemo(() => new Map(reservable.map((p) => [p.id, p])), [reservable]);
+  const priceDate = date ?? days[0] ?? null;
+  const lines = cart.items.map((item) => {
+    const product = productById.get(item.productId);
+    const regular = product?.price ?? item.price;
+    const unit = priceDate ? priceOn({ price: regular, promo: product?.promo }, priceDate) : item.price;
+    return { ...item, regular, unit, note: promoNote(product?.promo, days, date) };
+  });
+  const total = lines.reduce((sum, l) => sum + l.unit * l.quantity, 0);
+  // produkty, których promocja nie obejmuje wybranego dnia odbioru
+  const outsidePromo = lines.filter((l) => l.note?.warn);
+
   function pickDate(d: string) {
     setDate(d);
     const next = pointsOn(options, d);
@@ -304,7 +338,7 @@ export function ReservationForm({
             </p>
           )}
           <ul className="divide-y divide-line border-y border-line">
-            {cart.items.map((item) => (
+            {lines.map((item) => (
               <li key={item.productId} className="flex items-center gap-4 py-4">
                 <div className="relative size-16 shrink-0 overflow-hidden bg-graphite">
                   {item.image && (
@@ -313,7 +347,25 @@ export function ReservationForm({
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-display uppercase tracking-wide">{item.name}</p>
-                  <p className="text-sm text-stone">{formatPrice(item.price)} / szt.</p>
+                  <p className="text-sm text-stone">
+                    {item.unit < item.regular && (
+                      <>
+                        <s>
+                          <span className="sr-only">Cena regularna: </span>
+                          {formatPrice(item.regular)}
+                        </s>{' '}
+                        <span className="text-gold">{formatPrice(item.unit)}</span>
+                      </>
+                    )}
+                    {item.unit >= item.regular && formatPrice(item.unit)} / szt.
+                  </p>
+                  {item.note && (
+                    <p className={`mt-0.5 text-xs ${item.note.warn ? 'text-gold' : 'text-stone'}`}>
+                      {item.note.warn
+                        ? `Promocja (${item.note.promoPrice}) tylko przy odbiorze ${item.note.range} – w wybranym dniu cena regularna.`
+                        : `Cena promocyjna przy odbiorze ${item.note.range}.`}
+                    </p>
+                  )}
                 </div>
                 <QuantityStepper
                   value={item.quantity}
@@ -367,6 +419,19 @@ export function ReservationForm({
                     </button>
                   ))}
                 </div>
+                {outsidePromo.length > 0 && (
+                  <div role="status" className="mt-4 border border-gold/40 bg-gold/10 px-4 py-3 text-sm leading-relaxed">
+                    <p>Cenę liczymy z dnia odbioru – w wybranym dniu promocja nie obowiązuje:</p>
+                    <ul className="mt-2 space-y-1">
+                      {outsidePromo.map((l) => (
+                        <li key={l.productId}>
+                          <span className="font-semibold">{l.name}</span> – zapłacisz {formatPrice(l.regular)} / szt.
+                          zamiast {l.note!.promoPrice} (promocja przy odbiorze {l.note!.range}).
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </Fieldset>
 
               {date && (
@@ -502,19 +567,22 @@ export function ReservationForm({
         <div className="border border-line bg-coal p-6">
           <h2 className="heading text-xl">Podsumowanie</h2>
           <ul className="mt-5 space-y-2 text-sm">
-            {cart.items.map((i) => (
+            {lines.map((i) => (
               <li key={i.productId} className="flex justify-between gap-4">
                 <span className="text-cream/90">
                   {i.name} <span className="text-stone">× {i.quantity}</span>
                 </span>
-                <span className="shrink-0 tabular-nums">{formatPrice(i.price * i.quantity)}</span>
+                <span className="shrink-0 tabular-nums">{formatPrice(i.unit * i.quantity)}</span>
               </li>
             ))}
           </ul>
           <div className="mt-5 flex items-baseline justify-between border-t border-line pt-4">
             <span className="text-stone">Do zapłaty przy odbiorze</span>
-            <span className="font-display text-2xl text-gold">{formatPrice(cart.total)}</span>
+            <span className="font-display text-2xl text-gold">{formatPrice(total)}</span>
           </div>
+          {!date && lines.some((l) => l.note) && (
+            <p className="mt-2 text-xs text-stone">Kwota może się zmienić po wyborze dnia odbioru (promocje).</p>
+          )}
 
           <div className="mt-5 border-t border-line pt-4 text-sm">
             <p className="eyebrow text-[0.65rem]">Odbiór</p>

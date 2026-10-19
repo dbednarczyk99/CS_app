@@ -211,8 +211,8 @@ export class ReservationsService {
     const items = products.map((p) => ({
       productId: p.id,
       productName: p.name,
-      // cena z dnia złożenia rezerwacji – taka, jaką klient widział na stronie (także promocyjna)
-      unitPrice: new Prisma.Decimal(currentPrice(p)),
+      // cena z dnia odbioru: promocyjna tylko, gdy odbiór mieści się w okresie promocji (formularz pokazuje to samo)
+      unitPrice: new Prisma.Decimal(currentPrice(p, dto.pickupDate)),
       quantity: Math.min(quantities.get(p.id)!, 50),
     }));
     const total = items.reduce(

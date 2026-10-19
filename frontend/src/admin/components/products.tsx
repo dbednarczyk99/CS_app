@@ -123,7 +123,7 @@ const PromoInputs = () => {
           {state && (
             <Typography variant="body2" sx={{ color: state.color, mb: 1 }}>
               Promocja {state.text}.
-              {lowersPrice && ' Na stronie stara cena będzie przekreślona, a rezerwacje w tym czasie – po cenie promocyjnej.'}
+              {lowersPrice && ' Na stronie stara cena będzie przekreślona. Rezerwacje z odbiorem w tym okresie – po cenie promocyjnej (liczy się dzień odbioru, nie złożenia rezerwacji).'}
             </Typography>
           )}
         </>

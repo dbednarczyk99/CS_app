@@ -38,7 +38,7 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Jak ustawić promocję?',
-        a: 'W formularzu produktu włącz „Promocja”. Cena promocyjna jest opcjonalna – bez niej produkt dostaje tylko etykietę „Promocja”. Daty „Od” i „Do” są włącznie; promocja włącza się i wyłącza sama (puste pole = od razu / bez końca). W czasie promocji stara cena jest na stronie przekreślona, a rezerwacje liczą się po cenie promocyjnej. W ofercie pojawia się filtr „Promocje”.',
+        a: 'W formularzu produktu włącz „Promocja”. Cena promocyjna jest opcjonalna – bez niej produkt dostaje tylko etykietę „Promocja”. Daty „Od” i „Do” są włącznie; promocja włącza się i wyłącza sama (puste pole = od razu / bez końca). W czasie promocji stara cena jest na stronie przekreślona. Rezerwacja liczy się po cenie promocyjnej, gdy dzień odbioru mieści się w okresie promocji – jeśli odbiór wypada już po jej końcu, klient płaci cenę regularną (formularz rezerwacji wyraźnie go o tym uprzedza). W ofercie pojawia się filtr „Promocje”.',
       },
       {
         q: 'Kolejność zdjęć',

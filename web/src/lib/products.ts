@@ -15,7 +15,25 @@ export const priceOf = (p: Product) => p.currentPrice ?? p.price;
 /** Cena przed promocją do przekreślenia – tylko gdy promocja obniża cenę */
 export const oldPriceOf = (p: Product) => (priceOf(p) < p.price ? p.price : null);
 
-export type LabelFilter = { key: string; label: string; test: (p: Product) => boolean };
+/** Promocja obniżająca cenę – do przeliczenia ceny na dzień odbioru rezerwacji */
+export type PromoWindow = { price: number; from: string | null; to: string | null };
+
+export const promoWindow = (p: Product): PromoWindow | null =>
+  p.isPromo && p.promoPrice != null && p.promoPrice < p.price
+    ? { price: p.promoPrice, from: p.promoFrom, to: p.promoTo }
+    : null;
+
+/** Dzień (YYYY-MM-DD) mieści się w okresie promocji (daty włącznie, puste = bez ograniczenia) */
+export const inPromoWindow = (w: PromoWindow, date: string) => (!w.from || w.from <= date) && (!w.to || date <= w.to);
+
+/**
+ * Cena przy odbiorze w danym dniu – tak samo liczy ją API przy rezerwacji: promocyjna tylko wtedy,
+ * gdy dzień odbioru mieści się w okresie promocji.
+ */
+export const priceOn = (item: { price: number; promo?: PromoWindow | null }, date: string) =>
+  item.promo && inPromoWindow(item.promo, date) ? item.promo.price : item.price;
+
+export type LabelFilter ={ key: string; label: string; test: (p: Product) => boolean };
 
 /**
  * Filtry etykiet w ofercie (?etykiety=promocje,nowosci): „Promocje”, etykiety z panelu (w kolejności z panelu)
