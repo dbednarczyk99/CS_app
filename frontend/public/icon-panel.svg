@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<style>
+  .l { fill: none; stroke: #141618; stroke-width: 4.5; stroke-linejoin: round; }
+  .a { fill: #c9a36a; stroke: #ffffff; stroke-width: 5; paint-order: stroke; }
+  @media (prefers-color-scheme: dark) {
+    .l { stroke: #f4efe6; }
+    .a { stroke: #202124; }
+  }
+</style>
+<defs><clipPath id="c"><path d="M10 38 C2 33 0 22 4 15 C11 5 30 2 50 2 C70 2 89 5 96 15 C100 22 98 33 92 38 L92 92 Q92 97 87 97 L15 97 Q10 97 10 92 Z"/></clipPath></defs>
+<g transform="translate(4 4) scale(0.92)">
+  <g class="l" clip-path="url(#c)">
+    <path d="M51.6 22.86 L29 -2 M59 20 L59 -2 M66.64 23.08 L86 3 M69.29 27.11 L104 14 M48.79 26.91 L4 9"/>
+    <path d="M11 67 A11 11 0 0 1 33 67 M-2 67 A24 24 0 0 1 46 67 M-15 67 A37 37 0 0 1 59 67 M-27 67 A49 49 0 0 1 48.22 40"/>
+    <path d="M70 37 H100 M0 67 H60 M0 81 H60"/>
+    <path d="M74 100 V50 M74 50 Q67 42 74 32 Q81 42 74 50 Z"/>
+    <path d="M74 64 Q69.9 52.8 58 52 Q62.1 63.2 74 64 Z M74 64 Q85.9 63.2 90 52 Q78.1 52.8 74 64 Z M74 83 Q69.9 71.8 58 71 Q62.1 82.2 74 83 Z M74 83 Q85.9 82.2 90 71 Q78.1 71.8 74 83 Z"/>
+  </g>
+  <circle class="l" cx="59" cy="31" r="11"/>
+  <path class="l" d="M10 38 C2 33 0 22 4 15 C11 5 30 2 50 2 C70 2 89 5 96 15 C100 22 98 33 92 38 L92 92 Q92 97 87 97 L15 97 Q10 97 10 92 Z"/>
+</g>
+<path class="a" fill-rule="evenodd" d="M64 99 L73.5 56 L88.5 56 L98 99 L89.5 99 L87.6 89.5 L74.4 89.5 L72.5 99 Z M76 82 L86 82 L81 60.5 Z"/>
+</svg>
