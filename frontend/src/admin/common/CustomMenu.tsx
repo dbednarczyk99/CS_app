@@ -11,7 +11,6 @@ import ArticleIcon from '@mui/icons-material/Article';
 import ShareIcon from '@mui/icons-material/Share';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import HelpIcon from '@mui/icons-material/Help';
-import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import CampaignIcon from '@mui/icons-material/Campaign';
@@ -54,7 +53,6 @@ export const CustomMenu = () => {
     <Menu>
       <Menu.Item to="/" primaryText="Pulpit" leftIcon={<DashboardIcon />} />
       <Menu.Item to="/statystyki" primaryText="Statystyki" leftIcon={<InsightsIcon />} />
-      <Menu.Item to="/help" primaryText="Pomoc" leftIcon={<HelpIcon />} />
 
       {isOwner && (
         <>
@@ -74,30 +72,28 @@ export const CustomMenu = () => {
       <Menu.Item to="/products/categories" primaryText="Kategorie" leftIcon={<CategoryIcon />} />
       <Menu.Item to="/products/labels" primaryText="Etykiety" leftIcon={<LocalOfferIcon />} />
 
-      <Section title="Piekarnie i kontakt" />
+      <Section title="Marketing" />
+      <Menu.Item to="/blog" primaryText="Aktualności i newsletter" leftIcon={<ArticleIcon />} />
+      <Menu.Item to="/announcements" primaryText="Baner informacyjny" leftIcon={<CampaignIcon />} />
+      {isOwner && <Menu.Item to="/newsletter" primaryText="Subskrybenci" leftIcon={<MarkEmailReadIcon />} />}
+
+      <Section title="Piekarnie" />
       <Menu.Item to="/contact/locations" primaryText="Piekarnie" leftIcon={<StorefrontIcon />} />
+      {/* trasa i opis – jeden ekran z zakładkami; pozycja podświetlona na obu */}
+      <Menu.Item
+        to="/bread-van/locations"
+        primaryText="Chlebowóz"
+        leftIcon={<DirectionsBusFilledIcon />}
+        className={pathname.startsWith('/bread-van') ? 'RaMenuItemLink-active' : undefined}
+      />
+
+      <Section title="Kontakt" />
       <Menu.Item to="/contact/info" primaryText="Dane kontaktowe" leftIcon={<PhoneIcon />} />
       <Menu.Item to="/contact/media" primaryText="Media społecznościowe" leftIcon={<ShareIcon />} />
 
-      <Section title="Chlebowóz" />
-      <Menu.Item to="/bread-van/locations" primaryText="Trasa" leftIcon={<EditCalendarIcon />} />
-      <Menu.Item
-        to="/bread-van/description/view/show"
-        primaryText="Opis i zdjęcia"
-        leftIcon={<DirectionsBusFilledIcon />}
-      />
-
-      <Section title="Komunikacja" />
-      <Menu.Item to="/blog" primaryText="Aktualności (blog)" leftIcon={<ArticleIcon />} />
-      <Menu.Item to="/announcements" primaryText="Baner informacyjny" leftIcon={<CampaignIcon />} />
-      {isOwner && <Menu.Item to="/newsletter" primaryText="Newsletter" leftIcon={<MarkEmailReadIcon />} />}
-
-      {isOwner && (
-        <>
-          <Section title="Ustawienia" />
-          <Menu.Item to="/users" primaryText="Konta" leftIcon={<GroupIcon />} />
-        </>
-      )}
+      <Section title="Ustawienia" />
+      {isOwner && <Menu.Item to="/users" primaryText="Konta" leftIcon={<GroupIcon />} />}
+      <Menu.Item to="/help" primaryText="Pomoc" leftIcon={<HelpIcon />} />
     </Menu>
   );
 };

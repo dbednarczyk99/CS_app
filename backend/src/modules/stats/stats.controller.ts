@@ -84,6 +84,13 @@ export class StatsController {
     else this.service.increment(dto.type, dto.key);
   }
 
+  /** Pulpit „Marketing” (strona startowa panelu) – dla obu ról, bez danych klientów i kosztów */
+  @Roles(...CONTENT_ROLES)
+  @Get('marketing')
+  marketing() {
+    return this.service.marketingOverview();
+  }
+
   /**
    * Zestawienie dla panelu. Właściciel – całość (limity, koszty, e-maile, rezerwacje);
    * treści strony (marketing) – tylko odwiedziny, źródła ruchu, najczęściej odwiedzane podstrony i produkty.

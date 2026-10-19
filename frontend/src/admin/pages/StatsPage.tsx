@@ -679,8 +679,8 @@ function NewslettersSection({ items }: { items: NonNullable<Stats['newsletters']
   return (
     <Section title="Newslettery" icon={<MarkEmailReadIcon />} sx={{ mt: 2, height: 'auto' }}>
       <Typography variant="caption" color="text.secondary">
-        Ostatnie wysyłki – wejścia na stronę z linków w e-mailu (od wysyłki do dziś). Liczone bez pikseli śledzących,
-        więc samo otwarcie e-maila nie jest widoczne.
+        Ostatnie wysyłki – wejścia na stronę z linków w e-mailu (od wysyłki do dziś; jedna osoba może wejść kilka razy,
+        np. z przekazanego dalej e-maila). Liczone bez pikseli śledzących, więc samo otwarcie e-maila nie jest widoczne.
       </Typography>
       {items.length === 0 ? (
         <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
@@ -706,9 +706,10 @@ function NewslettersSection({ items }: { items: NonNullable<Stats['newsletters']
                   <TableCell align="right">{fmt(n.recipients)}</TableCell>
                   <TableCell align="right">
                     <strong>{fmt(n.visits)}</strong>
-                    {n.recipients > 0 && (
+                    {/* wejścia to kliknięcia (ta sama osoba może wejść kilka razy) – bez procentu odbiorców */}
+                    {n.articleVisits > 0 && n.articleVisits !== n.visits && (
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                        {Math.round((n.visits / n.recipients) * 100)}% odbiorców
+                        w tym do wpisu: {fmt(n.articleVisits)}
                       </Typography>
                     )}
                   </TableCell>
