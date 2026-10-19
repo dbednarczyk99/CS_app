@@ -6,11 +6,13 @@ import { PageHeader } from '@/components/PageHeader';
 import { SocialLinks } from '@/components/SocialLinks';
 import { api, orFallback } from '@/lib/api';
 import { instagramProfile, telHref } from '@/lib/format';
+import { pageMetadata } from '@/lib/site';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Kontakt',
   description: 'Skontaktuj się z piekarnią Chleba Smak – telefony do piekarni, e-mail i formularz kontaktowy.',
-};
+  path: '/kontakt',
+});
 
 export default async function ContactPage() {
   const [locations, contact, media] = await Promise.all([

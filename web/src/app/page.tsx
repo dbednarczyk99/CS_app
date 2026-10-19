@@ -12,6 +12,18 @@ import { api, orFallback } from '@/lib/api';
 import { featuredProducts, isAvailable } from '@/lib/products';
 import { formatDate, plural } from '@/lib/format';
 import { buildHeroSlides } from '@/lib/heroSlides';
+import { articlePath } from '@/lib/site';
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site';
+import { JsonLd } from '@/components/JsonLd';
+import { bakeryLd } from '@/lib/structured-data';
+
+export const metadata: Metadata = pageMetadata({
+  title: null,
+  description:
+    'Rzemieślnicza piekarnia z Krakowa: chleb na naturalnym zakwasie, słodkie wypieki i chlebowóz. Nasze piekarnie znajdziesz w różnych częściach Krakowa.',
+  path: '/',
+});
 
 const VALUES = [
   {
@@ -47,6 +59,9 @@ export default async function HomePage() {
 
   return (
     <>
+      {/* dane dla Google: każda piekarnia z adresem, położeniem, telefonem i godzinami */}
+      <JsonLd data={locations.map(bakeryLd)} />
+
       {/* HERO – karuzela najważniejszych informacji */}
       <HeroCarousel
         slides={heroSlides}
@@ -218,7 +233,7 @@ export default async function HomePage() {
           <div className="mt-14 grid gap-10 md:grid-cols-3 md:gap-6">
             {latestArticles.map((article, i) => (
               <Reveal key={article.id} delay={i * 100}>
-                <Link href={`/aktualnosci/${article.id}`} className="group block border-t border-line pt-6">
+                <Link href={articlePath(article)} className="group block border-t border-line pt-6">
                   <time dateTime={article.publishedAt} className="eyebrow text-[0.7rem] text-stone">
                     {formatDate(article.publishedAt)}
                   </time>

@@ -4,6 +4,7 @@ import { FaArrowRight } from 'react-icons/fa6';
 import type { Product } from '@/lib/api';
 import { formatPrice } from '@/lib/format';
 import { BADGE_STYLE, isOutOfSeason, oldPriceOf, priceOf, productBadges } from '@/lib/products';
+import { productPath } from '@/lib/site';
 
 /** Akapit wpisu „[produkt:<id> Nazwa]” → id produktu (nazwa jest tylko dla czytelności w panelu) */
 export const tileIdOf = (paragraph: string) =>
@@ -24,7 +25,7 @@ export function ProductTile({ product }: { product: Product }) {
 
   return (
     <Link
-      href={`/oferta/${product.id}`}
+      href={productPath(product)}
       className="group flex gap-4 border border-line bg-coal p-3 transition-colors hover:border-gold/60 sm:gap-6 sm:p-4"
     >
       <div className="relative aspect-[4/5] w-28 shrink-0 overflow-hidden bg-graphite sm:w-36">

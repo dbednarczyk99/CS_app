@@ -5,6 +5,7 @@ import {
   BadRequestException,
   ConflictException,
   NotFoundException,
+  OnApplicationBootstrap,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma, Category, Product } from '@prisma/client';
@@ -15,6 +16,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { CreateLabelDto, UpdateLabelDto } from './dto/label.dto';
 import { isLabelActive, withPromo } from './promo';
+import { slugify, uniqueSlug } from '../../scripts/slug';
 import { warsawNow } from '../reservations/reservation-rules';
 
 // zdjęcia w kolejności, kategoria i etykiety (w kolejności z panelu) – w każdej odpowiedzi z produktem
@@ -23,17 +25,6 @@ const PRODUCT_INCLUDE = {
   category: true,
   labels: { orderBy: [{ order: 'asc' }, { name: 'asc' }] },
 } satisfies Prisma.ProductInclude;
-
-/** „Wegańskie!” → „weganskie” – adres filtra w ofercie (?etykiety=weganskie) */
-const slugify = (name: string) =>
-  name
-    .toLowerCase()
-    .replace(/ł/g, 'l')
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 36) || 'etykieta';
 
 type PromoInput = {
   price?: number;
@@ -44,7 +35,7 @@ type PromoInput = {
 };
 
 @Injectable()
-export class ProductsService {
+export class ProductsService implements OnApplicationBootstrap {
   private readonly logger = new Logger(ProductsService.name);
 
   constructor(private prisma: PrismaService) {}
@@ -92,6 +83,31 @@ export class ProductsService {
         `Zaplanowana zmiana: „${p.name}” – ${available ? 'dostępny' : 'niedostępny'}`,
       );
     }
+  }
+
+  /** Wolny adres produktu z nazwy („Chleb żytni razowy” → chleb-zytni-razowy) */
+  private productSlug(name: string) {
+    return uniqueSlug(
+      slugify(name, 70, 'produkt'),
+      async (slug) =>
+        !!(await this.prisma.product.findUnique({ where: { slug } })),
+    );
+  }
+
+  /** Przy starcie: adresy dla produktów bez sluga (dodanych przed wprowadzeniem czytelnych adresów) */
+  async onApplicationBootstrap() {
+    const missing = await this.prisma.product.findMany({
+      where: { slug: null },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, name: true },
+    });
+    for (const p of missing)
+      await this.prisma.product.update({
+        where: { id: p.id },
+        data: { slug: await this.productSlug(p.name) },
+      });
+    if (missing.length)
+      this.logger.log(`Nadano adresy (slug) produktom: ${missing.length}`);
   }
 
   // LABELS
@@ -144,14 +160,11 @@ export class ProductsService {
     await this.assertLabelNameFree(dto.name);
     this.assertLabelDates(dto.activeFrom, dto.activeTo);
     // adres filtra ustalany raz, przy dodaniu – zmiana nazwy nie psuje udostępnionych linków
-    const base = slugify(dto.name);
-    let slug = base;
-    for (
-      let i = 2;
-      await this.prisma.productLabel.findUnique({ where: { slug } });
-      i++
-    )
-      slug = `${base}-${i}`;
+    const slug = await uniqueSlug(
+      slugify(dto.name, 36, 'etykieta'),
+      async (s) =>
+        !!(await this.prisma.productLabel.findUnique({ where: { slug: s } })),
+    );
     const last = await this.prisma.productLabel.aggregate({
       _max: { order: true },
     });
@@ -361,9 +374,10 @@ export class ProductsService {
     return products.map((p) => this.present(p, promoLabel));
   }
 
-  async findProduct(id: string) {
-    const product = await this.prisma.product.findUnique({
-      where: { id },
+  /** Produkt po adresie na stronie (slug) albo po id – stare linki z id przekierowuje strona */
+  async findProduct(idOrSlug: string) {
+    const product = await this.prisma.product.findFirst({
+      where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] },
       include: PRODUCT_INCLUDE,
     });
     return product && this.present(product, await this.promoLabel());
@@ -393,6 +407,7 @@ export class ProductsService {
     const created = await this.prisma.product.create({
       data: {
         ...productData,
+        slug: await this.productSlug(productData.name as string),
         isActive: dto.isActive,
         availableFrom: (availableFrom as string | null) ?? null,
         unavailableFrom: (unavailableFrom as string | null) ?? null,

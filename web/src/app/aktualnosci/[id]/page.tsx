@@ -6,13 +6,26 @@ import { FaArrowLeft } from 'react-icons/fa6';
 import { ProductTile, stripProductTokens, tileIdOf } from '@/components/ProductTile';
 import { api, orFallback } from '@/lib/api';
 import { formatDate } from '@/lib/format';
+import { JsonLd } from '@/components/JsonLd';
+import { articlePath, pageMetadata } from '@/lib/site';
+import { articleLd, breadcrumbsLd } from '@/lib/structured-data';
 
 type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const article = await orFallback(api.article(id), null);
-  return article ? { title: article.title, description: article.shortDescription } : {};
+  if (!article) return {};
+  const cover = article.images?.[0];
+  // adres kanoniczny i podgląd linku przy udostępnianiu z okładką wpisu
+  return pageMetadata({
+    title: article.title,
+    description: article.shortDescription,
+    path: articlePath(article),
+    type: 'article',
+    publishedTime: article.publishedAt,
+    ...(cover ? { image: { url: cover.imgUrl, alt: article.title } } : {}),
+  });
 }
 
 export default async function ArticlePage({ params }: Props) {
@@ -26,6 +39,15 @@ export default async function ArticlePage({ params }: Props) {
 
   return (
     <article className="mx-auto max-w-3xl px-5 pb-24 pt-header sm:px-8">
+      <JsonLd
+        data={[
+          articleLd(article),
+          breadcrumbsLd([
+            { name: 'Aktualności', path: '/aktualnosci' },
+            { name: article.title, path: articlePath(article) },
+          ]),
+        ]}
+      />
       <Link href="/aktualnosci" className="link-arrow inline-flex items-center gap-3 text-[0.75rem]">
         <FaArrowLeft aria-hidden /> Aktualności
       </Link>

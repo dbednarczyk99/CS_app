@@ -26,6 +26,8 @@ const NOTE =
 export function newsletterArticleEmail(
   article: {
     id: string;
+    /** adres wpisu na stronie (czytelny); brak – link po id (strona przekierowuje) */
+    slug?: string | null;
     title: string;
     shortDescription: string;
     content: string;
@@ -40,9 +42,10 @@ export function newsletterArticleEmail(
 ): MailMessage {
   // znaczniki źródła i wysyłki – wejścia z tego newslettera (i kliknięte produkty) widać w panelu „Statystyki”
   const campaign = `utm_source=newsletter&utm_campaign=${article.id}`;
-  const articleUrl = `${ctx.webUrl}/aktualnosci/${article.id}?${campaign}`;
+  // czytelne adresy w linkach; utm_content to zawsze id produktu (statystyki kliknięć)
+  const articleUrl = `${ctx.webUrl}/aktualnosci/${article.slug ?? article.id}?${campaign}`;
   const productUrl = (id: string) =>
-    `${ctx.webUrl}/oferta/${id}?${campaign}&utm_content=${id}`;
+    `${ctx.webUrl}/oferta/${products.get(id)?.slug ?? id}?${campaign}&utm_content=${id}`;
   const unsubscribeUrl = `${ctx.webUrl}/newsletter/wypisz/${to.token}`;
   const img = article.imageUrl
     ? `<img src="${esc(article.imageUrl)}" width="520" alt="" style="display:block;width:100%;height:auto;margin:22px 0 4px;border:0">`

@@ -21,6 +21,8 @@ export const tileIdOf = (paragraph: string) => {
 
 export type TileProduct = {
   id: string;
+  /** adres produktu na stronie */
+  slug: string | null;
   name: string;
   description: string;
   price: number;

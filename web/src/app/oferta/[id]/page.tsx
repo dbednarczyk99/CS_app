@@ -9,13 +9,24 @@ import { api, orFallback } from '@/lib/api';
 import { ProductViewTracker } from '@/components/ProductViewTracker';
 import { BADGE_STYLE, isAvailable, isOnPromo, isOutOfSeason, oldPriceOf, priceOf, productBadges } from '@/lib/products';
 import { formatDate, formatPrice } from '@/lib/format';
+import { JsonLd } from '@/components/JsonLd';
+import { pageMetadata, productPath } from '@/lib/site';
+import { breadcrumbsLd, productLd } from '@/lib/structured-data';
 
 type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const product = await orFallback(api.product(id), null);
-  return product ? { title: product.name, description: product.description } : {};
+  if (!product) return {};
+  const image = product.images?.[0];
+  // adres kanoniczny (czytelny, bez ?utm_…) i podgląd linku przy udostępnianiu ze zdjęciem produktu
+  return pageMetadata({
+    title: product.name,
+    description: product.description,
+    path: productPath(product),
+    ...(image ? { image: { url: image.imgUrl, alt: product.name } } : {}),
+  });
 }
 
 export default async function ProductPage({ params }: Props) {
@@ -37,6 +48,15 @@ export default async function ProductPage({ params }: Props) {
   return (
     <>
       <ProductViewTracker productId={product.id} />
+      <JsonLd
+        data={[
+          productLd(product),
+          breadcrumbsLd([
+            { name: 'Oferta', path: '/oferta' },
+            { name: product.name, path: productPath(product) },
+          ]),
+        ]}
+      />
       <div className="mx-auto max-w-7xl px-5 pb-20 pt-header sm:px-8">
         <Link href="/oferta" className="link-arrow inline-flex items-center gap-3 text-[0.75rem]">
           <FaArrowLeft aria-hidden /> Oferta

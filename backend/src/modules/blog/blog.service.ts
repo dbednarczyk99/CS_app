@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Logger,
+  OnApplicationBootstrap,
+} from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
@@ -7,9 +12,10 @@ import deleteImageFiles from './../../scripts/imageHandler';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { NewsletterService } from '../newsletter/newsletter.service';
+import { slugify, uniqueSlug } from '../../scripts/slug';
 
 @Injectable()
-export class BlogService {
+export class BlogService implements OnApplicationBootstrap {
   constructor(
     private prisma: PrismaService,
     private newsletter: NewsletterService,
@@ -27,6 +33,31 @@ export class BlogService {
       );
   }
   private readonly logger = new Logger(BlogService.name);
+
+  /** Wolny adres wpisu z tytułu („Jesienne promocje” → jesienne-promocje) */
+  private articleSlug(title: string) {
+    return uniqueSlug(
+      slugify(title, 90, 'wpis'),
+      async (slug) =>
+        !!(await this.prisma.article.findUnique({ where: { slug } })),
+    );
+  }
+
+  /** Przy starcie: adresy dla wpisów bez sluga (dodanych przed wprowadzeniem czytelnych adresów) */
+  async onApplicationBootstrap() {
+    const missing = await this.prisma.article.findMany({
+      where: { slug: null },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, title: true },
+    });
+    for (const a of missing)
+      await this.prisma.article.update({
+        where: { id: a.id },
+        data: { slug: await this.articleSlug(a.title) },
+      });
+    if (missing.length)
+      this.logger.log(`Nadano adresy (slug) wpisom: ${missing.length}`);
+  }
 
   /* ----------------- GET ----------------- */
 
@@ -57,9 +88,15 @@ export class BlogService {
     return articles.map((a) => this.withPublishedAt(a));
   }
 
-  async findOneArticle(id: string, onlyPublished = true) {
+  /** Wpis po adresie na stronie (slug) albo po id – stare linki z id (np. w wysłanych newsletterach) przekierowuje strona */
+  async findOneArticle(idOrSlug: string, onlyPublished = true) {
     const article = await this.prisma.article.findFirst({
-      where: { id, ...(onlyPublished ? this.visibleNow() : {}) },
+      where: {
+        AND: [
+          { OR: [{ id: idOrSlug }, { slug: idOrSlug }] },
+          onlyPublished ? this.visibleNow() : {},
+        ],
+      },
       include: {
         images: { orderBy: { order: 'asc' } },
         tags: { include: { tag: true } },
@@ -106,6 +143,7 @@ export class BlogService {
     const article = await this.prisma.article.create({
       data: {
         ...rest,
+        slug: await this.articleSlug(rest.title as string),
         publishAt: rest.publishAt ? new Date(rest.publishAt as string) : null,
         images: {
           create: imagesData,

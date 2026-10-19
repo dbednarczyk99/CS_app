@@ -2,12 +2,14 @@ import type { Metadata } from 'next';
 import { ReservationForm } from '@/components/ReservationForm';
 import { api, orFallback } from '@/lib/api';
 import { isAvailable, promoWindow } from '@/lib/products';
+import { pageMetadata } from '@/lib/site';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Rezerwacja',
   description: 'Zarezerwuj pieczywo z odbiorem w piekarni Chleba Smak lub z chlebowozu. Płatność przy odbiorze.',
-  robots: { index: false },
-};
+  path: '/rezerwacja',
+  noindex: true,
+});
 
 // terminy zależą od bieżącej godziny – strona zawsze świeża
 export const dynamic = 'force-dynamic';

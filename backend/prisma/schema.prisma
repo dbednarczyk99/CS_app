@@ -46,6 +46,8 @@ model Category {
 model Product {
   id               String            @id @default(uuid())
   name             String
+  // adres na stronie: /oferta/<slug> (z nazwy, ustalany przy dodaniu – zmiana nazwy nie psuje linków)
+  slug             String?           @unique @db.VarChar(80)
   description      String            @db.Text
   price            Float
   isSeasonal       Boolean           @default(false)
@@ -271,6 +273,8 @@ model ArticleImages {
 model Article {
   id                   String          @id @default(uuid())
   title                String
+  // adres na stronie: /aktualnosci/<slug> (z tytułu, ustalany przy dodaniu)
+  slug                 String?         @unique @db.VarChar(100)
   shortDescription     String          @db.VarChar(500)
   content              String          @db.Text
   images               ArticleImages[]

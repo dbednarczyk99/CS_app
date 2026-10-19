@@ -5,11 +5,13 @@ import { SectionHeading } from '@/components/SectionHeading';
 import { StoresMap } from '@/components/StoresMap';
 import { VanSchedule } from '@/components/VanSchedule';
 import { api, orFallback } from '@/lib/api';
+import { pageMetadata } from '@/lib/site';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Chlebowóz',
   description: 'Trasa chlebowozu Chleba Smak – gdzie i kiedy kupisz nasze świeże pieczywo.',
-};
+  path: '/chlebowoz',
+});
 
 export default async function BreadVanPage() {
   const [description, stops, locations] = await Promise.all([

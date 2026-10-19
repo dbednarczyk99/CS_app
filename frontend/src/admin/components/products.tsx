@@ -23,6 +23,7 @@ import { Alert, Box, Typography } from '@mui/material';
 import { useWatch } from 'react-hook-form';
 import SortableImageInput from '../common/SortableImageInput';
 import { LabelChip } from './labels';
+import { SiteAddress } from '../common/SiteAddress';
 
 type ProductRecord = {
   price: number;
@@ -333,6 +334,7 @@ export const ProductEdit = () => (
   <Edit>
     <SimpleForm>
       <TextInput source="name" validate={[required()]} />
+      <SiteAddress section="oferta" />
       <NumberInput source="price" validate={[required()]} />
       <TextInput source="description" validate={[required()]} multiline />
       <BooleanInput source="isSeasonal" label="Produkt sezonowy" />

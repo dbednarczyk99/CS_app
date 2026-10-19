@@ -20,6 +20,7 @@ import { NewsletterSaveToolbar } from '../common/NewsletterSaveToolbar';
 import { useSubscriberCount } from '../common/useSubscriberCount';
 import SortableImageInput from '../common/SortableImageInput';
 import { ArticleProductTools } from '../common/ArticleProductTools';
+import { SiteAddress } from '../common/SiteAddress';
 
 interface NewsletterInfo {
   sendAsNewsletter?: boolean;
@@ -182,6 +183,7 @@ export const BlogEdit = () => (
   <Edit>
     <SimpleForm toolbar={<NewsletterSaveToolbar deletable />}>
       <TextInput source="title" validate={[required()]} />
+      <SiteAddress section="aktualnosci" />
       <TextInput source="shortDescription" multiline />
       <TextInput source="content" multiline minRows={6} helperText="Akapity oddziel pustą linią" />
       <ArticleProductTools />
