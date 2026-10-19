@@ -123,9 +123,6 @@ export default async function ProductPage({ params }: Props) {
                 <li>Rezerwacje przyjmujemy do 18:00 dnia poprzedzającego odbiór, maksymalnie 5 dni do przodu.</li>
                 <li>Płacisz na miejscu, przy odbiorze.</li>
               </ul>
-              <Link href="/piekarnie" className="link-arrow mt-5 inline-flex items-center gap-3 text-[0.75rem]">
-                Nasze piekarnie <FaArrowRight aria-hidden />
-              </Link>
             </div>
           </div>
         </div>
