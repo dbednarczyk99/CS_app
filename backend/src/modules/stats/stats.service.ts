@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { warsawNow } from '../reservations/reservation-rules';
 
-export type Metric = 'view' | 'map' | 'mail' | 'mail_failed';
+export type Metric = 'view' | 'map' | 'source' | 'mail' | 'mail_failed';
 
 // podstrony strony (dynamiczne ścieżki sprowadzone do wzorca) – inne adresy liczą się jako „(inne)”
 export const VIEW_KEYS = [
@@ -25,6 +25,17 @@ export const VIEW_KEYS = [
 ];
 // miejsca, w których wczytuje się mapa Google
 export const MAP_KEYS = ['piekarnie', 'chlebowoz', 'rezerwacja'];
+// skąd przyszedł odwiedzający (kategoria – bez adresów stron odsyłających)
+export const SOURCE_KEYS = [
+  'bezposrednio',
+  'google',
+  'inne-wyszukiwarki',
+  'instagram',
+  'facebook',
+  'tiktok',
+  'newsletter',
+  'inne-strony',
+];
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -155,6 +166,7 @@ export class StatsService {
       },
       series,
       pages: byKey('view', inRange),
+      sources: byKey('source', inRange),
       mapsBySource: byKey('map', inMonth),
       mailsByCategory: byKey('mail', inMonth),
       reservations: await this.reservations(from),

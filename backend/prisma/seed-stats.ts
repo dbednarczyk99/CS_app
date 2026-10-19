@@ -32,6 +32,19 @@ export async function seedStats(prisma: PrismaClient, today: string) {
       const count = Math.round(views * share * (0.8 + 0.4 * rand()));
       if (count) rows.push({ date, metric: 'view', key, count });
     }
+    // wejścia wg źródła (ok. 40% odsłon to pierwsze wejścia)
+    const visits = views * 0.4;
+    for (const [key, share] of [
+      ['google', 0.38],
+      ['bezposrednio', 0.27],
+      ['instagram', 0.2],
+      ['facebook', 0.07],
+      ['inne-wyszukiwarki', 0.03],
+      ['inne-strony', 0.02],
+    ] as [string, number][]) {
+      rows.push({ date, metric: 'source', key, count: Math.round(visits * share * (0.8 + 0.4 * rand())) });
+    }
+    if (back % 15 === 3 || back % 15 === 2) rows.push({ date, metric: 'source', key: 'newsletter', count: Math.round(25 + 15 * rand()) });
     rows.push({ date, metric: 'map', key: 'piekarnie', count: Math.round(views * 0.1 * (0.8 + 0.4 * rand())) });
     rows.push({ date, metric: 'map', key: 'chlebowoz', count: Math.round(views * 0.07 * (0.8 + 0.4 * rand())) });
     rows.push({ date, metric: 'map', key: 'rezerwacja', count: Math.round(views * 0.05 * (0.8 + 0.4 * rand())) });

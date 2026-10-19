@@ -17,6 +17,7 @@ import MailIcon from '@mui/icons-material/Mail';
 import MapIcon from '@mui/icons-material/Map';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -43,6 +44,7 @@ interface Stats {
   todayTotals: { views: number; maps: number; mails: number; mailsFailed: number };
   series: { date: string; views: number; maps: number; mails: number }[];
   pages: { key: string; count: number }[];
+  sources: { key: string; count: number }[];
   mapsBySource: { key: string; count: number }[];
   mailsByCategory: { key: string; count: number }[];
   reservations: {
@@ -80,6 +82,16 @@ const MAIL_LABELS: Record<string, string> = {
   newsletter: 'Newsletter',
   'newsletter-zapis': 'Potwierdzenia zapisu do newslettera',
   inne: 'Inne',
+};
+const SOURCE_LABELS: Record<string, string> = {
+  google: 'Google (wyszukiwarka i Mapy)',
+  bezposrednio: 'Bezpośrednio (wpisany adres, zakładka, aplikacje)',
+  instagram: 'Instagram',
+  facebook: 'Facebook',
+  tiktok: 'TikTok',
+  newsletter: 'Newsletter',
+  'inne-wyszukiwarki': 'Inne wyszukiwarki',
+  'inne-strony': 'Inne strony',
 };
 const MAP_LABELS: Record<string, string> = {
   piekarnie: 'Strona „Piekarnie”',
@@ -477,7 +489,20 @@ export default function StatsPage() {
           </Card>
 
           {/* 3. SZCZEGÓŁY */}
-          <Box sx={{ display: 'grid', gap: 2, mt: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' } }}>
+          <Box sx={{ display: 'grid', gap: 2, mt: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
+            <Section title="Skąd przychodzą odwiedzający" icon={<TravelExploreIcon />}>
+              <Typography variant="caption" color="text.secondary">
+                Wejścia na stronę w ostatnich {days} dniach: {fmt(stats.sources.reduce((s, i) => s + i.count, 0))}
+              </Typography>
+              <RankList items={stats.sources} labels={SOURCE_LABELS} empty="Brak wejść w tym okresie." />
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
+                Aplikacja Instagrama często nie przekazuje, skąd ktoś przyszedł – takie wejścia trafiają do
+                „Bezpośrednio”. Link w bio z dopiskiem <strong>?utm_source=instagram</strong> (np.
+                chlebasmak.pl/?utm_source=instagram) pozwala je policzyć dokładnie. Linki w newsletterze mają taki
+                dopisek automatycznie.
+              </Typography>
+            </Section>
+
             <Section title="Najczęściej odwiedzane" icon={<VisibilityIcon />}>
               <Typography variant="caption" color="text.secondary">
                 Ostatnie {days} dni

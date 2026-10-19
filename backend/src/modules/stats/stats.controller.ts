@@ -10,11 +10,16 @@ import {
 } from '@nestjs/common';
 import { IsIn, IsString, MaxLength } from 'class-validator';
 import { OWNER_ROLES, Public, Roles } from '../auth/auth.decorators';
-import { MAP_KEYS, StatsService, VIEW_KEYS } from './stats.service';
+import {
+  MAP_KEYS,
+  SOURCE_KEYS,
+  StatsService,
+  VIEW_KEYS,
+} from './stats.service';
 
 class StatEventDto {
-  @IsIn(['view', 'map'])
-  type: 'view' | 'map';
+  @IsIn(['view', 'map', 'source'])
+  type: 'view' | 'map' | 'source';
 
   @IsString()
   @MaxLength(60)
@@ -48,7 +53,9 @@ export class StatsController {
     @Headers('user-agent') userAgent = '',
   ) {
     if (BOT.test(userAgent)) return;
-    const allowed = dto.type === 'view' ? VIEW_KEYS : MAP_KEYS;
+    const allowed = { view: VIEW_KEYS, map: MAP_KEYS, source: SOURCE_KEYS }[
+      dto.type
+    ];
     if (!allowed.includes(dto.key)) return;
 
     const client = forwardedFor?.split(',')[0]?.trim() || ip;
