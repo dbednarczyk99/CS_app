@@ -5,6 +5,7 @@ import { LoopCarousel } from '@/components/LoopCarousel';
 import { HeroCarousel } from '@/components/HeroCarousel';
 import { LocationCard } from '@/components/LocationCard';
 import { ProductCard } from '@/components/ProductCard';
+import { GoogleRatingBand } from '@/components/GoogleRatingBand';
 import { Reveal } from '@/components/Reveal';
 import { SectionHeading } from '@/components/SectionHeading';
 import { api, orFallback } from '@/lib/api';
@@ -95,6 +96,9 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+
+      {/* OCENA W GOOGLE – zbiorcza i każdej piekarni (link do wystawienia opinii) */}
+      <GoogleRatingBand locations={locations} />
 
       {/* HISTORIA */}
       <section className="bg-coal">
