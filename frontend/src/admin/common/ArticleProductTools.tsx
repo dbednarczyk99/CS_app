@@ -51,12 +51,13 @@ function tileWarnings(products: ProductOption[], at: number) {
     let active = p.isActive;
     let inSeason = p.inSeason !== false;
     // zaplanowane zmiany do chwili publikacji, w kolejności
+    // daty planowania (YYYY-MM-DD) działają od początku dnia
     const events = [
-      p.availableFrom && { at: new Date(p.availableFrom).getTime(), on: true },
-      p.unavailableFrom && { at: new Date(p.unavailableFrom).getTime(), on: false },
+      p.availableFrom && { day: p.availableFrom, on: true },
+      p.unavailableFrom && { day: p.unavailableFrom, on: false },
     ]
-      .filter((e): e is { at: number; on: boolean } => !!e && e.at <= at)
-      .sort((a, b) => a.at - b.at);
+      .filter((e): e is { day: string; on: boolean } => !!e && e.day <= day)
+      .sort((a, b) => a.day.localeCompare(b.day));
     for (const e of events) {
       if (e.on) {
         active = true;
@@ -64,7 +65,7 @@ function tileWarnings(products: ProductOption[], at: number) {
       } else if (p.isSeasonal) inSeason = false;
       else active = false;
     }
-    const later = p.availableFrom && new Date(p.availableFrom).getTime() > at ? ` (pojawi się ${when(p.availableFrom)})` : '';
+    const later = p.availableFrom && p.availableFrom > day ? ` (pojawi się ${dayMonth(p.availableFrom)})` : '';
     if (!active) {
       warnings.push(`„${p.name}” nie będzie jeszcze widoczny na stronie${later} – kafelek się nie pokaże.`);
       continue;
@@ -153,7 +154,7 @@ export const ArticleProductTools = () => {
           // także produkty zaplanowane na później (zapowiedź nowości) – ostrzeżenie poniżej powie, czy zdążą
           options={products.filter((p) => p.isActive || p.availableFrom)}
           getOptionLabel={(p) =>
-            p.isActive ? p.name : `${p.name} (pojawi się ${p.availableFrom ? when(p.availableFrom) : 'później'})`
+            p.isActive ? p.name : `${p.name} (pojawi się ${p.availableFrom ? dayMonth(p.availableFrom) : 'później'})`
           }
           value={picked}
           onChange={(_, value) => setPicked(value)}

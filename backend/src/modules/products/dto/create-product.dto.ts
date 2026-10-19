@@ -9,7 +9,6 @@ import {
   IsInt,
   IsOptional,
   Matches,
-  IsDateString,
   Min,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
@@ -90,15 +89,15 @@ export class CreateProductDto {
   @Type(() => CreateProductImageInlineDto)
   images: CreateProductImageInlineDto[]; // wymagane
 
-  /** planowanie: o tej porze produkt sam się włączy (aktywny, a sezonowy – w sezonie); puste = brak */
+  /** planowanie (YYYY-MM-DD): od tego dnia produkt sam się włączy (aktywny, a sezonowy – w sezonie); puste = brak */
   @IsOptional()
   @Transform(emptyToNull)
-  @IsDateString({}, { message: 'Niepoprawna data „Dostępny od”' })
+  @Matches(DAY, { message: 'Niepoprawna data „Dostępny od”' })
   availableFrom?: string | null;
 
-  /** planowanie: o tej porze produkt sam się wyłączy (sezonowy – poza sezon, zwykły – ukryty) */
+  /** planowanie (YYYY-MM-DD): od tego dnia produkt sam się wyłączy (sezonowy – poza sezon, zwykły – ukryty) */
   @IsOptional()
   @Transform(emptyToNull)
-  @IsDateString({}, { message: 'Niepoprawna data „Niedostępny od”' })
+  @Matches(DAY, { message: 'Niepoprawna data „Niedostępny od”' })
   unavailableFrom?: string | null;
 }

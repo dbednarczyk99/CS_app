@@ -46,7 +46,7 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Jak zaplanować pojawienie się produktu?',
-        a: 'W formularzu produktu, w sekcji „Planowanie”, ustaw „Dostępny od” – o tej porze nowy produkt pojawi się w ofercie, a sezonowy wróci do sprzedaży (także gdy nikt nie będzie wtedy przy komputerze). „Niedostępny od” działa odwrotnie: sezonowy przejdzie do „Wrócą w sezonie”, zwykły zniknie z oferty. Po wykonaniu data się czyści; ręczna zmiana przełączników działa od razu. Wpis zapowiadający produkt możesz zaplanować na tę samą godzinę – formularz wpisu ostrzeże, jeśli produkt albo promocja nie zdążą.',
+        a: 'W formularzu produktu, w sekcji „Planowanie”, ustaw „Dostępny od” (data) – od tego dnia nowy produkt pojawi się w ofercie, a sezonowy wróci do sprzedaży (także gdy nikt nie będzie wtedy przy komputerze). „Niedostępny od” działa odwrotnie: sezonowy przejdzie do „Wrócą w sezonie”, zwykły zniknie z oferty. Po wykonaniu data się czyści; ręczna zmiana przełączników działa od razu. Wpis zapowiadający produkt możesz zaplanować na tę samą godzinę – formularz wpisu ostrzeże, jeśli produkt albo promocja nie zdążą.',
       },
       {
         q: 'Kolejność zdjęć',

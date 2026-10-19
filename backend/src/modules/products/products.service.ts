@@ -50,27 +50,28 @@ export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Co minutę: zaplanowane zmiany dostępności. „Dostępny od” – aktywny (a sezonowy w sezonie), „Niedostępny od” –
+   * Co minutę: zaplanowane zmiany dostępności (od początku wybranego dnia, czas polski; dzisiejsza data – od razu).
+   * „Dostępny od” – aktywny (a sezonowy w sezonie), „Niedostępny od” –
    * sezonowy poza sezon, zwykły ukryty. Po wykonaniu data się czyści, więc przełączniki zostają jedynym stanem
    * (ręczna zmiana w panelu działa od razu, a zaplanowana – o swojej porze).
    */
   @Cron(CronExpression.EVERY_MINUTE)
   async applySchedule() {
-    const now = new Date();
+    const today = warsawNow().date;
     const due = await this.prisma.product.findMany({
       where: {
         OR: [
-          { availableFrom: { lte: now } },
-          { unavailableFrom: { lte: now } },
+          { availableFrom: { lte: today } },
+          { unavailableFrom: { lte: today } },
         ],
       },
     });
     for (const p of due) {
-      // obie daty minęły – liczy się późniejsza (ostatnia zaplanowana decyzja)
+      // obie daty minęły – liczy się późniejsza (ostatnia zaplanowana decyzja; ten sam dzień zablokowany przy zapisie)
       const on =
-        p.availableFrom && p.availableFrom <= now ? p.availableFrom : null;
+        p.availableFrom && p.availableFrom <= today ? p.availableFrom : null;
       const off =
-        p.unavailableFrom && p.unavailableFrom <= now
+        p.unavailableFrom && p.unavailableFrom <= today
           ? p.unavailableFrom
           : null;
       const available = on && (!off || on > off);
@@ -368,7 +369,16 @@ export class ProductsService {
     return product && this.present(product, await this.promoLabel());
   }
 
+  /** „Dostępny od” i „Niedostępny od” nie mogą wskazywać tego samego dnia (nie wiadomo, co ma wygrać) */
+  private assertSchedule(from?: string | null, to?: string | null) {
+    if (from && to && from === to)
+      throw new BadRequestException(
+        '„Dostępny od” i „Niedostępny od” nie mogą być tym samym dniem',
+      );
+  }
+
   async createProduct(dto: CreateProductDto) {
+    this.assertSchedule(dto.availableFrom, dto.unavailableFrom);
     const { images, labelIds, availableFrom, unavailableFrom, ...productData } =
       dto as any;
     this.assertPromo(dto);
@@ -384,10 +394,8 @@ export class ProductsService {
       data: {
         ...productData,
         isActive: dto.isActive,
-        availableFrom: availableFrom ? new Date(availableFrom as string) : null,
-        unavailableFrom: unavailableFrom
-          ? new Date(unavailableFrom as string)
-          : null,
+        availableFrom: (availableFrom as string | null) ?? null,
+        unavailableFrom: (unavailableFrom as string | null) ?? null,
         images: {
           create: imagesData,
         },
@@ -413,6 +421,14 @@ export class ProductsService {
     // promocję sprawdzamy na danych po zmianie (np. nowa cena zwykła przy starej promocyjnej)
     const pick = <K extends keyof PromoInput>(key: K) =>
       (rest[key] !== undefined ? rest[key] : existing[key]) as PromoInput[K];
+    this.assertSchedule(
+      rest.availableFrom !== undefined
+        ? (rest.availableFrom as string | null)
+        : existing.availableFrom,
+      rest.unavailableFrom !== undefined
+        ? (rest.unavailableFrom as string | null)
+        : existing.unavailableFrom,
+    );
     this.assertPromo({
       price: pick('price'),
       promoPrice: pick('promoPrice'),
@@ -437,16 +453,12 @@ export class ProductsService {
         : {}),
       ...(rest.availableFrom !== undefined
         ? {
-            availableFrom: rest.availableFrom
-              ? new Date(rest.availableFrom as string)
-              : null,
+            availableFrom: (rest.availableFrom as string | null) ?? null,
           }
         : {}),
       ...(rest.unavailableFrom !== undefined
         ? {
-            unavailableFrom: rest.unavailableFrom
-              ? new Date(rest.unavailableFrom as string)
-              : null,
+            unavailableFrom: (rest.unavailableFrom as string | null) ?? null,
           }
         : {}),
       ...(rest.isPromo !== undefined ? { isPromo: rest.isPromo } : {}),

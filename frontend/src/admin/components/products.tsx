@@ -17,7 +17,6 @@ import {
   ReferenceArrayInput,
   CheckboxGroupInput,
   DateInput,
-  DateTimeInput,
 } from 'react-admin';
 import { useState } from 'react';
 import { Alert, Box, Typography } from '@mui/material';
@@ -39,82 +38,88 @@ type ProductRecord = {
   unavailableFrom?: string | null;
 };
 
-const formatWhen = (iso: string) =>
-  new Date(iso).toLocaleString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+const formatWhen = (day: string) =>
+  new Date(`${day}T12:00:00`).toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' });
 
-/** Zaplanowane zmiany dostępności słownie (dla formularza i listy) */
-const scheduleTexts = (p: ProductRecord, now: number) => {
-  const texts: { text: string; short: string; at: number; warn?: boolean }[] = [];
-  const on = p.availableFrom ? new Date(p.availableFrom).getTime() : 0;
-  const off = p.unavailableFrom ? new Date(p.unavailableFrom).getTime() : 0;
-  if (on > now) {
+/** Zaplanowane zmiany dostępności słownie (dla formularza i listy); daty YYYY-MM-DD, dzisiejsza – wykona się zaraz */
+const scheduleTexts = (p: ProductRecord, todayDay: string) => {
+  const texts: { text: string; short: string; day: string; warn?: boolean }[] = [];
+  const on = p.availableFrom && p.availableFrom >= todayDay ? p.availableFrom : null;
+  const off = p.unavailableFrom && p.unavailableFrom >= todayDay ? p.unavailableFrom : null;
+  if (on) {
     // „już dostępny” tylko wtedy, gdy wcześniej nic go nie wyłączy (np. koniec sezonu przed powrotem)
-    const already = p.isActive !== false && (!p.isSeasonal || p.inSeason) && !(off > now && off < on);
+    const already = p.isActive !== false && (!p.isSeasonal || p.inSeason) && !(off && off < on);
     texts.push(
       already
         ? {
-            text: `Produkt już jest dostępny – data „Dostępny od” (${formatWhen(p.availableFrom!)}) niczego nie zmieni.`,
+            text: `Produkt już jest dostępny – data „Dostępny od” (${formatWhen(on)}) niczego nie zmieni.`,
             short: 'dostępny (już jest)',
-            at: on,
+            day: on,
             warn: true,
           }
         : {
             text: p.isSeasonal
-              ? `${formatWhen(p.availableFrom!)} – wróci do sprzedaży („Teraz dostępne”, rezerwacje online).`
-              : `${formatWhen(p.availableFrom!)} – pojawi się w ofercie na stronie.`,
+              ? `od ${formatWhen(on)} – wróci do sprzedaży („Teraz dostępne”, rezerwacje online).`
+              : `od ${formatWhen(on)} – pojawi się w ofercie na stronie.`,
             short: 'dostępny',
-            at: on,
+            day: on,
           },
     );
   }
-  if (off > now) {
+  if (off) {
     texts.push({
       text: p.isSeasonal
-        ? `${formatWhen(p.unavailableFrom!)} – przejdzie do „Wrócą w sezonie” (bez ceny i rezerwacji).`
-        : `${formatWhen(p.unavailableFrom!)} – zniknie z oferty na stronie.`,
+        ? `od ${formatWhen(off)} – przejdzie do „Wrócą w sezonie” (bez ceny i rezerwacji).`
+        : `od ${formatWhen(off)} – zniknie z oferty na stronie.`,
       short: p.isSeasonal ? 'poza sezonem' : 'ukryty',
-      at: off,
+      day: off,
     });
   }
-  return texts.sort((a, b) => a.at - b.at);
+  return texts.sort((a, b) => a.day.localeCompare(b.day));
 };
 
-const shortWhen = (at: number) =>
-  new Date(at).toLocaleString('pl-PL', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
+const shortDay = (day: string) => `${Number(day.slice(8, 10))}.${day.slice(5, 7)}`;
 
 /** Kolumna listy „Zaplanowane”: najbliższe zmiany dostępności */
 const ScheduleCell = ({ product }: { product: ProductRecord }) => {
-  const [now] = useState(() => Date.now());
-  const texts = scheduleTexts(product, now);
+  const [todayDay] = useState(today);
+  const texts = scheduleTexts(product, todayDay);
   if (texts.length === 0) return <>—</>;
   return (
     <Typography variant="body2" sx={{ color: 'info.main' }}>
-      {texts.map((t) => `${shortWhen(t.at)}: ${t.short}`).join('; ')}
+      {texts.map((t) => `od ${shortDay(t.day)}: ${t.short}`).join('; ')}
     </Typography>
   );
 };
 
+const notSameDay = (value: string | null, all: ProductRecord) =>
+  value && all.availableFrom && all.unavailableFrom && all.availableFrom === all.unavailableFrom
+    ? '„Dostępny od” i „Niedostępny od” nie mogą być tym samym dniem'
+    : undefined;
+
 /**
- * Planowanie dostępności: o wybranej porze serwer sam przestawi przełącznik „Aktywny” / „W sezonie”
- * (np. nowy produkt pojawi się w piątek o 6:00, choć nikt nie będzie wtedy przy komputerze).
+ * Planowanie dostępności: od wybranego dnia (od północy) serwer sam przestawi przełącznik „Aktywny” / „W sezonie”
+ * (np. nowy produkt pojawi się w piątek, choć nikt nie będzie wtedy przy komputerze).
  */
 const ScheduleInputs = () => {
   const values = useWatch() as ProductRecord;
-  const [now] = useState(() => Date.now());
-  const texts = scheduleTexts(values, now);
+  const [todayDay] = useState(today);
+  const texts = scheduleTexts(values, todayDay);
   return (
     <>
       <SectionTitle>Planowanie</SectionTitle>
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-        <DateTimeInput
+        <DateInput
           source="availableFrom"
           label="Dostępny od (opcjonalnie)"
-          helperText="O tej porze produkt sam się włączy – nowy pojawi się w ofercie, sezonowy wróci do sprzedaży"
+          validate={notSameDay}
+          helperText="Od tego dnia produkt sam się włączy – nowy pojawi się w ofercie, sezonowy wróci do sprzedaży"
         />
-        <DateTimeInput
+        <DateInput
           source="unavailableFrom"
           label="Niedostępny od (opcjonalnie)"
-          helperText="O tej porze sezonowy przejdzie do „Wrócą w sezonie”, zwykły zniknie z oferty"
+          validate={notSameDay}
+          helperText="Od tego dnia sezonowy przejdzie do „Wrócą w sezonie”, zwykły zniknie z oferty"
         />
       </Box>
       {texts.length > 0 && (
@@ -123,7 +128,8 @@ const ScheduleInputs = () => {
             <div key={t.text}>Zaplanowano: {t.text}</div>
           ))}
           <div style={{ marginTop: 4, opacity: 0.8 }}>
-            Ręczna zmiana przełączników działa od razu; zaplanowana wykona się o swojej porze (usuń datę, aby ją odwołać).
+            Zmiana nastąpi na początku wybranego dnia (dzisiejsza data – w ciągu minuty). Ręczna zmiana przełączników działa
+            od razu; usuń datę, aby odwołać plan.
           </div>
         </Alert>
       )}
