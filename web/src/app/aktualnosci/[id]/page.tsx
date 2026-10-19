@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { FaArrowLeft } from 'react-icons/fa6';
+import { ProductTile, stripProductTokens, tileIdOf } from '@/components/ProductTile';
 import { api, orFallback } from '@/lib/api';
 import { formatDate } from '@/lib/format';
 
@@ -16,10 +17,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ArticlePage({ params }: Props) {
   const { id } = await params;
-  const article = await orFallback(api.article(id), null);
+  const [article, products] = await Promise.all([orFallback(api.article(id), null), orFallback(api.products(), [])]);
   if (!article) notFound();
 
   const [cover, ...rest] = article.images ?? [];
+  // kafelki produktów w treści – tylko produkty widoczne na stronie
+  const productById = new Map(products.filter((p) => p.isActive).map((p) => [p.id.toLowerCase(), p]));
 
   return (
     <article className="mx-auto max-w-3xl px-5 pb-24 pt-header sm:px-8">
@@ -28,8 +31,8 @@ export default async function ArticlePage({ params }: Props) {
       </Link>
 
       <header className="mt-10">
-        <time dateTime={article.createdAt} className="eyebrow text-stone">
-          {formatDate(article.createdAt)}
+        <time dateTime={article.publishedAt} className="eyebrow text-stone">
+          {formatDate(article.publishedAt)}
         </time>
         <h1 className="heading mt-4 text-4xl sm:text-5xl">{article.title}</h1>
         <p className="mt-6 text-xl leading-relaxed text-cream/85">{article.shortDescription}</p>
@@ -55,11 +58,23 @@ export default async function ArticlePage({ params }: Props) {
         {(article.content ?? '')
           .split(/\n{2,}|\r\n\r\n/)
           .filter(Boolean)
-          .map((paragraph, i) => (
-            <p key={i} className="whitespace-pre-line">
-              {paragraph}
-            </p>
-          ))}
+          .map((paragraph, i) => {
+            const tileId = tileIdOf(paragraph);
+            if (tileId) {
+              const product = productById.get(tileId);
+              return product ? (
+                <div key={i} className="py-2">
+                  <ProductTile product={product} />
+                </div>
+              ) : null;
+            }
+            const text = stripProductTokens(paragraph);
+            return text ? (
+              <p key={i} className="whitespace-pre-line">
+                {text}
+              </p>
+            ) : null;
+          })}
       </div>
 
       {rest.length > 0 && (

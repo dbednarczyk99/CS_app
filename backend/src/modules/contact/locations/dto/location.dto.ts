@@ -46,6 +46,16 @@ export class CreateLocationDto {
   @IsString()
   googleMapsUrl: string;
 
+  /** identyfikator miejsca w Google (Place ID, np. ChIJ…) – ocena na stronie i link „Wystaw opinię” */
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() ? value.trim() : null,
+  )
+  @IsOptional()
+  @Matches(/^[A-Za-z0-9_-]{10,300}$/, {
+    message: 'Identyfikator miejsca Google wygląda na niepoprawny (np. ChIJ…)',
+  })
+  googlePlaceId?: string | null;
+
   @IsOptional()
   @IsLatitude()
   lat?: number;

@@ -10,6 +10,7 @@ import {
   TextInput,
   NumberInput,
   SelectInput,
+  DateInput,
   Toolbar,
   SaveButton,
   DeleteWithConfirmButton,
@@ -21,7 +22,43 @@ import {
 import { Alert, Box, Typography } from '@mui/material';
 
 // system – etykieta stała nadawana przez stronę ("promo": trwająca promocja): bez usuwania i ręcznego przypisania
-type LabelRecord = { id: string; name: string; color: string; system?: string | null; _count?: { products: number } };
+type LabelRecord = {
+  id: string;
+  name: string;
+  color: string;
+  system?: string | null;
+  activeFrom?: string | null;
+  activeTo?: string | null;
+  _count?: { products: number };
+};
+
+const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Warsaw' }).format(new Date());
+const dayMonth = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' });
+
+/** Widoczność etykiety z datami: zawsze / zaplanowana / widoczna do… / zakończona */
+const visibility = (l: LabelRecord) => {
+  if (l.system === 'promo') return { text: 'w czasie promocji', color: 'text.secondary' };
+  const now = today();
+  if (l.activeFrom && l.activeFrom > now) return { text: `od ${dayMonth(l.activeFrom)}`, color: 'info.main' };
+  if (l.activeTo && l.activeTo < now) return { text: `zakończona ${dayMonth(l.activeTo)}`, color: 'text.disabled' };
+  if (l.activeTo) return { text: `widoczna do ${dayMonth(l.activeTo)}`, color: 'success.main' };
+  return { text: 'zawsze', color: 'text.secondary' };
+};
+
+const notBeforeStart = (value: string | null, all: LabelRecord) =>
+  value && all.activeFrom && value < all.activeFrom ? 'Koniec nie może być przed początkiem' : undefined;
+
+/** Okres widoczności (np. „Na święta”) – nie dla etykiety promocji, która ma daty z promocji produktu */
+const DateInputs = () => {
+  const record = useRecordContext<LabelRecord>();
+  if (record?.system) return null;
+  return (
+    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+      <DateInput source="activeFrom" label="Widoczna od" helperText="Puste – od razu" />
+      <DateInput source="activeTo" label="Widoczna do (włącznie)" validate={notBeforeStart} helperText="Puste – bez końca" />
+    </Box>
+  );
+};
 
 // te same kolory co na stronie (web/src/lib/products.ts – BADGE_STYLE)
 const LABEL_COLORS: Record<string, { name: string; bg: string; fg: string; border?: string }> = {
@@ -91,6 +128,7 @@ const LabelFields = () => (
         </Box>
       )}
     />
+    <DateInputs />
     <NumberInput
       source="order"
       label="Kolejność"
@@ -120,6 +158,18 @@ export const LabelList = () => (
         label="Kolor"
         sortable={false}
         render={(r: LabelRecord) => LABEL_COLORS[r.color]?.name ?? r.color}
+      />
+      <FunctionField
+        label="Widoczność"
+        sortable={false}
+        render={(r: LabelRecord) => {
+          const v = visibility(r);
+          return (
+            <Typography variant="body2" sx={{ color: v.color }}>
+              {v.text}
+            </Typography>
+          );
+        }}
       />
       <NumberField source="_count.products" label="Produkty" sortable={false} />
       <NumberField source="order" label="Kolejność" />

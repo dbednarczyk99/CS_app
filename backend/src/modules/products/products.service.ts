@@ -12,7 +12,8 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { CreateLabelDto, UpdateLabelDto } from './dto/label.dto';
-import { withPromo } from './promo';
+import { isLabelActive, withPromo } from './promo';
+import { warsawNow } from '../reservations/reservation-rules';
 
 // zdjęcia w kolejności, kategoria i etykiety (w kolejności z panelu) – w każdej odpowiedzi z produktem
 const PRODUCT_INCLUDE = {
@@ -92,6 +93,7 @@ export class ProductsService {
 
   async createLabel(dto: CreateLabelDto) {
     await this.assertLabelNameFree(dto.name);
+    this.assertLabelDates(dto.activeFrom, dto.activeTo);
     // adres filtra ustalany raz, przy dodaniu – zmiana nazwy nie psuje udostępnionych linków
     const base = slugify(dto.name);
     let slug = base;
@@ -110,18 +112,30 @@ export class ProductsService {
         slug,
         color: dto.color ?? 'gold',
         order: dto.order ?? (last._max.order ?? 0) + 1,
+        activeFrom: dto.activeFrom ?? null,
+        activeTo: dto.activeTo ?? null,
       },
     });
   }
 
   async updateLabel(id: string, dto: UpdateLabelDto) {
     if (dto.name !== undefined) await this.assertLabelNameFree(dto.name, id);
+    const current = await this.findLabel(id);
+    const from =
+      dto.activeFrom !== undefined ? dto.activeFrom : current.activeFrom;
+    const to = dto.activeTo !== undefined ? dto.activeTo : current.activeTo;
+    this.assertLabelDates(from, to);
+    // etykieta stała (promocja) pokazuje się w czasie promocji – bez własnych dat
+    const dates = current.system
+      ? { activeFrom: null, activeTo: null }
+      : { activeFrom: from, activeTo: to };
     return this.prisma.productLabel.update({
       where: { id },
       data: {
         ...(dto.name !== undefined ? { name: dto.name } : {}),
         ...(dto.color !== undefined ? { color: dto.color } : {}),
         ...(dto.order !== undefined ? { order: dto.order } : {}),
+        ...dates,
       },
     });
   }
@@ -134,6 +148,90 @@ export class ProductsService {
         `Etykiety „${label.name}” nie można usunąć – strona nadaje ją sama. Możesz zmienić jej nazwę i kolor.`,
       );
     return this.prisma.productLabel.delete({ where: { id } });
+  }
+
+  private assertLabelDates(from?: string | null, to?: string | null) {
+    if (from && to && from > to)
+      throw new BadRequestException(
+        'Koniec widoczności etykiety nie może być przed jej początkiem',
+      );
+  }
+
+  /** Produkt dla strony i panelu: promocja (czy trwa, cena dziś), etykiety z informacją, czy są dziś widoczne */
+  private present<
+    T extends Parameters<typeof withPromo>[0] & {
+      labels: { activeFrom: string | null; activeTo: string | null }[];
+    },
+  >(
+    product: T,
+    promoLabel: Awaited<ReturnType<ProductsService['promoLabel']>>,
+  ) {
+    const today = warsawNow().date;
+    return {
+      ...withPromo(product),
+      labels: product.labels.map((l) => ({
+        ...l,
+        active: isLabelActive(l, today),
+      })),
+      promoLabel,
+    };
+  }
+
+  /**
+   * Historia promocji (do „Skuteczności promocji”): jeden otwarty okres na produkt – aktualizowany przy zmianach,
+   * zamykany po wyłączeniu promocji; promocja zakończona datą i ustawiona na nowo – nowy okres.
+   */
+  private async syncPromoPeriod(p: {
+    id: string;
+    name: string;
+    price: number;
+    isPromo: boolean;
+    promoPrice: number | null;
+    promoFrom: string | null;
+    promoTo: string | null;
+  }) {
+    const today = warsawNow().date;
+    const open = await this.prisma.promoPeriod.findFirst({
+      where: { productId: p.id, endedAt: null },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!p.isPromo) {
+      if (open)
+        await this.prisma.promoPeriod.update({
+          where: { id: open.id },
+          data: {
+            endedAt: new Date(),
+            to: open.to && open.to < today ? open.to : today,
+          },
+        });
+      return;
+    }
+    const data = {
+      productName: p.name,
+      price: p.price,
+      promoPrice: p.promoPrice,
+      to: p.promoTo,
+    };
+    const finished = open?.to != null && open.to < today;
+    if (
+      open &&
+      finished &&
+      (p.promoTo !== open.to || p.promoFrom !== open.from)
+    ) {
+      await this.prisma.promoPeriod.update({
+        where: { id: open.id },
+        data: { endedAt: new Date() },
+      });
+    } else if (open) {
+      await this.prisma.promoPeriod.update({
+        where: { id: open.id },
+        data: { ...data, from: p.promoFrom ?? open.from },
+      });
+      return;
+    }
+    await this.prisma.promoPeriod.create({
+      data: { ...data, productId: p.id, from: p.promoFrom ?? today },
+    });
   }
 
   private async assertLabelNameFree(name: string, exceptId?: string) {
@@ -211,7 +309,7 @@ export class ProductsService {
       include: PRODUCT_INCLUDE,
     });
     const promoLabel = await this.promoLabel();
-    return products.map((p) => ({ ...withPromo(p), promoLabel }));
+    return products.map((p) => this.present(p, promoLabel));
   }
 
   async findProduct(id: string) {
@@ -219,9 +317,7 @@ export class ProductsService {
       where: { id },
       include: PRODUCT_INCLUDE,
     });
-    return (
-      product && { ...withPromo(product), promoLabel: await this.promoLabel() }
-    );
+    return product && this.present(product, await this.promoLabel());
   }
 
   async createProduct(dto: CreateProductDto) {
@@ -248,7 +344,8 @@ export class ProductsService {
       },
       include: PRODUCT_INCLUDE,
     });
-    return { ...withPromo(created), promoLabel: await this.promoLabel() };
+    await this.syncPromoPeriod(created);
+    return this.present(created, await this.promoLabel());
   }
 
   async updateProduct(id: string, dto: UpdateProductDto) {
@@ -328,7 +425,8 @@ export class ProductsService {
       await deleteImageFiles(urlsToDelete);
     }
 
-    return { ...withPromo(updated), promoLabel: await this.promoLabel() };
+    await this.syncPromoPeriod(updated);
+    return this.present(updated, await this.promoLabel());
   }
 
   async deleteProduct(id: string): Promise<Product> {

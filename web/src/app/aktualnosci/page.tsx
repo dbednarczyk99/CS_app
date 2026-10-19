@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default async function NewsPage() {
   const articles = [...(await orFallback(api.articles(), []))].sort((a, b) =>
-    b.createdAt.localeCompare(a.createdAt),
+    b.publishedAt.localeCompare(a.publishedAt),
   );
 
   return (
@@ -43,8 +43,8 @@ export default async function NewsPage() {
                     </div>
                   )}
                   <div>
-                    <time dateTime={article.createdAt} className="eyebrow text-[0.7rem] text-stone">
-                      {formatDate(article.createdAt)}
+                    <time dateTime={article.publishedAt} className="eyebrow text-[0.7rem] text-stone">
+                      {formatDate(article.publishedAt)}
                     </time>
                     <h2 className="heading mt-3 text-2xl transition-colors group-hover:text-gold sm:text-3xl">
                       {article.title}

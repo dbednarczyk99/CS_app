@@ -9,6 +9,7 @@ import {
   SimpleForm,
   TextInput,
   BooleanInput,
+  DateTimeInput,
   required,
   useRecordContext,
 } from 'react-admin';
@@ -18,12 +19,52 @@ import TagInput from '../common/TagInput';
 import { NewsletterSaveToolbar } from '../common/NewsletterSaveToolbar';
 import { useSubscriberCount } from '../common/useSubscriberCount';
 import SortableImageInput from '../common/SortableImageInput';
+import { ArticleProductTools } from '../common/ArticleProductTools';
 
 interface NewsletterInfo {
   sendAsNewsletter?: boolean;
   newsletterSentAt?: string | null;
   newsletterRecipients?: number | null;
+  publishAt?: string | null;
+  isPublished?: boolean;
 }
+
+const formatWhen = (iso: string) =>
+  new Date(iso).toLocaleString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+
+/** Termin publikacji w przyszłości (wpis i newsletter czekają) */
+const isFuture = (value?: string | Date | null) => !!value && new Date(value).getTime() > Date.now();
+
+/**
+ * Planowanie: wpis pojawi się na stronie i (jeśli zaznaczono) zostanie wysłany jako newsletter o wybranej porze.
+ * Po wysyłce newslettera terminu nie da się już zmienić.
+ */
+const ScheduleInput = () => {
+  const record = useRecordContext<NewsletterInfo>();
+  const [publishAt, published, send] = useWatch({ name: ['publishAt', 'isPublished', 'sendAsNewsletter'] }) as [
+    string | null | undefined,
+    boolean | undefined,
+    boolean | undefined,
+  ];
+  if (record?.newsletterSentAt) return null;
+  const what = [published !== false && 'pojawi się na stronie', send !== false && 'zostanie wysłany jako newsletter']
+    .filter(Boolean)
+    .join(' i ');
+  return (
+    <>
+      <DateTimeInput
+        source="publishAt"
+        label="Zaplanuj publikację (opcjonalnie)"
+        helperText="Puste – od razu po zapisie. Z datą: wpis czeka i sam się opublikuje o tej godzinie."
+      />
+      {isFuture(publishAt) && what && (
+        <Alert severity="info" sx={{ mb: 2, width: '100%' }}>
+          Zaplanowano: wpis {what} – {formatWhen(publishAt!)}. Do tego czasu możesz go dowolnie poprawiać.
+        </Alert>
+      )}
+    </>
+  );
+};
 
 /**
  * Wysyłka wpisu do newslettera: przełącznik (domyślnie włączony) albo – gdy już wysłano – informacja
@@ -93,7 +134,13 @@ export const BlogList = () => (
       <DateField source="createdAt" label="Dodano" locales="pl-PL" />
       <FunctionField
         label="Na stronie"
-        render={(r: { isPublished?: boolean }) => (r.isPublished === false ? 'nie (tylko newsletter)' : 'tak')}
+        render={(r: NewsletterInfo) =>
+          r.isPublished === false
+            ? 'nie (tylko newsletter)'
+            : isFuture(r.publishAt)
+              ? `zaplanowany: ${formatWhen(r.publishAt!)}`
+              : 'tak'
+        }
       />
       <FunctionField
         label="Newsletter"
@@ -103,7 +150,9 @@ export const BlogList = () => (
               ? 'wysyłanie…'
               : `wysłano (${r.newsletterRecipients} os.)`
             : r.sendAsNewsletter
-              ? 'czeka na wysyłkę'
+              ? isFuture(r.publishAt)
+                ? `zaplanowany: ${formatWhen(r.publishAt!)}`
+                : 'czeka na wysyłkę'
               : '—'
         }
       />
@@ -117,10 +166,12 @@ export const BlogCreate = () => (
       <TextInput source="title" validate={[required()]} />
       <TextInput source="shortDescription" multiline />
       <TextInput source="content" multiline minRows={6} helperText="Akapity oddziel pustą linią" />
+      <ArticleProductTools />
 
       <TagInput />
       <PublishToggle />
       <NewsletterToggle />
+      <ScheduleInput />
 
       <SortableImageInput source="images" maxQty={5} />
     </SimpleForm>
@@ -133,10 +184,12 @@ export const BlogEdit = () => (
       <TextInput source="title" validate={[required()]} />
       <TextInput source="shortDescription" multiline />
       <TextInput source="content" multiline minRows={6} helperText="Akapity oddziel pustą linią" />
+      <ArticleProductTools />
 
       <TagInput />
       <PublishToggle />
       <NewsletterToggle />
+      <ScheduleInput />
 
       <SortableImageInput source="images" maxQty={5} />
     </SimpleForm>

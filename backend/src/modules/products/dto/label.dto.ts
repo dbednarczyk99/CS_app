@@ -3,10 +3,16 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
+
+const DAY = /^d{4}-d{2}-d{2}$/;
+// puste pole daty w panelu = brak ograniczenia
+const emptyToNull = ({ value }: { value: unknown }) =>
+  value === '' ? null : value;
 
 // wygląd etykiety na stronie (style: web/src/lib/products.ts – BADGE_STYLE; panel: labels.tsx)
 export const LABEL_COLORS = ['gold', 'cream', 'dark', 'green', 'red'] as const;
@@ -25,6 +31,17 @@ export class CreateLabelDto {
   @IsOptional()
   @IsInt()
   order?: number;
+
+  /** okres widoczności na stronie (YYYY-MM-DD, włącznie); puste = bez ograniczenia */
+  @IsOptional()
+  @Transform(emptyToNull)
+  @Matches(DAY, { message: 'Niepoprawna data początku' })
+  activeFrom?: string | null;
+
+  @IsOptional()
+  @Transform(emptyToNull)
+  @Matches(DAY, { message: 'Niepoprawna data końca' })
+  activeTo?: string | null;
 }
 
 export class UpdateLabelDto {
@@ -42,4 +59,15 @@ export class UpdateLabelDto {
   @IsOptional()
   @IsInt()
   order?: number;
+
+  /** okres widoczności na stronie (YYYY-MM-DD, włącznie); puste = bez ograniczenia */
+  @IsOptional()
+  @Transform(emptyToNull)
+  @Matches(DAY, { message: 'Niepoprawna data początku' })
+  activeFrom?: string | null;
+
+  @IsOptional()
+  @Transform(emptyToNull)
+  @Matches(DAY, { message: 'Niepoprawna data końca' })
+  activeTo?: string | null;
 }

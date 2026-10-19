@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
-import { pageKey, trackEvent, trafficSource } from '@/lib/stats';
+import { newsletterCampaign, pageKey, trackEvent, trafficSource } from '@/lib/stats';
 
 // źródło liczymy raz na wczytanie strony (przejścia między podstronami nie zmieniają document.referrer)
 let sourceCounted = false;
@@ -16,6 +16,8 @@ export function PageViewTracker() {
       sourceCounted = true;
       const source = trafficSource();
       if (source) trackEvent('source', source);
+      const campaign = newsletterCampaign();
+      if (campaign) trackEvent('newsletter', campaign);
     }
   }, [pathname]);
   return null;

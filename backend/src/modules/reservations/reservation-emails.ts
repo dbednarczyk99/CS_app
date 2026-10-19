@@ -47,8 +47,8 @@ export const C = {
   gold: '#c9a36a',
 };
 // Oswald jest wąski – jak na stronie używamy go tylko wielkimi literami z rozstrzeleniem; zamiennik bez „Narrow”
-const HEADING = "'Oswald','Helvetica Neue',Helvetica,Arial,sans-serif";
-const BODY = "'Lato','Helvetica Neue',Helvetica,Arial,sans-serif";
+export const HEADING = "'Oswald','Helvetica Neue',Helvetica,Arial,sans-serif";
+export const BODY = "'Lato','Helvetica Neue',Helvetica,Arial,sans-serif";
 const LOGO_CID = 'logo@chlebasmak';
 
 const SOCIAL_LABELS: Record<string, string> = {

@@ -34,6 +34,8 @@ export interface ProductLabel {
   slug: string;
   color: LabelColor;
   order: number;
+  /** etykieta z datami: widoczna dziś (liczone przez API); brak = widoczna */
+  active?: boolean;
 }
 
 export interface Product {
@@ -87,6 +89,10 @@ export interface Location {
   lng: number | null;
   openingHours: OpeningHours | null;
   images?: Image[]; // zdjęcia lokalu (karuzela na /piekarnie)
+  /** Google: identyfikator miejsca (link „Wystaw opinię”) i ocena odświeżana raz dziennie */
+  googlePlaceId?: string | null;
+  googleRating?: number | null;
+  googleRatingCount?: number | null;
 }
 
 export type Weekday =
@@ -143,6 +149,8 @@ export interface Article {
   shortDescription: string;
   content?: string;
   createdAt: string;
+  /** data publikacji na stronie: zaplanowana albo dodania */
+  publishedAt: string;
   images: Image[];
   tags: { tag: { id: string; name: string } }[];
 }

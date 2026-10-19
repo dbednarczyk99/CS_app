@@ -42,7 +42,10 @@ const DEFAULT_PROMO_LABEL: ProductLabel = { id: 'promo', name: 'Promocja', slug:
 
 /** Etykiety produktu w kolejności z panelu – z etykietą „Promocja”, gdy promocja trwa */
 export const labelsOf = (p: Product): ProductLabel[] =>
-  [...(p.labels ?? []), ...(isOnPromo(p) ? [p.promoLabel ?? DEFAULT_PROMO_LABEL] : [])].sort(byOrder);
+  [
+    ...(p.labels ?? []).filter((l) => l.active !== false),
+    ...(isOnPromo(p) ? [p.promoLabel ?? DEFAULT_PROMO_LABEL] : []),
+  ].sort(byOrder);
 
 /**
  * Filtry etykiet w ofercie (?etykiety=promocje,nowosci): etykiety z panelu razem z „Promocją” (w kolejności
@@ -52,20 +55,22 @@ export const labelsOf = (p: Product): ProductLabel[] =>
 export function labelFilters(products: Product[]): LabelFilter[] {
   const promo = products.find((p) => p.promoLabel)?.promoLabel ?? DEFAULT_PROMO_LABEL;
   const labels = [
-    ...new Map([...products.flatMap((p) => p.labels ?? []), promo].map((l) => [l.id, l])).values(),
+    ...new Map(
+      [...products.flatMap((p) => (p.labels ?? []).filter((l) => l.active !== false)), promo].map((l) => [l.id, l]),
+    ).values(),
   ].sort(byOrder);
   return [
     ...labels.map((l) => ({
       key: l.slug,
       label: l.name,
-      test: l.id === promo.id ? isOnPromo : (p: Product) => (p.labels ?? []).some((pl) => pl.id === l.id),
+      test: l.id === promo.id ? isOnPromo : (p: Product) => labelsOf(p).some((pl) => pl.id === l.id),
     })),
     { key: 'sezonowe', label: 'Sezonowe', test: (p: Product) => p.isSeasonal },
   ];
 }
 
 /** Produkt z dowolną etykietą (promocja, etykieta z panelu, Teraz dostępne) */
-export const hasBadge = (p: Product) => isOnPromo(p) || (p.labels ?? []).length > 0 || p.isSeasonal;
+export const hasBadge = (p: Product) => labelsOf(p).length > 0 || p.isSeasonal;
 
 /**
  * Produkty do karuzeli „Wypieki, po które się wraca”: wszystkie dostępne z etykietą (promocje, etykiety z panelu,

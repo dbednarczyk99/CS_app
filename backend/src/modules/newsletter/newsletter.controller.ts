@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Headers,
+  HttpCode,
   Ip,
   Param,
   Post,
@@ -14,7 +15,11 @@ import {
   Public,
   Roles,
 } from '../auth/auth.decorators';
-import { SubscribeDto, TokenDto } from './dto/newsletter.dto';
+import {
+  NewsletterPreviewDto,
+  SubscribeDto,
+  TokenDto,
+} from './dto/newsletter.dto';
 import { NewsletterService } from './newsletter.service';
 
 @Roles(...CONTENT_ROLES)
@@ -57,6 +62,16 @@ export class NewsletterController {
   @Get('stats')
   stats() {
     return this.service.stats();
+  }
+
+  // podgląd e-maila z wersji roboczej wpisu (formularz w panelu) – dla obu ról
+  @Post('preview')
+  @HttpCode(200)
+  preview(@Body() dto: NewsletterPreviewDto) {
+    return this.service.preview({
+      ...dto,
+      isPublished: dto.isPublished ?? true,
+    });
   }
 
   // lista adresów (dane osobowe) – tylko właściciel

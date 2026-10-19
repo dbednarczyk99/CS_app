@@ -34,7 +34,7 @@ export default async function LocationsPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
           {locations.map((location, i) => (
             <Reveal key={location.id} delay={(i % 2) * 100} className="h-full">
-              <LocationCard location={location} index={i} showOnMap={hasMap} showPhotos />
+              <LocationCard location={location} index={i} showOnMap={hasMap} showPhotos showReviews />
             </Reveal>
           ))}
         </div>

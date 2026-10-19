@@ -6,11 +6,12 @@ import {
   SimpleForm,
   TextInput,
   TextField as RATextField,
-  required
+  required,
+  useRecordContext,
 } from 'react-admin';
 import { useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { Box, FormControlLabel, Switch, Typography } from '@mui/material';
+import { Box, FormControlLabel, Link, Switch, Typography } from '@mui/material';
 import { CoordinatesInput } from '../common/CoordinatesInput';
 import SortableImageInput from '../common/SortableImageInput';
 
@@ -54,6 +55,26 @@ const SectionTitle = ({ title, hint }: { title: string; hint: string }) => (
   </Box>
 );
 
+type GoogleRecord = {
+  googlePlaceId?: string | null;
+  googleRating?: number | null;
+  googleRatingCount?: number | null;
+  googleRatingAt?: string | null;
+};
+
+/** Ocena z Google (odświeżana raz dziennie) – informacja pod polem identyfikatora miejsca */
+const GoogleRatingInfo = () => {
+  const record = useRecordContext<GoogleRecord>();
+  if (!record?.googlePlaceId) return null;
+  return (
+    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+      {record.googleRating != null
+        ? `Ocena w Google: ${record.googleRating.toFixed(1).replace('.', ',')} ★ (${record.googleRatingCount ?? 0} opinii), pobrana ${new Date(record.googleRatingAt!).toLocaleString('pl-PL')}.`
+        : 'Ocena z Google jeszcze nie została pobrana – pojawi się po skonfigurowaniu klucza Google w API (link „Oceń nas” działa już teraz).'}
+    </Typography>
+  );
+};
+
 // wspólny formularz dla tworzenia i edycji
 const LocationForm = () => (
   <SimpleForm>
@@ -63,6 +84,25 @@ const LocationForm = () => (
     <TextInput source="code" label="Kod do numerów rezerwacji (np. WIL)" helperText="2–6 liter; puste = z nazwy ulicy" />
     <TextInput source="googleMapsUrl" label="Link Google Maps" validate={[required()]} helperText="Link do wizytówki piekarni w Mapach Google (przycisk „Nawiguj”)" />
     <CoordinatesInput />
+    <SectionTitle
+      title="Opinie Google"
+      hint="Identyfikator miejsca (Place ID) – na stronie pojawi się ocena piekarni i link „Oceń nas w Google”."
+    />
+    <TextInput
+      source="googlePlaceId"
+      label="Identyfikator miejsca Google (Place ID)"
+      fullWidth
+      helperText={
+        <>
+          Zaczyna się zwykle od „ChIJ”. Znajdziesz go, wpisując adres piekarni na stronie{' '}
+          <Link href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank" rel="noreferrer">
+            Place ID Finder
+          </Link>
+          . Puste – bez oceny i linku.
+        </>
+      }
+    />
+    <GoogleRatingInfo />
     <SectionTitle title="Zdjęcia lokalu" hint="Karuzela na stronie „Piekarnie”; pierwsze zdjęcie pokazuje się od razu. Kolejność zmienisz, przeciągając zdjęcia." />
     <SortableImageInput source="images" validate={false} maxQty={6} />
     <SectionTitle title="Godziny otwarcia" hint="Wyłącz „Czynne”, jeśli lokal jest w ten dzień zamknięty." />

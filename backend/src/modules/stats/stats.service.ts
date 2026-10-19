@@ -4,11 +4,13 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { warsawNow } from '../reservations/reservation-rules';
 
 // product – wyświetlenie strony produktu (klucz: id produktu)
+// newsletter – wejście z linku w newsletterze (klucz: „id wpisu|wpis” albo „id wpisu|id produktu”)
 export type Metric =
   | 'view'
   | 'map'
   | 'source'
   | 'product'
+  | 'newsletter'
   | 'mail'
   | 'mail_failed';
 
@@ -74,7 +76,7 @@ export class StatsService {
   increment(metric: Metric, key = ''): void {
     const date = warsawNow().date;
     this.prisma.$executeRaw`
-      INSERT INTO DailyStat (date, metric, \`key\`, count) VALUES (${date}, ${metric}, ${key.slice(0, 60)}, 1)
+      INSERT INTO DailyStat (date, metric, \`key\`, count) VALUES (${date}, ${metric}, ${key.slice(0, 100)}, 1)
       ON DUPLICATE KEY UPDATE count = count + 1`
       .then(() => undefined)
       .catch((error: unknown) =>
@@ -88,6 +90,20 @@ export class StatsService {
       .count({ where: { id: productId, isActive: true } })
       .catch(() => 0);
     if (exists) this.increment('product', productId);
+  }
+
+  /** Wejście z newslettera – tylko dla wysłanego wpisu (i istniejącego produktu przy kafelku) */
+  async incrementNewsletter(key: string): Promise<void> {
+    const [articleId, target] = key.split('|');
+    const [article, product] = await Promise.all([
+      this.prisma.article
+        .count({ where: { id: articleId, newsletterSentAt: { not: null } } })
+        .catch(() => 0),
+      target === 'wpis'
+        ? 1
+        : this.prisma.product.count({ where: { id: target } }).catch(() => 0),
+    ]);
+    if (article && product) this.increment('newsletter', key);
   }
 
   limits() {
@@ -183,10 +199,139 @@ export class StatsService {
       pages: byKey('view', inRange),
       sources: byKey('source', inRange),
       products: await this.topProducts(byKey('product', inRange)),
+      newsletters: await this.newsletters(),
+      promotions: await this.promotions(today),
       mapsBySource: byKey('map', inMonth),
       mailsByCategory: byKey('mail', inMonth),
       reservations: await this.reservations(from),
     };
+  }
+
+  /**
+   * Skuteczność newsletterów: ostatnie wysłane wpisy – do ilu osób, ile wejść na stronę z e-maila (od wysyłki)
+   * i które produkty z kafelków klikano. Liczone z oznaczonych linków, bez pikseli śledzących.
+   */
+  private async newsletters() {
+    const sent = await this.prisma.article.findMany({
+      where: { newsletterSentAt: { not: null } },
+      orderBy: { newsletterSentAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        title: true,
+        newsletterSentAt: true,
+        newsletterRecipients: true,
+      },
+    });
+    if (sent.length === 0) return [];
+    const rows = await this.prisma.dailyStat.findMany({
+      where: {
+        metric: 'newsletter',
+        OR: sent.map((a) => ({ key: { startsWith: `${a.id}|` } })),
+      },
+    });
+    const productIds = [
+      ...new Set(
+        rows.map((r) => r.key.split('|')[1]).filter((t) => t !== 'wpis'),
+      ),
+    ];
+    const names = new Map(
+      (
+        await this.prisma.product.findMany({
+          where: { id: { in: productIds } },
+          select: { id: true, name: true },
+        })
+      ).map((p) => [p.id, p.name]),
+    );
+    return sent.map((a) => {
+      const own = rows.filter((r) => r.key.startsWith(`${a.id}|`));
+      const byTarget = new Map<string, number>();
+      for (const r of own) {
+        const target = r.key.split('|')[1];
+        byTarget.set(target, (byTarget.get(target) ?? 0) + r.count);
+      }
+      const visits = own.reduce((sum, r) => sum + r.count, 0);
+      return {
+        id: a.id,
+        title: a.title,
+        sentAt: a.newsletterSentAt,
+        recipients: a.newsletterRecipients ?? 0,
+        visits,
+        articleVisits: byTarget.get('wpis') ?? 0,
+        products: [...byTarget.entries()]
+          .filter(([target]) => target !== 'wpis' && names.has(target))
+          .map(([target, count]) => ({ name: names.get(target)!, count }))
+          .sort((x, y) => y.count - x.count),
+      };
+    });
+  }
+
+  /**
+   * Skuteczność promocji: dla ostatnich promocji – zarezerwowane sztuki (wg dnia odbioru, bez anulowanych)
+   * i wyświetlenia produktu w czasie promocji oraz w tak samo długim okresie tuż przed nią.
+   */
+  private async promotions(today: string) {
+    const periods = await this.prisma.promoPeriod.findMany({
+      where: { from: { lte: today } },
+      orderBy: { from: 'desc' },
+      take: 12,
+    });
+    return Promise.all(
+      periods.map(async (p) => {
+        const ended = p.endedAt
+          ? new Intl.DateTimeFormat('en-CA', {
+              timeZone: 'Europe/Warsaw',
+            }).format(p.endedAt)
+          : null;
+        const end = [p.to ?? today, ended ?? today, today].sort()[0];
+        const days =
+          Math.round((Date.parse(end) - Date.parse(p.from)) / DAY_MS) + 1;
+        const beforeFrom = shiftDate(p.from, -days);
+        const beforeTo = shiftDate(p.from, -1);
+        const [during, before] = await Promise.all([
+          this.productActivity(p.productId, p.from, end),
+          this.productActivity(p.productId, beforeFrom, beforeTo),
+        ]);
+        return {
+          id: p.id,
+          productId: p.productId,
+          name: p.productName,
+          price: p.price,
+          promoPrice: p.promoPrice,
+          from: p.from,
+          to: p.to,
+          status: ended ? 'ended' : p.to && p.to < today ? 'ended' : 'active',
+          days,
+          during,
+          before,
+        };
+      }),
+    );
+  }
+
+  /** Zarezerwowane sztuki (dzień odbioru w okresie, bez anulowanych) i wyświetlenia strony produktu */
+  private async productActivity(productId: string, from: string, to: string) {
+    const [items, views] = await Promise.all([
+      this.prisma.reservationItem.aggregate({
+        _sum: { quantity: true },
+        where: {
+          productId,
+          reservation: {
+            pickupDate: { gte: from, lte: to },
+            status: { not: 'CANCELLED' },
+          },
+        },
+      }),
+      this.prisma.dailyStat.aggregate({
+        _sum: { count: true },
+        where: {
+          metric: 'product',
+          key: productId,
+          date: { gte: from, lte: to },
+        },
+      }),
+    ]);
+    return { quantity: items._sum.quantity ?? 0, views: views._sum.count ?? 0 };
   }
 
   /** Najczęściej oglądane produkty: liczniki z nazwami (produkty usunięte z oferty – pominięte) */

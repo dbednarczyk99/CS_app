@@ -26,3 +26,11 @@ export const withPromo = <T extends PromoFields>(p: T) => ({
   promoActive: isPromoActive(p),
   currentPrice: currentPrice(p),
 });
+
+/** Etykieta widoczna w danym dniu: bez dat albo dzień mieści się w okresie od–do (włącznie) */
+export const isLabelActive = (
+  l: { activeFrom: string | null; activeTo: string | null },
+  date = warsawNow().date,
+) =>
+  (!l.activeFrom || l.activeFrom <= date) &&
+  (!l.activeTo || date <= l.activeTo);

@@ -20,19 +20,22 @@ import {
 } from './stats.service';
 
 class StatEventDto {
-  @IsIn(['view', 'map', 'source', 'product'])
-  type: 'view' | 'map' | 'source' | 'product';
+  @IsIn(['view', 'map', 'source', 'product', 'newsletter'])
+  type: 'view' | 'map' | 'source' | 'product' | 'newsletter';
 
   @IsString()
-  @MaxLength(60)
+  @MaxLength(100)
   key: string;
 }
 
 // ochrona przed nabijaniem licznika: zdarzeń z jednego adresu w oknie 10 min
 const PER_IP_LIMIT = 300;
 const WINDOW_MS = 10 * 60 * 1000;
-// roboty wyszukiwarek, podglądy linków, przeglądarki sterowane automatycznie
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// wejście z newslettera: „id wysłanego wpisu|wpis” albo „id wpisu|id produktu” (kafelek produktu w e-mailu)
+const NEWSLETTER_KEY =
+  /^[0-9a-f-]{36}\|(wpis|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
+// roboty wyszukiwarek, podglądy linków, przeglądarki sterowane automatycznie
 const BOT =
   /bot|crawl|spider|slurp|preview|headless|lighthouse|facebookexternalhit|curl|wget|python|java\//i;
 
@@ -59,6 +62,8 @@ export class StatsController {
     if (dto.type === 'product') {
       // tylko istniejące produkty (sprawdzane przy zapisie) – bez dowolnych kluczy w statystykach
       if (!UUID.test(dto.key)) return;
+    } else if (dto.type === 'newsletter') {
+      if (!NEWSLETTER_KEY.test(dto.key)) return;
     } else {
       const allowed = { view: VIEW_KEYS, map: MAP_KEYS, source: SOURCE_KEYS }[
         dto.type
@@ -74,6 +79,8 @@ export class StatsController {
     this.hits.push({ ip: client, at: now });
 
     if (dto.type === 'product') void this.service.incrementProduct(dto.key);
+    else if (dto.type === 'newsletter')
+      void this.service.incrementNewsletter(dto.key);
     else this.service.increment(dto.type, dto.key);
   }
 
@@ -103,6 +110,8 @@ export class StatsController {
       pages: full.pages,
       sources: full.sources,
       products: full.products,
+      newsletters: full.newsletters,
+      promotions: full.promotions,
     };
   }
 }

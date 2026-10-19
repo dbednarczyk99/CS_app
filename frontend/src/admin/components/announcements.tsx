@@ -10,14 +10,17 @@ import {
   NumberField,
   NumberInput,
   SimpleForm,
-  TextField,
   TextInput,
   maxLength,
   required,
   useGetList,
+  useRecordContext,
+  Toolbar,
+  SaveButton,
+  DeleteButton,
 } from 'react-admin';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { Box, Chip, MenuItem, TextField as MuiTextField, Typography } from '@mui/material';
+import { Alert, Box, Chip, MenuItem, TextField as MuiTextField, Typography } from '@mui/material';
 
 /* Baner informacyjny pod nawigacją strony – komunikaty z linkiem i okresem wyświetlania */
 
@@ -29,11 +32,14 @@ interface AnnouncementRecord {
   isActive: boolean;
   startsAt?: string | null;
   endsAt?: string | null;
+  /** komunikat stały („promo”): pokazywany automatycznie, gdy trwa jakakolwiek promocja – bez usuwania */
+  system?: string | null;
 }
 
 function status(a: AnnouncementRecord) {
   const now = Date.now();
   if (!a.isActive) return { label: 'Wyłączony', color: 'default' as const };
+  if (a.system === 'promo') return { label: 'Automatycznie w czasie promocji', color: 'info' as const };
   if (a.startsAt && new Date(a.startsAt).getTime() > now) return { label: 'Zaplanowany', color: 'info' as const };
   if (a.endsAt && new Date(a.endsAt).getTime() <= now) return { label: 'Zakończony', color: 'default' as const };
   return { label: 'Widoczny na stronie', color: 'success' as const };
@@ -42,7 +48,19 @@ function status(a: AnnouncementRecord) {
 export const AnnouncementList = () => (
   <List title="Baner informacyjny" sort={{ field: 'order', order: 'ASC' }}>
     <Datagrid rowClick="edit" bulkActionButtons={false}>
-      <TextField source="message" label="Komunikat" />
+      <FunctionField
+        label="Komunikat"
+        render={(a: AnnouncementRecord) => (
+          <>
+            {a.message}
+            {a.system === 'promo' && (
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                stały – baner promocji (pokazuje się sam, gdy trwa jakakolwiek promocja)
+              </Typography>
+            )}
+          </>
+        )}
+      />
       <FunctionField
         label="Status"
         render={(a: AnnouncementRecord) => {
@@ -50,8 +68,18 @@ export const AnnouncementList = () => (
           return <Chip size="small" label={s.label} color={s.color} />;
         }}
       />
-      <DateField source="startsAt" label="Od" showTime locales="pl-PL" emptyText="od razu" />
-      <DateField source="endsAt" label="Do" showTime locales="pl-PL" emptyText="bezterminowo" />
+      <FunctionField
+        label="Od"
+        render={(a: AnnouncementRecord) =>
+          a.system ? 'w czasie promocji' : <DateField source="startsAt" showTime locales="pl-PL" emptyText="od razu" />
+        }
+      />
+      <FunctionField
+        label="Do"
+        render={(a: AnnouncementRecord) =>
+          a.system ? '' : <DateField source="endsAt" showTime locales="pl-PL" emptyText="bezterminowo" />
+        }
+      />
       <NumberField source="order" label="Kolejność" />
     </Datagrid>
   </List>
@@ -110,6 +138,7 @@ const Preview = () => {
 };
 
 const NEWSLETTER_LINK = '#newsletter';
+const PROMO_LINK = '/oferta?etykiety=promocje';
 
 /** Szybki wybór celu przycisku: okienko newslettera albo wpis z bloga – wpisuje link poniżej */
 const ArticlePicker = () => {
@@ -121,7 +150,9 @@ const ArticlePicker = () => {
   // tylko wpisy widoczne na stronie (nieopublikowany wpis = link do pustej strony)
   const data = articles.filter((a) => a.isPublished !== false);
   const selected =
-    linkUrl === NEWSLETTER_LINK ? NEWSLETTER_LINK : (data.find((a) => linkUrl === `/aktualnosci/${a.id}`)?.id ?? '');
+    linkUrl === NEWSLETTER_LINK || linkUrl === PROMO_LINK
+      ? linkUrl
+      : (data.find((a) => linkUrl === `/aktualnosci/${a.id}`)?.id ?? '');
 
   return (
     <MuiTextField
@@ -130,7 +161,7 @@ const ArticlePicker = () => {
       value={selected}
       onChange={(e) => {
         const id = e.target.value;
-        const link = id === NEWSLETTER_LINK ? NEWSLETTER_LINK : id ? `/aktualnosci/${id}` : '';
+        const link = id === NEWSLETTER_LINK || id === PROMO_LINK ? id : id ? `/aktualnosci/${id}` : '';
         setValue('linkUrl', link, { shouldDirty: true, shouldValidate: true });
       }}
       helperText="Wybór sam uzupełni link poniżej"
@@ -143,6 +174,7 @@ const ArticlePicker = () => {
         <em>— wpiszę link ręcznie —</em>
       </MenuItem>
       <MenuItem value={NEWSLETTER_LINK}>Okienko zapisu do newslettera</MenuItem>
+      <MenuItem value={PROMO_LINK}>Oferta – produkty w promocji</MenuItem>
       {data.map((article) => (
         <MenuItem key={article.id} value={article.id}>
           {article.title}
@@ -152,8 +184,47 @@ const ArticlePicker = () => {
   );
 };
 
+/** Komunikat stały nie ma przycisku „Usuń” (pokazuje się sam w czasie promocji; można go wyłączyć) */
+const FormToolbar = () => {
+  const record = useRecordContext<AnnouncementRecord>();
+  return (
+    <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+      <SaveButton />
+      {record && !record.system && <DeleteButton />}
+    </Toolbar>
+  );
+};
+
+const PeriodInputs = () => {
+  const record = useRecordContext<AnnouncementRecord>();
+  if (record?.system === 'promo') return null;
+  return (
+    <>
+      <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+        Okres wyświetlania
+      </Typography>
+      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+        <DateTimeInput source="startsAt" label="Od" helperText="Puste = od razu" />
+        <DateTimeInput source="endsAt" label="Do" validate={validateEnd} helperText="Puste = bezterminowo; po tej dacie baner zniknie sam" />
+      </Box>
+    </>
+  );
+};
+
+const SystemInfo = () => {
+  const record = useRecordContext<AnnouncementRecord>();
+  if (record?.system !== 'promo') return null;
+  return (
+    <Alert severity="info" sx={{ mb: 2, width: '100%' }}>
+      Baner promocji pokazuje się na stronie sam, gdy trwa jakakolwiek promocja (bez nazw produktów – zbiorczo),
+      i znika po zakończeniu ostatniej. Możesz zmienić treść i przycisk albo go wyłączyć – nie można go usunąć.
+    </Alert>
+  );
+};
+
 const AnnouncementForm = () => (
-  <SimpleForm>
+  <SimpleForm toolbar={<FormToolbar />}>
+    <SystemInfo />
     <Preview />
     <TextInput
       source="message"
@@ -183,13 +254,7 @@ const AnnouncementForm = () => (
       helperText="Puste = „Dowiedz się więcej”"
     />
 
-    <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
-      Okres wyświetlania
-    </Typography>
-    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-      <DateTimeInput source="startsAt" label="Od" helperText="Puste = od razu" />
-      <DateTimeInput source="endsAt" label="Do" validate={validateEnd} helperText="Puste = bezterminowo; po tej dacie baner zniknie sam" />
-    </Box>
+    <PeriodInputs />
     <NumberInput
       source="order"
       label="Kolejność"

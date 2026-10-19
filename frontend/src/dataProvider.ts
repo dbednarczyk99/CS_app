@@ -2,9 +2,9 @@
 
 import { fetchUtils, type DataProvider } from 'react-admin';
 
-const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+export const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-const httpClient = (url: string, options: fetchUtils.Options = {}) => {
+export const httpClient = (url: string, options: fetchUtils.Options = {}) => {
   const headers = new Headers(options.headers ?? { Accept: 'application/json' });
 
   if (!(options.body instanceof FormData)) {
