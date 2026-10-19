@@ -5,11 +5,14 @@ import { FaArrowRight } from 'react-icons/fa6';
 import { PageHeader } from '@/components/PageHeader';
 import { api, orFallback } from '@/lib/api';
 import { formatDate } from '@/lib/format';
+import { articlePath } from '@/lib/site';
+import { pageMetadata } from '@/lib/site';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Aktualności',
   description: 'Nowości, sezonowe wypieki i wiadomości z piekarni Chleba Smak.',
-};
+  path: '/aktualnosci',
+});
 
 export default async function NewsPage() {
   const articles = [...(await orFallback(api.articles(), []))].sort((a, b) =>
@@ -28,7 +31,7 @@ export default async function NewsPage() {
             return (
               <li key={article.id}>
                 <Link
-                  href={`/aktualnosci/${article.id}`}
+                  href={articlePath(article)}
                   className={`group grid gap-6 py-10 ${image ? 'sm:grid-cols-[14rem_1fr]' : ''}`}
                 >
                   {image && (

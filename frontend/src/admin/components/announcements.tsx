@@ -144,7 +144,7 @@ const PROMO_LINK = '/oferta?etykiety=promocje';
 const ArticlePicker = () => {
   const { setValue } = useFormContext();
   const linkUrl = useWatch({ name: 'linkUrl' }) as string | undefined;
-  const { data: articles = [] } = useGetList<{ id: string; title: string; isPublished?: boolean }>('blog', {
+  const { data: articles = [] } = useGetList<{ id: string; title: string; slug?: string | null; isPublished?: boolean }>('blog', {
     pagination: { page: 1, perPage: 100 },
   });
   // tylko wpisy widoczne na stronie (nieopublikowany wpis = link do pustej strony)
@@ -152,7 +152,7 @@ const ArticlePicker = () => {
   const selected =
     linkUrl === NEWSLETTER_LINK || linkUrl === PROMO_LINK
       ? linkUrl
-      : (data.find((a) => linkUrl === `/aktualnosci/${a.id}`)?.id ?? '');
+      : (data.find((a) => linkUrl === `/aktualnosci/${a.id}` || (a.slug && linkUrl === `/aktualnosci/${a.slug}`))?.id ?? '');
 
   return (
     <MuiTextField
@@ -161,7 +161,10 @@ const ArticlePicker = () => {
       value={selected}
       onChange={(e) => {
         const id = e.target.value;
-        const link = id === NEWSLETTER_LINK || id === PROMO_LINK ? id : id ? `/aktualnosci/${id}` : '';
+        // czytelny adres wpisu (slug); stare linki z id dalej działają – strona przekierowuje
+        const article = data.find((a) => a.id === id);
+        const link =
+          id === NEWSLETTER_LINK || id === PROMO_LINK ? id : id ? `/aktualnosci/${article?.slug ?? id}` : '';
         setValue('linkUrl', link, { shouldDirty: true, shouldValidate: true });
       }}
       helperText="Wybór sam uzupełni link poniżej"

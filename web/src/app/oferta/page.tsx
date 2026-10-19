@@ -6,11 +6,13 @@ import { PageHeader } from '@/components/PageHeader';
 import { ProductCard } from '@/components/ProductCard';
 import { api, orFallback, type Product } from '@/lib/api';
 import { isAvailable, isOutOfSeason, labelFilters } from '@/lib/products';
+import { pageMetadata } from '@/lib/site';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Oferta',
   description: 'Chleby na zakwasie, słodkie wypieki, kanapki i lody rzemieślnicze z piekarni Chleba Smak w Krakowie.',
-};
+  path: '/oferta',
+});
 
 /** Adres oferty z filtrami (kategorie + wyróżnione), oba z wielokrotnym wyborem */
 function offerHref(kategorie: string[], etykiety: string[]) {

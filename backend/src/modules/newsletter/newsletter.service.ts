@@ -214,6 +214,7 @@ export class NewsletterService {
           p.id.toLowerCase(),
           {
             id: p.id,
+            slug: p.slug,
             name: p.name,
             description: p.description,
             price: p.price,

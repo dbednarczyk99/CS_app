@@ -7,11 +7,15 @@ import { Reveal } from '@/components/Reveal';
 import { StoresMap } from '@/components/StoresMap';
 import { api, orFallback } from '@/lib/api';
 import { plural } from '@/lib/format';
+import { pageMetadata } from '@/lib/site';
+import { JsonLd } from '@/components/JsonLd';
+import { bakeryLd } from '@/lib/structured-data';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Piekarnie',
   description: 'Adresy, godziny otwarcia, telefony i dojazd do piekarni Chleba Smak w Krakowie.',
-};
+  path: '/piekarnie',
+});
 
 export default async function LocationsPage() {
   const [locations, stops] = await Promise.all([
@@ -24,6 +28,9 @@ export default async function LocationsPage() {
 
   return (
     <>
+      {/* dane dla Google: każda piekarnia z adresem, położeniem, telefonem i godzinami */}
+      <JsonLd data={locations.map(bakeryLd)} />
+
       <PageHeader eyebrow="Odwiedź nas" title="Nasze piekarnie" image="/images/lokal.jpg">
         {locations.length > 0
           ? `${locations.length} ${plural(locations.length, ['miejsce', 'miejsca', 'miejsc'])} w Krakowie, w których czeka na Ciebie świeże pieczywo.`

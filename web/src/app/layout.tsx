@@ -6,6 +6,9 @@ import { PageViewTracker } from '@/components/PageViewTracker';
 import { Header } from '@/components/Header';
 import { api, orFallback } from '@/lib/api';
 import { ReservationCartProvider } from '@/lib/reservation-cart';
+import { JsonLd } from '@/components/JsonLd';
+import { SITE_NAME, SITE_URL } from '@/lib/site';
+import { organizationLd, websiteLd } from '@/lib/structured-data';
 import './globals.css';
 
 const lato = Lato({
@@ -22,6 +25,17 @@ const oswald = Oswald({
 });
 
 export const metadata: Metadata = {
+  // adres strony – pełne adresy w metadanych (kanoniczne, podgląd linków); ścieżki w podstronach są względne
+  metadataBase: new URL(SITE_URL),
+  applicationName: SITE_NAME,
+  // podgląd linku przy udostępnianiu (Facebook, Messenger, WhatsApp, LinkedIn) – domyślny dla wszystkich podstron
+  openGraph: {
+    type: 'website',
+    locale: 'pl_PL',
+    siteName: SITE_NAME,
+    images: [{ url: '/images/og-domyslny.jpg', width: 1200, height: 630, alt: 'Chleba Smak – piekarnia rzemieślnicza w Krakowie' }],
+  },
+  twitter: { card: 'summary_large_image' },
   title: {
     default: 'Chleba Smak – piekarnia rzemieślnicza w Krakowie',
     template: '%s · Chleba Smak',
@@ -39,7 +53,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const announcements = await orFallback(api.announcements(), []);
+  const [announcements, media] = await Promise.all([
+    orFallback(api.announcements(), []),
+    orFallback(api.media(), []),
+  ]);
 
   return (
     // data-banner: miejsce na baner pod nawigacją (--banner-h w globals.css)
@@ -51,6 +68,8 @@ export default async function RootLayout({
         >
           Przejdź do treści
         </a>
+        {/* dane dla Google: firma (logo, profile społecznościowe) i strona */}
+        <JsonLd data={[organizationLd(media), websiteLd()]} />
         <ReservationCartProvider>
           <Header announcements={announcements} />
           <main id="tresc">{children}</main>

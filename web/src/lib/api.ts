@@ -40,6 +40,8 @@ export interface ProductLabel {
 
 export interface Product {
   id: string;
+  /** adres na stronie: /oferta/<slug> */
+  slug: string | null;
   name: string;
   description: string;
   price: number;
@@ -65,6 +67,8 @@ export interface Product {
   images?: Image[]; // brak w odpowiedzi /products/categories
   categoryId: string;
   category?: { id: string; name: string };
+  /** data ostatniej zmiany (mapa strony) */
+  updatedAt?: string;
 }
 
 export interface Category {
@@ -145,6 +149,8 @@ export interface Media {
 
 export interface Article {
   id: string;
+  /** adres na stronie: /aktualnosci/<slug> */
+  slug: string | null;
   title: string;
   shortDescription: string;
   content?: string;

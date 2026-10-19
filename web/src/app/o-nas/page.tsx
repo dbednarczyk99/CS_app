@@ -4,11 +4,13 @@ import Link from 'next/link';
 import { PageHeader } from '@/components/PageHeader';
 import { Reveal } from '@/components/Reveal';
 import { SectionHeading } from '@/components/SectionHeading';
+import { pageMetadata } from '@/lib/site';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'O nas',
   description: 'Poznaj piekarnię rzemieślniczą Chleba Smak – ludzi, zasady i sposób, w jaki pieczemy chleb.',
-};
+  path: '/o-nas',
+});
 
 const PRINCIPLES = [
   {

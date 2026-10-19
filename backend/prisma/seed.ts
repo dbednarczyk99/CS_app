@@ -7,6 +7,7 @@ import {
 } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import { seedStats } from './seed-stats';
+import { slugify, uniqueSlug } from '../src/scripts/slug';
 import 'dotenv/config';
 import * as bcrypt from 'bcrypt';
 
@@ -251,7 +252,13 @@ async function main() {
   );
   // stała etykieta trwającej promocji – strona nadaje ją sama (nie przypisuje się jej ręcznie)
   await prisma.productLabel.create({
-    data: { name: 'Promocja', slug: 'promocje', color: 'red', order: 0, system: 'promo' },
+    data: {
+      name: 'Promocja',
+      slug: 'promocje',
+      color: 'red',
+      order: 0,
+      system: 'promo',
+    },
   });
   await label('Nowość', 'nowosci', 'gold', 1, ['Drożdżówka z truskawkami']);
   await label('Bestseller', 'bestsellery', 'cream', 2, [
@@ -813,6 +820,34 @@ async function main() {
   // --- STATYSTYKI (fikcyjna historia) ---
   await seedStats(prisma, warsawToday);
   console.log('✅ Stats seeded');
+  // czytelne adresy na stronie (seed tworzy rekordy z pominięciem serwisów, które nadają slug przy dodaniu)
+  for (const p of await prisma.product.findMany({
+    orderBy: { createdAt: 'asc' },
+  }))
+    await prisma.product.update({
+      where: { id: p.id },
+      data: {
+        slug: await uniqueSlug(
+          slugify(p.name, 70, 'produkt'),
+          async (slug) =>
+            !!(await prisma.product.findUnique({ where: { slug } })),
+        ),
+      },
+    });
+  for (const a of await prisma.article.findMany({
+    orderBy: { createdAt: 'asc' },
+  }))
+    await prisma.article.update({
+      where: { id: a.id },
+      data: {
+        slug: await uniqueSlug(
+          slugify(a.title, 90, 'wpis'),
+          async (slug) =>
+            !!(await prisma.article.findUnique({ where: { slug } })),
+        ),
+      },
+    });
+  console.log('✅ Slugs seeded');
   console.log('✅ All seed data created');
 }
 

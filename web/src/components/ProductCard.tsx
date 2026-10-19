@@ -4,6 +4,7 @@ import type { Product } from '@/lib/api';
 import { BADGE_STYLE, isOutOfSeason, oldPriceOf, priceOf, productBadges } from '@/lib/products';
 import { formatPrice } from '@/lib/format';
 import { AddToReservationCompact } from './AddToReservation';
+import { productPath } from '@/lib/site';
 
 export function ProductCard({
   product,
@@ -21,7 +22,7 @@ export function ProductCard({
 
   return (
     <div className={`group flex h-full flex-col ${outOfSeason ? 'opacity-60 transition-opacity hover:opacity-90' : ''}`}>
-      <Link href={`/oferta/${product.id}`} className="block">
+      <Link href={productPath(product)} className="block">
         <div className="relative aspect-[4/5] overflow-hidden bg-graphite">
           {image ? (
             <Image
