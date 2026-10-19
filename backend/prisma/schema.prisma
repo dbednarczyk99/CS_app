@@ -62,6 +62,10 @@ model Product {
   isActive         Boolean           @default(true)
   // czy produkt można zarezerwować online (np. lody i napoje – tylko do wglądu)
   isReservable     Boolean           @default(true)
+  // planowanie: o tej porze produkt sam się włącza (aktywny, a sezonowy – w sezonie) / wyłącza
+  // (sezonowy – poza sezonem, zwykły – ukryty); data czyści się po wykonaniu
+  availableFrom    DateTime?
+  unavailableFrom  DateTime?
   images           ProductImages[]
   reservationItems ReservationItem[]
   category         Category          @relation(fields: [categoryId], references: [id])

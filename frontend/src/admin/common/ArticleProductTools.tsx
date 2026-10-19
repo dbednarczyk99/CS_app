@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useGetList, useNotify } from 'react-admin';
 import { useFormContext, useWatch } from 'react-hook-form';
 import {
+  Alert,
   Autocomplete,
   Box,
   Button,
@@ -19,7 +20,64 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { apiUrl, httpClient } from '../../dataProvider';
 
-type ProductOption = { id: string; name: string; isActive: boolean; promoActive?: boolean };
+type ProductOption = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  promoActive?: boolean;
+  isSeasonal?: boolean;
+  inSeason?: boolean;
+  availableFrom?: string | null;
+  unavailableFrom?: string | null;
+  isPromo?: boolean;
+  promoFrom?: string | null;
+  promoTo?: string | null;
+};
+
+const warsawDay = (time: number) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Warsaw' }).format(new Date(time));
+const dayMonth = (day: string) => new Date(`${day}T12:00:00`).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' });
+const when = (iso: string) =>
+  new Date(iso).toLocaleString('pl-PL', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+
+/**
+ * Ostrzeżenia dla kafelków na chwilę publikacji wpisu (teraz albo zaplanowana): produkt jeszcze niewidoczny
+ * lub poza sezonem (z uwzględnieniem zaplanowanych zmian dostępności), promocja jeszcze się nie zaczęła albo
+ * już skończyła – żeby wpis nie zapowiadał czegoś, czego w e-mailu i na stronie nie będzie.
+ */
+function tileWarnings(products: ProductOption[], at: number) {
+  const day = warsawDay(at);
+  const warnings: string[] = [];
+  for (const p of products) {
+    let active = p.isActive;
+    let inSeason = p.inSeason !== false;
+    // zaplanowane zmiany do chwili publikacji, w kolejności
+    const events = [
+      p.availableFrom && { at: new Date(p.availableFrom).getTime(), on: true },
+      p.unavailableFrom && { at: new Date(p.unavailableFrom).getTime(), on: false },
+    ]
+      .filter((e): e is { at: number; on: boolean } => !!e && e.at <= at)
+      .sort((a, b) => a.at - b.at);
+    for (const e of events) {
+      if (e.on) {
+        active = true;
+        inSeason = true;
+      } else if (p.isSeasonal) inSeason = false;
+      else active = false;
+    }
+    const later = p.availableFrom && new Date(p.availableFrom).getTime() > at ? ` (pojawi się ${when(p.availableFrom)})` : '';
+    if (!active) {
+      warnings.push(`„${p.name}” nie będzie jeszcze widoczny na stronie${later} – kafelek się nie pokaże.`);
+      continue;
+    }
+    if (p.isSeasonal && !inSeason)
+      warnings.push(`„${p.name}” będzie poza sezonem${later} – kafelek pokaże „Wróci w sezonie”, bez ceny.`);
+    if (p.isPromo && p.promoFrom && p.promoFrom > day)
+      warnings.push(`Promocja na „${p.name}” zaczyna się dopiero ${dayMonth(p.promoFrom)} – w chwili publikacji będzie cena regularna.`);
+    if (p.isPromo && p.promoTo && p.promoTo < day)
+      warnings.push(`Promocja na „${p.name}” skończy się ${dayMonth(p.promoTo)}, przed publikacją wpisu.`);
+  }
+  return warnings;
+}
 
 // akapit „[produkt:<id> Nazwa]” – strona i newsletter zamieniają go na kafelek produktu (nazwa dla czytelności)
 const TOKEN = /\[produkt:([0-9a-f-]{36})[^\]]*\]/gi;
@@ -32,6 +90,8 @@ const token = (p: ProductOption) => `[produkt:${p.id} ${p.name}]`;
 export const ArticleProductTools = () => {
   const { setValue, getValues } = useFormContext();
   const content = (useWatch({ name: 'content' }) as string | undefined) ?? '';
+  const publishAt = useWatch({ name: 'publishAt' }) as string | null | undefined;
+  const [now] = useState(() => Date.now());
   const notify = useNotify();
   const { data: products = [] } = useGetList<ProductOption>('products', {
     pagination: { page: 1, perPage: 500 },
@@ -57,6 +117,12 @@ export const ArticleProductTools = () => {
   };
 
   const promoProducts = products.filter((p) => p.isActive && p.promoActive);
+  // chwila publikacji: zaplanowana albo teraz
+  const publishTime = publishAt && new Date(publishAt).getTime() > now ? new Date(publishAt).getTime() : now;
+  const warnings = tileWarnings(
+    inContent.filter((p): p is ProductOption => 'availableFrom' in p || p.isActive),
+    publishTime,
+  );
 
   const showPreview = async () => {
     const values = getValues();
@@ -84,8 +150,11 @@ export const ArticleProductTools = () => {
         <Autocomplete
           size="small"
           sx={{ minWidth: 260, flex: 1, maxWidth: 420 }}
-          options={products.filter((p) => p.isActive)}
-          getOptionLabel={(p) => p.name}
+          // także produkty zaplanowane na później (zapowiedź nowości) – ostrzeżenie poniżej powie, czy zdążą
+          options={products.filter((p) => p.isActive || p.availableFrom)}
+          getOptionLabel={(p) =>
+            p.isActive ? p.name : `${p.name} (pojawi się ${p.availableFrom ? when(p.availableFrom) : 'później'})`
+          }
           value={picked}
           onChange={(_, value) => setPicked(value)}
           renderInput={(params) => <TextField {...params} label="Produkt do wstawienia" />}
@@ -132,6 +201,17 @@ export const ArticleProductTools = () => {
             />
           ))}
         </Stack>
+      )}
+
+      {warnings.length > 0 && (
+        <Alert severity="warning" sx={{ mt: 1.5 }}>
+          <strong>
+            {publishTime > now ? `Na chwilę publikacji (${when(new Date(publishTime).toISOString())}):` : 'Uwaga do kafelków:'}
+          </strong>
+          {warnings.map((w) => (
+            <div key={w}>• {w}</div>
+          ))}
+        </Alert>
       )}
 
       <Dialog open={preview !== null} onClose={() => setPreview(null)} maxWidth="md" fullWidth>

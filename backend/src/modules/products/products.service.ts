@@ -1,5 +1,7 @@
+import { Cron, CronExpression } from '@nestjs/schedule';
 import {
   Injectable,
+  Logger,
   BadRequestException,
   ConflictException,
   NotFoundException,
@@ -43,7 +45,53 @@ type PromoInput = {
 
 @Injectable()
 export class ProductsService {
+  private readonly logger = new Logger(ProductsService.name);
+
   constructor(private prisma: PrismaService) {}
+
+  /**
+   * Co minutę: zaplanowane zmiany dostępności. „Dostępny od” – aktywny (a sezonowy w sezonie), „Niedostępny od” –
+   * sezonowy poza sezon, zwykły ukryty. Po wykonaniu data się czyści, więc przełączniki zostają jedynym stanem
+   * (ręczna zmiana w panelu działa od razu, a zaplanowana – o swojej porze).
+   */
+  @Cron(CronExpression.EVERY_MINUTE)
+  async applySchedule() {
+    const now = new Date();
+    const due = await this.prisma.product.findMany({
+      where: {
+        OR: [
+          { availableFrom: { lte: now } },
+          { unavailableFrom: { lte: now } },
+        ],
+      },
+    });
+    for (const p of due) {
+      // obie daty minęły – liczy się późniejsza (ostatnia zaplanowana decyzja)
+      const on =
+        p.availableFrom && p.availableFrom <= now ? p.availableFrom : null;
+      const off =
+        p.unavailableFrom && p.unavailableFrom <= now
+          ? p.unavailableFrom
+          : null;
+      const available = on && (!off || on > off);
+      const changes: Prisma.ProductUpdateInput = available
+        ? { isActive: true, ...(p.isSeasonal ? { inSeason: true } : {}) }
+        : p.isSeasonal
+          ? { inSeason: false }
+          : { isActive: false };
+      await this.prisma.product.update({
+        where: { id: p.id },
+        data: {
+          ...changes,
+          ...(on ? { availableFrom: null } : {}),
+          ...(off ? { unavailableFrom: null } : {}),
+        },
+      });
+      this.logger.log(
+        `Zaplanowana zmiana: „${p.name}” – ${available ? 'dostępny' : 'niedostępny'}`,
+      );
+    }
+  }
 
   // LABELS
   async findAllLabels() {
@@ -321,7 +369,8 @@ export class ProductsService {
   }
 
   async createProduct(dto: CreateProductDto) {
-    const { images, labelIds, ...productData } = dto as any;
+    const { images, labelIds, availableFrom, unavailableFrom, ...productData } =
+      dto as any;
     this.assertPromo(dto);
 
     const imagesData = (images || []).map(
@@ -335,6 +384,10 @@ export class ProductsService {
       data: {
         ...productData,
         isActive: dto.isActive,
+        availableFrom: availableFrom ? new Date(availableFrom as string) : null,
+        unavailableFrom: unavailableFrom
+          ? new Date(unavailableFrom as string)
+          : null,
         images: {
           create: imagesData,
         },
@@ -380,6 +433,20 @@ export class ProductsService {
             labels: {
               set: await this.assignableLabelIds(rest.labelIds as string[]),
             },
+          }
+        : {}),
+      ...(rest.availableFrom !== undefined
+        ? {
+            availableFrom: rest.availableFrom
+              ? new Date(rest.availableFrom as string)
+              : null,
+          }
+        : {}),
+      ...(rest.unavailableFrom !== undefined
+        ? {
+            unavailableFrom: rest.unavailableFrom
+              ? new Date(rest.unavailableFrom as string)
+              : null,
           }
         : {}),
       ...(rest.isPromo !== undefined ? { isPromo: rest.isPromo } : {}),

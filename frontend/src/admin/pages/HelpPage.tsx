@@ -45,6 +45,10 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
         a: '„Statystyki” → „Skuteczność promocji”: dla każdej promocji porównanie zarezerwowanych sztuk i wyświetleń produktu w czasie promocji z tak samo długim okresem tuż przed nią. Sprzedaży w sklepie bez rezerwacji strona nie widzi.',
       },
       {
+        q: 'Jak zaplanować pojawienie się produktu?',
+        a: 'W formularzu produktu, w sekcji „Planowanie”, ustaw „Dostępny od” – o tej porze nowy produkt pojawi się w ofercie, a sezonowy wróci do sprzedaży (także gdy nikt nie będzie wtedy przy komputerze). „Niedostępny od” działa odwrotnie: sezonowy przejdzie do „Wrócą w sezonie”, zwykły zniknie z oferty. Po wykonaniu data się czyści; ręczna zmiana przełączników działa od razu. Wpis zapowiadający produkt możesz zaplanować na tę samą godzinę – formularz wpisu ostrzeże, jeśli produkt albo promocja nie zdążą.',
+      },
+      {
         q: 'Kolejność zdjęć',
         a: 'Zdjęcia przeciągnij myszką – pierwsze (oznaczone „Główne”) widać na karcie produktu na stronie.',
       },
