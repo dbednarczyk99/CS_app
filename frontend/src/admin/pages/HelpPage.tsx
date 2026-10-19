@@ -67,7 +67,7 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Ocena piekarni w Google',
-        a: 'W formularzu piekarni wpisz „Identyfikator miejsca Google (Place ID)” – na stronie „Piekarnie” pojawi się ocena (gwiazdki i liczba opinii, odświeżane raz dziennie) i link „Oceń nas w Google”. Identyfikator znajdziesz w narzędziu Place ID Finder (link przy polu).',
+        a: 'W formularzu piekarni wpisz „Identyfikator miejsca Google (Place ID)” – na stronie „Piekarnie” pojawi się ocena (gwiazdki i liczba opinii, odświeżane raz dziennie) i link „Oceń nas w Google”. Identyfikator znajdziesz w narzędziu Place ID Finder (link przy polu). W stopce strony pojawia się ocena zbiorcza (średnia ważona liczbą opinii wszystkich piekarni). Gwiazdki wymagają klucza Google w konfiguracji serwera; po jego dodaniu użyj „Odśwież ocenę teraz” w formularzu piekarni.',
       },
       {
         q: 'Punkt nie pojawia się na mapie',

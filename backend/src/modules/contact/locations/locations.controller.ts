@@ -34,6 +34,12 @@ export class LocationsController {
     return this.service.create(body);
   }
 
+  // „Odśwież ocenę teraz” w formularzu piekarni
+  @Post(':id/refresh-rating')
+  refreshRating(@Param('id') id: string) {
+    return this.service.refreshRatingNow(id);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() body: UpdateLocationDto) {
     return this.service.update(id, body);

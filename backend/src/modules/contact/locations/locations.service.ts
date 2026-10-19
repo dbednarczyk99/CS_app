@@ -1,4 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  OnApplicationBootstrap,
+} from '@nestjs/common';
+import { fetchGoogleRating, type RatingResult } from './google-rating';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -19,7 +25,7 @@ const toImagesCreate = (images: ImageInput[]) =>
     .map((img, index) => ({ imgUrl: img.imgUrl, order: index }));
 
 @Injectable()
-export class LocationsService {
+export class LocationsService implements OnApplicationBootstrap {
   private readonly logger = new Logger(LocationsService.name);
 
   constructor(
@@ -28,45 +34,53 @@ export class LocationsService {
   ) {}
 
   /**
-   * Ocena piekarni w Google (gwiazdki i liczba opinii) z Places API (New). Pole „rating” należy do SKU
-   * Place Details Enterprise – 1000 darmowych zapytań miesięcznie; odświeżanie raz dziennie (kilka piekarni
-   * ≈ 150 zapytań/mies.) mieści się w limicie. Bez klucza GOOGLE_PLACES_API_KEY – tylko link „Wystaw opinię”.
+   * Ocena piekarni w Google (gwiazdki i liczba opinii) – źródło w google-rating.ts (dziś Places API, odświeżanie
+   * raz dziennie: kilka piekarni ≈ 150 zapytań/mies. przy 1000 darmowych). Bez klucza GOOGLE_PLACES_API_KEY
+   * strona pokazuje tylko link „Oceń nas w Google”. Zwraca wynik (komunikat dla panelu przy błędzie).
    */
-  async refreshRating(id: string) {
-    const key = this.config.get<string>('GOOGLE_PLACES_API_KEY');
+  async refreshRating(id: string): Promise<RatingResult | null> {
     const location = await this.prisma.location.findUnique({ where: { id } });
-    if (!key || !location?.googlePlaceId) return;
-    try {
-      const res = await fetch(
-        `https://places.googleapis.com/v1/places/${encodeURIComponent(location.googlePlaceId)}`,
-        {
-          headers: {
-            'X-Goog-Api-Key': key,
-            'X-Goog-FieldMask': 'rating,userRatingCount',
-          },
-        },
-      );
-      if (!res.ok) {
+    if (!location?.googlePlaceId) return null;
+    const result = await fetchGoogleRating(
+      location.googlePlaceId,
+      this.config.get<string>('GOOGLE_PLACES_API_KEY'),
+    );
+    if (!result.ok) {
+      if (result.reason !== 'no-key')
         this.logger.warn(
-          `Ocena Google dla „${location.name ?? location.address}”: błąd ${res.status}`,
+          `Ocena Google dla „${location.name ?? location.address}”: ${result.message}`,
         );
-        return;
-      }
-      const body = (await res.json()) as {
-        rating?: number;
-        userRatingCount?: number;
-      };
-      await this.prisma.location.update({
-        where: { id },
-        data: {
-          googleRating: body.rating ?? null,
-          googleRatingCount: body.userRatingCount ?? null,
-          googleRatingAt: new Date(),
-        },
-      });
-    } catch (error) {
-      this.logger.warn(`Ocena Google: ${String(error)}`);
+      return result;
     }
+    await this.prisma.location.update({
+      where: { id },
+      data: {
+        googleRating: result.value.rating,
+        googleRatingCount: result.value.count,
+        googleRatingAt: new Date(),
+      },
+    });
+    return result;
+  }
+
+  /** Przy starcie serwera – ocena dla piekarni z identyfikatorem, które jej jeszcze nie mają (np. klucz dodany później) */
+  async onApplicationBootstrap() {
+    const missing = await this.prisma.location.findMany({
+      where: { googlePlaceId: { not: null }, googleRatingAt: null },
+      select: { id: true },
+    });
+    for (const { id } of missing) await this.refreshRating(id);
+  }
+
+  /** Panel: „Odśwież ocenę teraz” – błąd (brak klucza, zły identyfikator) jako czytelny komunikat */
+  async refreshRatingNow(id: string) {
+    const result = await this.refreshRating(id);
+    if (!result)
+      throw new BadRequestException(
+        'Najpierw wpisz i zapisz identyfikator miejsca Google (Place ID).',
+      );
+    if (!result.ok) throw new BadRequestException(result.message);
+    return this.findOne(id);
   }
 
   /** Codziennie o 6:15 – odświeżenie ocen Google wszystkich piekarni z identyfikatorem miejsca */

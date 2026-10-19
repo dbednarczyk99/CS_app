@@ -1,6 +1,7 @@
 import { FaLocationArrow, FaPhone, FaStar } from 'react-icons/fa6';
 import type { Location } from '@/lib/api';
 import { groupedHours, plural, telHref } from '@/lib/format';
+import { ratingFormat, reviewUrl } from '@/lib/google';
 import { OpenStatus } from './OpenStatus';
 import { PhotoCarousel } from './PhotoCarousel';
 import { ShowOnMapButton } from './StoresMap';
@@ -84,7 +85,6 @@ export function LocationCard({
   );
 }
 
-const ratingFormat = new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 /**
  * Ocena piekarni w Google (odświeżana przez API raz dziennie) i link do wystawienia opinii.
@@ -92,7 +92,6 @@ const ratingFormat = new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 1, 
  */
 function GoogleRating({ location }: { location: Location }) {
   if (!location.googlePlaceId) return null;
-  const reviewUrl = `https://search.google.com/local/writereview?placeid=${encodeURIComponent(location.googlePlaceId)}`;
   const count = location.googleRatingCount ?? 0;
   return (
     <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
@@ -105,7 +104,7 @@ function GoogleRating({ location }: { location: Location }) {
           </span>
         </span>
       )}
-      <a href={reviewUrl} target="_blank" rel="noreferrer" className="link-arrow text-[0.7rem]">
+      <a href={reviewUrl(location.googlePlaceId)} target="_blank" rel="noreferrer" className="link-arrow text-[0.7rem]">
         Oceń nas w Google
       </a>
     </p>

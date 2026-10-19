@@ -1,8 +1,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { FaEnvelope } from 'react-icons/fa6';
+import { FaEnvelope, FaStar } from 'react-icons/fa6';
 import { api, orFallback } from '@/lib/api';
 import { telHref } from '@/lib/format';
+import { ratingFormat, ratingSummary } from '@/lib/google';
 import { NAV } from '@/lib/nav';
 import { NewsletterButton } from './Newsletter';
 import { SocialLinks } from './SocialLinks';
@@ -16,6 +17,8 @@ export async function Footer() {
   const email = contact.find((c) => c.type === 'EMAIL')?.value;
   // główny telefon (z panelu: Contact info, typ PHONE) – oprócz numerów poszczególnych piekarni
   const phone = contact.find((c) => c.type === 'PHONE')?.value;
+  // ocena zbiorcza z Google (średnia ważona liczbą opinii wszystkich piekarni)
+  const rating = ratingSummary(locations);
 
   return (
     <footer className="border-t border-line bg-coal">
@@ -32,6 +35,15 @@ export async function Footer() {
           <p className="mt-5 max-w-xs text-sm leading-relaxed text-stone">
             Rzemieślnicza piekarnia z Krakowa. Chleb na naturalnym zakwasie i słodkie wypieki – codziennie od świtu.
           </p>
+          {rating && (
+            <Link href="/piekarnie" className="group mt-4 inline-flex items-center gap-2 text-sm">
+              <FaStar aria-hidden className="text-gold" />
+              <span className="font-display text-base text-cream">{ratingFormat.format(rating.rating)}</span>
+              <span className="text-stone transition-colors group-hover:text-gold">
+                średnio z {rating.count} opinii w Google
+              </span>
+            </Link>
+          )}
           <div className="mt-5">
             <SocialLinks media={media} size={20} />
           </div>

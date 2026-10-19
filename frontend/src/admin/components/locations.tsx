@@ -8,10 +8,13 @@ import {
   TextField as RATextField,
   required,
   useRecordContext,
+  useNotify,
+  useRefresh,
 } from 'react-admin';
 import { useState } from 'react';
+import { apiUrl, httpClient } from '../../dataProvider';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { Box, FormControlLabel, Link, Switch, Typography } from '@mui/material';
+import { Box, Button, FormControlLabel, Link, Switch, Typography } from '@mui/material';
 import { CoordinatesInput } from '../common/CoordinatesInput';
 import SortableImageInput from '../common/SortableImageInput';
 
@@ -64,14 +67,39 @@ type GoogleRecord = {
 
 /** Ocena z Google (odświeżana raz dziennie) – informacja pod polem identyfikatora miejsca */
 const GoogleRatingInfo = () => {
-  const record = useRecordContext<GoogleRecord>();
+  const record = useRecordContext<GoogleRecord & { id: string }>();
+  const notify = useNotify();
+  const refresh = useRefresh();
+  const [loading, setLoading] = useState(false);
   if (!record?.googlePlaceId) return null;
+
+  // „Odśwież ocenę teraz” – np. zaraz po dodaniu klucza Google (inaczej ocena odświeża się codziennie o 6:15)
+  const refreshNow = async () => {
+    setLoading(true);
+    try {
+      await httpClient(`${apiUrl}/contact/locations/${record.id}/refresh-rating`, { method: 'POST' });
+      notify('Ocena z Google pobrana', { type: 'success' });
+      refresh();
+    } catch (error) {
+      notify((error as { body?: { message?: string } }).body?.message ?? 'Nie udało się pobrać oceny z Google', {
+        type: 'error',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-      {record.googleRating != null
-        ? `Ocena w Google: ${record.googleRating.toFixed(1).replace('.', ',')} ★ (${record.googleRatingCount ?? 0} opinii), pobrana ${new Date(record.googleRatingAt!).toLocaleString('pl-PL')}.`
-        : 'Ocena z Google jeszcze nie została pobrana – pojawi się po skonfigurowaniu klucza Google w API (link „Oceń nas” działa już teraz).'}
-    </Typography>
+    <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+      <Typography variant="body2" color="text.secondary">
+        {record.googleRating != null
+          ? `Ocena w Google: ${record.googleRating.toFixed(1).replace('.', ',')} ★ (${record.googleRatingCount ?? 0} opinii), pobrana ${new Date(record.googleRatingAt!).toLocaleString('pl-PL')}. Odświeża się codziennie rano.`
+          : 'Ocena z Google jeszcze nie została pobrana (link „Oceń nas w Google” działa już teraz).'}
+      </Typography>
+      <Button size="small" variant="outlined" onClick={refreshNow} disabled={loading}>
+        {loading ? 'Pobieranie…' : 'Odśwież ocenę teraz'}
+      </Button>
+    </Box>
   );
 };
 
