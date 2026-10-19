@@ -63,7 +63,7 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Jak ustawić trasę chlebowozu?',
-        a: '„Chlebowóz – trasa”: jeden przystanek na dzień tygodnia (dzień, godziny, adres). Dzień, w którym chlebowóz nie kursuje, usuń z listy – na stronie pojawi się „Chlebowóz odpoczywa”. Gdy ten sam przystanek jest w kilka dni, wpisz za każdym razem ten sam adres i położenie.',
+        a: '„Chlebowóz” → zakładka „Trasa”: jeden przystanek na dzień tygodnia (dzień, godziny, adres). Dzień, w którym chlebowóz nie kursuje, usuń z listy – na stronie pojawi się „Chlebowóz odpoczywa”. Gdy ten sam przystanek jest w kilka dni, wpisz za każdym razem ten sam adres i położenie.',
       },
       {
         q: 'Ocena piekarni w Google',

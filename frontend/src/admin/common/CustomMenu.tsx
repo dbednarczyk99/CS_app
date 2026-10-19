@@ -11,7 +11,6 @@ import ArticleIcon from '@mui/icons-material/Article';
 import ShareIcon from '@mui/icons-material/Share';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import HelpIcon from '@mui/icons-material/Help';
-import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import CampaignIcon from '@mui/icons-material/Campaign';
@@ -80,11 +79,12 @@ export const CustomMenu = () => {
 
       <Section title="Piekarnie" />
       <Menu.Item to="/contact/locations" primaryText="Piekarnie" leftIcon={<StorefrontIcon />} />
-      <Menu.Item to="/bread-van/locations" primaryText="Chlebowóz – trasa" leftIcon={<EditCalendarIcon />} />
+      {/* trasa i opis – jeden ekran z zakładkami; pozycja podświetlona na obu */}
       <Menu.Item
-        to="/bread-van/description/view/show"
-        primaryText="Chlebowóz – opis"
+        to="/bread-van/locations"
+        primaryText="Chlebowóz"
         leftIcon={<DirectionsBusFilledIcon />}
+        className={pathname.startsWith('/bread-van') ? 'RaMenuItemLink-active' : undefined}
       />
 
       <Section title="Kontakt" />
