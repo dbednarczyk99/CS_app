@@ -19,5 +19,5 @@
   <circle class="l" cx="59" cy="31" r="11"/>
   <path class="l" d="M10 38 C2 33 0 22 4 15 C11 5 30 2 50 2 C70 2 89 5 96 15 C100 22 98 33 92 38 L92 92 Q92 97 87 97 L15 97 Q10 97 10 92 Z"/>
 </g>
-<path class="a" fill-rule="evenodd" d="M64 99 L73.5 56 L88.5 56 L98 99 L89.5 99 L87.6 89.5 L74.4 89.5 L72.5 99 Z M76 82 L86 82 L81 60.5 Z"/>
+<path class="a" fill-rule="evenodd" transform="translate(98 99) scale(1.35) translate(-98 -99)" style="stroke-width:3.7" d="M64 99 L73.5 56 L88.5 56 L98 99 L89.5 99 L87.6 89.5 L74.4 89.5 L72.5 99 Z M76 82 L86 82 L81 60.5 Z"/>
 </svg>
