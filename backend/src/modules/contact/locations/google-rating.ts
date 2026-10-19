@@ -10,6 +10,27 @@ export type RatingResult =
   | { ok: false; reason: 'no-key' | 'error'; message: string };
 
 /**
+ * Komunikat dla panelu z odpowiedzi Google. Ten sam kod (400) Google zwraca i przy złym kluczu, i przy złym
+ * identyfikatorze miejsca – rozróżniamy po treści błędu (reason / status / message).
+ */
+function errorMessage(status: number, body: string) {
+  const text = body.toLowerCase();
+  if (text.includes('api_key_invalid') || text.includes('api key not valid'))
+    return 'Klucz Google jest nieprawidłowy albo został usunięty – wpisz aktualny klucz w konfiguracji serwera i uruchom serwer ponownie.';
+  if (
+    status === 403 ||
+    text.includes('permission_denied') ||
+    text.includes('api_key_service_blocked')
+  )
+    return 'Klucz Google nie ma dostępu do Places API (New) – sprawdź ograniczenia klucza i czy API jest włączone w Google Cloud.';
+  if (status === 429 || text.includes('resource_exhausted'))
+    return 'Przekroczono limit zapytań w Google Cloud – ocena odświeży się po odnowieniu limitu.';
+  if (status === 404 || text.includes('not_found') || text.includes('place id'))
+    return 'Google nie zna takiego identyfikatora miejsca – sprawdź Place ID (zaczyna się od „ChIJ”).';
+  return `Google odrzuciło zapytanie (błąd ${status}) – sprawdź klucz i ustawienia w Google Cloud.`;
+}
+
+/**
  * Places API (New), Place Details z polami `rating,userRatingCount` (SKU Place Details Enterprise – 1000 darmowych
  * zapytań miesięcznie; odświeżamy raz dziennie). Uwaga: warunki Google Maps Platform co do zasady nie pozwalają
  * przechowywać tych danych – świadoma decyzja właściciela na czas przejściowy (patrz dokumentacja).
@@ -39,10 +60,7 @@ export async function fetchGoogleRating(
       return {
         ok: false,
         reason: 'error',
-        message:
-          res.status === 404 || res.status === 400
-            ? 'Google nie zna takiego identyfikatora miejsca – sprawdź Place ID.'
-            : `Google odrzuciło zapytanie (błąd ${res.status}) – sprawdź klucz i limity w Google Cloud.`,
+        message: errorMessage(res.status, await res.text().catch(() => '')),
       };
     const body = (await res.json()) as {
       rating?: number;

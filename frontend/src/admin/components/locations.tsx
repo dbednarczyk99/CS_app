@@ -65,6 +65,14 @@ type GoogleRecord = {
   googleRatingAt?: string | null;
 };
 
+/** „1 opinia”, „24 opinie”, „136 opinii” */
+const opinions = (n: number) => {
+  const last = n % 10;
+  const lastTwo = n % 100;
+  const word = n === 1 ? 'opinia' : last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14) ? 'opinie' : 'opinii';
+  return `${n} ${word}`;
+};
+
 /** Ocena z Google (odświeżana raz dziennie) – informacja pod polem identyfikatora miejsca */
 const GoogleRatingInfo = () => {
   const record = useRecordContext<GoogleRecord & { id: string }>();
@@ -93,7 +101,7 @@ const GoogleRatingInfo = () => {
     <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
       <Typography variant="body2" color="text.secondary">
         {record.googleRating != null
-          ? `Ocena w Google: ${record.googleRating.toFixed(1).replace('.', ',')} ★ (${record.googleRatingCount ?? 0} opinii), pobrana ${new Date(record.googleRatingAt!).toLocaleString('pl-PL')}. Odświeża się codziennie rano.`
+          ? `Ocena w Google: ${record.googleRating.toFixed(1).replace('.', ',')} ★ (${opinions(record.googleRatingCount ?? 0)}), pobrana ${new Date(record.googleRatingAt!).toLocaleString('pl-PL')}. Odświeża się codziennie rano.`
           : 'Ocena z Google jeszcze nie została pobrana (link „Oceń nas w Google” działa już teraz).'}
       </Typography>
       <Button size="small" variant="outlined" onClick={refreshNow} disabled={loading}>
