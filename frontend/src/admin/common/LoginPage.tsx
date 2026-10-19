@@ -44,7 +44,8 @@ export const LoginPage = () => (
           // te same marginesy co logo i nagłówek; pola na całą szerokość okienka (react-admin ma stałe 300 px)
           px: { xs: 3, sm: 5 },
           pb: 4,
-          '& .RaLoginForm-content': { width: 'auto', p: 0, pb: '0 !important' },
+          // !important: react-admin ustawia 300 px stylem o tej samej sile, wstawianym później
+          '& .RaLoginForm-content': { width: '100% !important', p: '0 !important' },
           '& .MuiButton-root': { mt: 1, py: 1.25 },
         }}
       >

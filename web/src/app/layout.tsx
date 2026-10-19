@@ -28,7 +28,6 @@ export const metadata: Metadata = {
   },
   description:
     'Rzemieślnicza piekarnia z Krakowa: chleb na naturalnym zakwasie, słodkie wypieki i chlebowóz. Nasze piekarnie znajdziesz w różnych częściach Krakowa.',
-  icons: { icon: '/images/icon.png' },
 };
 
 export const viewport: Viewport = {
