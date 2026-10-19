@@ -22,10 +22,15 @@ enum Role {
 }
 
 model User {
-  id       String @id @default(uuid())
-  role     Role
-  login    String @unique
-  password String
+  id           String   @id @default(uuid())
+  role         Role
+  login        String   @unique
+  // nazwa wyświetlana w panelu, np. „Właściciel”
+  name         String?  @db.VarChar(60)
+  password     String
+  // zwiększana przy zmianie hasła – wcześniejsze tokeny (sesje) przestają działać
+  tokenVersion Int      @default(0)
+  createdAt    DateTime @default(now())
 }
 
 // PRODUCTS
@@ -340,4 +345,19 @@ model NewsletterSubscriber {
   unsubscribedAt DateTime?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
+}
+
+// STATYSTYKI – dzienne liczniki bez danych osobowych (odsłony stron, wczytania mapy, wysłane e-maile)
+model DailyStat {
+  id     Int    @id @default(autoincrement())
+  // dzień w czasie polskim, YYYY-MM-DD
+  date   String @db.Char(10)
+  // view | map | mail | mail_failed
+  metric String @db.VarChar(20)
+  // np. ścieżka podstrony, miejsce mapy, rodzaj e-maila
+  key    String @default("") @db.VarChar(60)
+  count  Int    @default(0)
+
+  @@unique([date, metric, key])
+  @@index([metric, date])
 }

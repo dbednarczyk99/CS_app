@@ -43,6 +43,8 @@ Jeżeli kontaktujesz się z nami e-mailem, telefonicznie, przez wiadomości w se
 
 Podczas korzystania z Serwisu serwer automatycznie zapisuje w dziennikach (logach) informacje techniczne: adres IP, datę i godzinę żądania, adres odwiedzanej podstrony oraz informacje o przeglądarce. Przetwarzamy je w celu zapewnienia bezpieczeństwa i prawidłowego działania Serwisu oraz diagnozowania błędów – na podstawie art. 6 ust. 1 lit. f RODO. [[DO UZUPEŁNIENIA po wyborze hostingu: okres przechowywania logów, np. 30 dni]]
 
+Prowadzimy także anonimowe statystyki: liczymy, ile razy dziennie wyświetlono poszczególne podstrony i mapę oraz ile e-maili wysłał Serwis. Zapisujemy wyłącznie te liczby – bez plików cookies, bez adresów IP i bez żadnych identyfikatorów, więc nie da się z nich ustalić, kto odwiedził Serwis. Adres IP jest używany jedynie chwilowo, w pamięci serwera, aby ograniczyć liczbę zdarzeń wysyłanych z jednego adresu (ochrona przed sztucznym zawyżaniem statystyk). [[DO WERYFIKACJI PRZEZ PRAWNIKA]]
+
 ### 2.4. Mapy Google
 
 Na podstronach „Piekarnie” i „Chlebowóz” oraz w formularzu rezerwacji (przy wyborze punktu odbioru) wyświetlamy mapę z lokalizacjami naszych piekarni i przystanków Chlebowozu, korzystając z usługi Google Maps. Wyświetlenie mapy powoduje połączenie Twojej przeglądarki z serwerami Google i przekazanie Google m.in. Twojego adresu IP oraz informacji o przeglądanej podstronie. Korzystamy z mapy na podstawie naszego prawnie uzasadnionego interesu, polegającego na czytelnym przedstawieniu lokalizacji punktów sprzedaży (art. 6 ust. 1 lit. f RODO).

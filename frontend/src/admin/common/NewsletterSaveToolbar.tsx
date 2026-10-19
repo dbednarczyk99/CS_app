@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { DeleteButton, SaveButton, Toolbar, useGetList, useRecordContext, useSaveContext } from 'react-admin';
+import { DeleteButton, SaveButton, Toolbar, useRecordContext, useSaveContext } from 'react-admin';
+import { useSubscriberCount } from './useSubscriberCount';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { Box, Button, Paper, Stack, Typography } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
@@ -16,10 +17,7 @@ export const NewsletterSaveToolbar = ({ deletable = false }: { deletable?: boole
   const published = useWatch({ name: 'isPublished' }) as boolean | undefined;
   const willSend = send !== false && !record?.newsletterSentAt;
   const [confirming, setConfirming] = useState(false);
-  const { data: subscribers = [] } = useGetList<{ id: string; status: string }>('newsletter', {
-    pagination: { page: 1, perPage: 1000 },
-  });
-  const confirmed = subscribers.filter((s) => s.status === 'CONFIRMED').length;
+  const confirmed = useSubscriberCount() ?? '…';
   const { save } = useSaveContext();
   const { handleSubmit, setValue } = useFormContext();
 

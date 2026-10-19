@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, type JSX } from 'react';
 import { useInput } from 'react-admin';
-import { IconButton } from '@mui/material';
+import { Button, IconButton, Typography } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ImageIcon from '@mui/icons-material/Image';
 import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
@@ -37,8 +37,8 @@ export const SortableImageInput = ({
     source,
     validate: (value: ImageItem[] | undefined) => {
       if (!validate) return undefined;
-      if (!value || value.length === 0) return 'At least one image is required';
-      if (maxQty && value.length > maxQty) return `Max ${maxQty} images allowed`;
+      if (!value || value.length === 0) return 'Dodaj co najmniej jedno zdjęcie';
+      if (maxQty && value.length > maxQty) return `Najwyżej ${maxQty} zdjęć`;
       return undefined;
     },
     defaultValue: [],
@@ -95,7 +95,7 @@ export const SortableImageInput = ({
             continue;
           }
           if (!f.type.startsWith('image/')) {
-            alert(`${f.name} nie jest obrazkiem`);
+            alert(`${f.name} nie jest zdjęciem`);
             continue;
           }
         }
@@ -170,13 +170,9 @@ export const SortableImageInput = ({
     return (
       <div>
         <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
-          >
-            <ImageIcon /> Add images
-          </button>
+          <Button variant="outlined" startIcon={<ImageIcon />} onClick={() => fileInputRef.current?.click()}>
+            Dodaj zdjęcia
+          </Button>
           <input
             ref={fileInputRef}
             type="file"
@@ -186,7 +182,7 @@ export const SortableImageInput = ({
             onChange={(e) => onAddFiles(e.target.files)}
           />
         </div>
-        {error && <div style={{ color: 'red', marginBottom: 8 }}>{error}</div>}
+        {error && <Typography color="error" variant="body2" sx={{ mb: 1 }}>{error}</Typography>}
       </div>
     );
   }
@@ -194,13 +190,12 @@ export const SortableImageInput = ({
   return (
     <div>
       <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
-        >
-          <ImageIcon /> Add images
-        </button>
+        <Button variant="outlined" startIcon={<ImageIcon />} onClick={() => fileInputRef.current?.click()}>
+          Dodaj zdjęcia
+        </Button>
+        <Typography variant="caption" color="text.secondary" sx={{ alignSelf: 'center' }}>
+          Przeciągnij, aby zmienić kolejność – pierwsze zdjęcie jest główne
+        </Typography>
         <input
           ref={fileInputRef}
           type="file"
@@ -211,7 +206,7 @@ export const SortableImageInput = ({
         />
       </div>
 
-      {error && <div style={{ color: 'red', marginBottom: 8 }}>{error}</div>}
+      {error && <Typography color="error" variant="body2" sx={{ mb: 1 }}>{error}</Typography>}
 
       <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext
@@ -251,7 +246,7 @@ const SortableImageCard = ({ id, index, item, onRemove }: SortableImageCardProps
     transition,
     width: 140,
     height: 140,
-    borderRadius: 8,
+    borderRadius: 2,
     position: 'relative',
     overflow: 'hidden',
     boxShadow: '0 1px 6px rgba(0,0,0,0.2)',
@@ -270,21 +265,21 @@ const SortableImageCard = ({ id, index, item, onRemove }: SortableImageCardProps
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
       ) : (
-        <div style={{ color: '#fff' }}>No image</div>
+        <div style={{ color: '#b9b1a4', fontSize: 13 }}>Brak zdjęcia</div>
       )}
 
       <IconButton
         onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); onRemove(); }}
         size="small"
         sx={{ position: 'absolute', right: 6, top: 6, bgcolor: 'rgba(255,255,255,0.8)' }}
-        aria-label="remove"
+        aria-label="Usuń zdjęcie"
       >
         <DeleteIcon color="error" />
       </IconButton>
 
       {index === 0 && (
-        <div style={{ position: 'absolute', left: 6, bottom: 6, background: 'rgba(0, 26, 255, 1)', color: '#fff', padding: '2px 6px', borderRadius: 4, fontSize: 12 }}>
-          MAIN
+        <div style={{ position: 'absolute', left: 6, bottom: 6, background: '#c9a36a', color: '#141618', padding: '2px 8px', borderRadius: 2, fontSize: 11, fontFamily: '"Oswald", sans-serif', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+          Główne
         </div>
       )}
     </div>

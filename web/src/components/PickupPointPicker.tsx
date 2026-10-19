@@ -4,6 +4,7 @@ import { APIProvider, AdvancedMarker, Map as GoogleMap, useMap } from '@vis.gl/r
 import { useEffect, useMemo, useState } from 'react';
 import { FaLocationCrosshairs, FaShop, FaTruck } from 'react-icons/fa6';
 import { Pin } from './StoresMap';
+import { MapLoadCounter } from './MapLoadCounter';
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? '';
 const MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID';
@@ -140,6 +141,7 @@ export function PickupPointPicker({
               className="size-full"
             >
               <FitBounds points={framed} />
+              <MapLoadCounter source="rezerwacja" />
               {onMap.map((point) => (
                 <AdvancedMarker
                   key={point.key}

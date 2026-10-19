@@ -28,7 +28,8 @@ export function newsletterArticleEmail(
   to: { email: string; token: string },
   ctx: EmailContext,
 ): MailMessage {
-  const articleUrl = `${ctx.webUrl}/aktualnosci/${article.id}`;
+  // znacznik źródła – wejścia z newslettera widać w panelu „Statystyki”
+  const articleUrl = `${ctx.webUrl}/aktualnosci/${article.id}?utm_source=newsletter`;
   const unsubscribeUrl = `${ctx.webUrl}/newsletter/wypisz/${to.token}`;
   const img = article.imageUrl
     ? `<img src="${esc(article.imageUrl)}" width="520" alt="" style="display:block;width:100%;height:auto;margin:22px 0 4px;border:0">`
@@ -54,6 +55,7 @@ ${paragraph(
 )}`;
 
   return {
+    category: 'newsletter',
     to: to.email,
     subject: `${article.title} – Chleba Smak`,
     html: layout(
@@ -96,6 +98,7 @@ ${paragraph(
 ${paragraph(`Link nie działa? Skopiuj go do przeglądarki:<br><span style="color:${C.cream};word-break:break-all">${esc(confirmUrl)}</span>`, '#8f877b')}`;
 
   return {
+    category: 'newsletter-zapis',
     to: email,
     subject: 'Potwierdź zapis do newslettera – Chleba Smak',
     html: layout(

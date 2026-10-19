@@ -52,8 +52,8 @@ export const NewsletterList = () => (
         label="Status"
         render={(r: Subscriber) => <Chip size="small" label={STATUS[r.status].label} color={STATUS[r.status].color} />}
       />
-      <DateField source="consentAt" label="Zgoda" showTime />
-      <DateField source="confirmedAt" label="Potwierdzenie" showTime emptyText="—" />
+      <DateField source="consentAt" label="Zgoda" showTime locales="pl-PL" />
+      <DateField source="confirmedAt" label="Potwierdzenie" showTime locales="pl-PL" emptyText="—" />
       <DeleteButton mutationMode="pessimistic" confirmTitle="Usunąć zapis?" confirmContent="Adres zostanie trwale usunięty z listy." />
     </Datagrid>
   </List>

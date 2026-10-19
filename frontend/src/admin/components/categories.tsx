@@ -22,7 +22,7 @@ type CategoryRecord = {
 };
 
 export const CategoryList = () => (
-  <List>
+  <List title="Kategorie">
     <Datagrid rowClick="edit">
       <TextField source="name" />
     </Datagrid>
@@ -30,7 +30,7 @@ export const CategoryList = () => (
 );
 
 export const CategoryCreate = () => (
-  <Create>
+  <Create title="Nowa kategoria">
     <SimpleForm>
       <TextInput source="name" validate={[required()]} />
     </SimpleForm>
@@ -66,7 +66,7 @@ const AddProductButton = () => {
       sx={{ mx: 2 }}
       onClick={handleClick}
     >
-      Create product
+      Dodaj produkt
     </Button>
   );
 };
@@ -80,7 +80,7 @@ export const CategoryEdit = () => (
     <Box sx={{ mt: 4 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', ml: 2, my: 2, mt: 6 }}>
         <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>
-          Products in this category
+          Produkty w tej kategorii
         </Typography>
         <AddProductButton />
       </Box>
@@ -97,7 +97,7 @@ export const CategoryEdit = () => (
           rowClick={(id) => `/products/${id}`}
           empty={
             <Box sx={{ p: 2 }}>
-              <Typography>No products found</Typography>
+              <Typography color="text.secondary">Brak produktów w tej kategorii</Typography>
             </Box>
           }
         >

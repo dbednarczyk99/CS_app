@@ -46,14 +46,13 @@ const LabelInputs = () => (
 );
 
 export const ProductList = () => (
-  <List>
+  <List title="Produkty">
     <Datagrid rowClick="edit">
       <TextField source="name" />
-      <NumberField source="price" />
+      <NumberField source="price" locales="pl-PL" options={{ style: "currency", currency: "PLN" }} />
       <TextField source="description" />
       <TextField source="category.name" label="Kategoria" />
 
-      <BooleanField source="isSeasonal" />
       <FunctionField
         label="Sezon"
         render={(p: { isSeasonal: boolean; inSeason: boolean }) => (p.isSeasonal ? (p.inSeason ? 'Teraz dostępny' : 'Poza sezonem') : '—')}
@@ -71,15 +70,15 @@ export const ProductList = () => (
 );
 
 export const ProductCreate = () => (
-  <Create>
+  <Create title="Nowy produkt">
     <SimpleForm>
       <TextInput source="name" validate={[required()]} />
       <NumberInput source="price" validate={[required()]} />
-      <TextInput source="description" validate={[required()]} />
+      <TextInput source="description" validate={[required()]} multiline />
 
       <BooleanInput
         source="isSeasonal"
-        label="Is it seasonal?"
+        label="Produkt sezonowy"
         defaultValue={false}
         validate={[required()]}
       />
@@ -88,7 +87,7 @@ export const ProductCreate = () => (
 
       <BooleanInput
         source="isActive"
-        label="Is it active?"
+        label="Aktywny – widoczny na stronie"
         defaultValue={true}
         validate={[required()]}
       />
@@ -100,7 +99,7 @@ export const ProductCreate = () => (
       />
 
       <ReferenceInput
-        label="Category"
+        label="Kategoria"
         source="categoryId"
         reference="products/categories"
       >
@@ -117,15 +116,15 @@ export const ProductEdit = () => (
     <SimpleForm>
       <TextInput source="name" validate={[required()]} />
       <NumberInput source="price" validate={[required()]} />
-      <TextInput source="description" validate={[required()]} />
-      <BooleanInput source="isSeasonal" label="Is it Seasonal?" />
+      <TextInput source="description" validate={[required()]} multiline />
+      <BooleanInput source="isSeasonal" label="Produkt sezonowy" />
       <InSeasonInput />
       <LabelInputs />
-      <BooleanInput source="isActive" label="Is it Active?" />
+      <BooleanInput source="isActive" label="Aktywny – widoczny na stronie" />
       <BooleanInput source="isReservable" label="Można rezerwować online" />
 
       <ReferenceInput
-        label="Category"
+        label="Kategoria"
         source="categoryId"
         reference="products/categories"
       >

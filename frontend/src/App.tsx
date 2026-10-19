@@ -1,14 +1,10 @@
-import {
-  Admin,
-  Resource,
-  Layout,
-  CustomRoutes,
-  type LayoutProps,
-} from 'react-admin';
+import { Admin, Resource, CustomRoutes } from 'react-admin';
 import { Route } from 'react-router-dom';
 
 import { dataProvider } from './dataProvider';
 import { authProvider } from './authProvider';
+import { i18nProvider } from './i18n';
+import { darkTheme, lightTheme } from './theme';
 
 import { ProductList, ProductCreate, ProductEdit } from './admin/components/products';
 import { CategoryList, CategoryCreate, CategoryEdit } from './admin/components/categories';
@@ -20,99 +16,121 @@ import {
   BreadVanDescriptionEdit,
   BreadVanScheduleCreate,
   BreadVanScheduleEdit,
-  BreadVanScheduleList
+  BreadVanScheduleList,
 } from './admin/components/breadVan';
+import { weekdayName } from './admin/common/weekdays';
 
 import HomePage from './admin/pages/HomePage';
 import HelpPage from './admin/pages/HelpPage';
 import PreparationPage from './admin/pages/PreparationPage';
+import AccountPage from './admin/pages/AccountPage';
+import StatsPage from './admin/pages/StatsPage';
+import { UserCreate, UserEdit, UserList } from './admin/components/users';
 import { ReservationList, ReservationShow } from './admin/components/reservations';
-import { CustomMenu } from './admin/common/CustomMenu';
+import { AdminLayout } from './admin/common/AdminLayout';
+import { LoginPage } from './admin/common/LoginPage';
 import { BlogCreate, BlogEdit, BlogList } from './admin/components/blog';
 import { AnnouncementCreate, AnnouncementEdit, AnnouncementList } from './admin/components/announcements';
 import { NewsletterList } from './admin/components/newsletter';
 
-const MyLayout = (props: LayoutProps) => <Layout {...props} menu={CustomMenu} />;
-
+// nazwy sekcji i pól są w i18n.ts; recordRepresentation = jak rekord nazywa się w tytułach („Produkt: Jagodzianka”).
+// Rezerwacje, lista subskrybentów i konta tylko dla właściciela (ADMIN) – serwer pilnuje tego niezależnie.
 function App() {
   return (
-    <Admin dashboard={HomePage} dataProvider={dataProvider} authProvider={authProvider} layout={MyLayout}>
-      <CustomRoutes>
-        <Route path="/help" element={<HelpPage />} />
-        <Route path="/przygotowanie" element={<PreparationPage />} />
-      </CustomRoutes>
-      <Resource
-        name="reservations"
-        options={{ label: 'Rezerwacje' }}
-        list={ReservationList}
-        show={ReservationShow}
-      />
-      <Resource
-        name="products"
-        list={ProductList}
-        create={ProductCreate}
-        edit={ProductEdit}
-      />
-      <Resource
-        name="products/categories"
-        options={{ label: 'Categories' }}
-        list={CategoryList}
-        create={CategoryCreate}
-        edit={CategoryEdit}
-      />
-      <Resource
-        name="contact/info"
-        options={{ label: 'Contact info' }}
-        list={ContactInfoList}
-        create={ContactInfoCreate}
-        edit={ContactInfoEdit}
-      />
-      <Resource
-        name="contact/locations"
-        options={{ label: 'Locations' }}
-        list={LocationList}
-        create={LocationCreate}
-        edit={LocationEdit}
-      />
-      <Resource
-        name="contact/media"
-        options={{ label: 'Social media' }}
-        list={MediaList}
-        create={MediaCreate}
-        edit={MediaEdit}
-      />
-      <Resource
-        name="bread-van/description"
-        options={{ label: 'Bread-van description' }}
-        show={BreadVanDescriptionShow}
-        edit={BreadVanDescriptionEdit}
-      />
-
-      <Resource
-        name="bread-van/locations"
-        options={{ label: 'Bread-van schedule' }}
-        list={BreadVanScheduleList}
-        create={BreadVanScheduleCreate}
-        edit={BreadVanScheduleEdit}
-      />
-
-      <Resource
-        name="blog"
-        options={{ label: 'Blog articles' }}
-        list={BlogList}
-        create={BlogCreate}
-        edit={BlogEdit}
-      />
-
-      <Resource
-        name="announcements"
-        options={{ label: 'Baner informacyjny' }}
-        list={AnnouncementList}
-        create={AnnouncementCreate}
-        edit={AnnouncementEdit}
-      />
-
-      <Resource name="newsletter" options={{ label: 'Newsletter' }} list={NewsletterList} />
+    <Admin
+      title="Chleba Smak"
+      dashboard={HomePage}
+      dataProvider={dataProvider}
+      authProvider={authProvider}
+      i18nProvider={i18nProvider}
+      theme={lightTheme}
+      darkTheme={darkTheme}
+      defaultTheme="dark"
+      layout={AdminLayout}
+      loginPage={LoginPage}
+    >
+      {(permissions) => {
+        const isOwner = permissions === 'ADMIN';
+        return (
+          <>
+            <CustomRoutes>
+              <Route path="/help" element={<HelpPage />} />
+              <Route path="/konto" element={<AccountPage />} />
+              {isOwner && <Route path="/przygotowanie" element={<PreparationPage />} />}
+              <Route path="/statystyki" element={<StatsPage />} />
+            </CustomRoutes>
+            {isOwner && (
+              <Resource
+                name="reservations"
+                list={ReservationList}
+                show={ReservationShow}
+                recordRepresentation="number"
+              />
+            )}
+            <Resource
+              name="products"
+              list={ProductList}
+              create={ProductCreate}
+              edit={ProductEdit}
+              recordRepresentation="name"
+            />
+            <Resource
+              name="products/categories"
+              list={CategoryList}
+              create={CategoryCreate}
+              edit={CategoryEdit}
+              recordRepresentation="name"
+            />
+            <Resource
+              name="contact/info"
+              list={ContactInfoList}
+              create={ContactInfoCreate}
+              edit={ContactInfoEdit}
+              recordRepresentation="value"
+            />
+            <Resource
+              name="contact/locations"
+              list={LocationList}
+              create={LocationCreate}
+              edit={LocationEdit}
+              recordRepresentation="address"
+            />
+            <Resource
+              name="contact/media"
+              list={MediaList}
+              create={MediaCreate}
+              edit={MediaEdit}
+              recordRepresentation="name"
+            />
+            <Resource name="bread-van/description" show={BreadVanDescriptionShow} edit={BreadVanDescriptionEdit} />
+            <Resource
+              name="bread-van/locations"
+              list={BreadVanScheduleList}
+              create={BreadVanScheduleCreate}
+              edit={BreadVanScheduleEdit}
+              recordRepresentation={(r) => `${weekdayName(r.dayOfTheWeek)} – ${r.address}`}
+            />
+            <Resource name="blog" list={BlogList} create={BlogCreate} edit={BlogEdit} recordRepresentation="title" />
+            <Resource
+              name="announcements"
+              list={AnnouncementList}
+              create={AnnouncementCreate}
+              edit={AnnouncementEdit}
+              recordRepresentation="message"
+            />
+            {isOwner && <Resource name="newsletter" list={NewsletterList} recordRepresentation="email" />}
+            {isOwner && (
+              <Resource
+                name="users"
+                list={UserList}
+                create={UserCreate}
+                edit={UserEdit}
+                recordRepresentation={(r) => r.name || r.login}
+              />
+            )}
+          </>
+        );
+      }}
     </Admin>
   );
 }

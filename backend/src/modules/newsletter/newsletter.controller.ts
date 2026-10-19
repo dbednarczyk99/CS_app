@@ -8,7 +8,12 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
-import { CONTENT_ROLES, Public, Roles } from '../auth/auth.decorators';
+import {
+  CONTENT_ROLES,
+  OWNER_ROLES,
+  Public,
+  Roles,
+} from '../auth/auth.decorators';
 import { SubscribeDto, TokenDto } from './dto/newsletter.dto';
 import { NewsletterService } from './newsletter.service';
 
@@ -48,11 +53,20 @@ export class NewsletterController {
 
   /* --- panel admina --- */
 
+  // liczba subskrybentów – dla obu ról (formularz wpisu pokazuje, do ilu osób pójdzie newsletter)
+  @Get('stats')
+  stats() {
+    return this.service.stats();
+  }
+
+  // lista adresów (dane osobowe) – tylko właściciel
+  @Roles(...OWNER_ROLES)
   @Get()
   findAll() {
     return this.service.findAll();
   }
 
+  @Roles(...OWNER_ROLES)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.service.remove(id);

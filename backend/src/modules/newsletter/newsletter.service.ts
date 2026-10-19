@@ -142,6 +142,16 @@ export class NewsletterService {
 
   /* --- panel --- */
 
+  async stats() {
+    const [confirmed, pending] = await Promise.all([
+      this.prisma.newsletterSubscriber.count({
+        where: { status: 'CONFIRMED' },
+      }),
+      this.prisma.newsletterSubscriber.count({ where: { status: 'PENDING' } }),
+    ]);
+    return { confirmed, pending };
+  }
+
   findAll() {
     return this.prisma.newsletterSubscriber.findMany({
       orderBy: { createdAt: 'desc' },

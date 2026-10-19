@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Lato, Oswald } from 'next/font/google';
 import { Footer } from '@/components/Footer';
 import { NewsletterDialog } from '@/components/Newsletter';
+import { PageViewTracker } from '@/components/PageViewTracker';
 import { Header } from '@/components/Header';
 import { api, orFallback } from '@/lib/api';
 import { ReservationCartProvider } from '@/lib/reservation-cart';
@@ -27,7 +28,6 @@ export const metadata: Metadata = {
   },
   description:
     'Rzemieślnicza piekarnia z Krakowa: chleb na naturalnym zakwasie, słodkie wypieki i chlebowóz. Nasze piekarnie znajdziesz w różnych częściach Krakowa.',
-  icons: { icon: '/images/icon.png' },
 };
 
 export const viewport: Viewport = {
@@ -57,6 +57,7 @@ export default async function RootLayout({
           <Footer />
           {/* okienko zapisu do newslettera – jedno dla całej strony */}
           <NewsletterDialog />
+          <PageViewTracker />
         </ReservationCartProvider>
       </body>
     </html>

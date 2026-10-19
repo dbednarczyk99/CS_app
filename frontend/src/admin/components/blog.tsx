@@ -10,13 +10,13 @@ import {
   TextInput,
   BooleanInput,
   required,
-  useGetList,
   useRecordContext,
 } from 'react-admin';
 import { Alert, Chip, Stack } from '@mui/material';
 import { useWatch } from 'react-hook-form';
 import TagInput from '../common/TagInput';
 import { NewsletterSaveToolbar } from '../common/NewsletterSaveToolbar';
+import { useSubscriberCount } from '../common/useSubscriberCount';
 import SortableImageInput from '../common/SortableImageInput';
 
 interface NewsletterInfo {
@@ -31,10 +31,7 @@ interface NewsletterInfo {
  */
 const NewsletterToggle = () => {
   const record = useRecordContext<NewsletterInfo>();
-  const { data: subscribers = [] } = useGetList<{ id: string; status: string }>('newsletter', {
-    pagination: { page: 1, perPage: 1000 },
-  });
-  const confirmed = subscribers.filter((s) => s.status === 'CONFIRMED').length;
+  const confirmed = useSubscriberCount() ?? '…';
 
   if (record?.newsletterSentAt) {
     return (
@@ -76,14 +73,14 @@ const PublishToggle = () => {
 };
 
 export const BlogList = () => (
-  <List>
+  <List title="Aktualności (blog)" sort={{ field: 'createdAt', order: 'DESC' }}>
     <Datagrid rowClick="edit">
-      <TextField source="title" label="Title" />
-      <TextField source="shortDescription" label="Short description" />
+      <TextField source="title" label="Tytuł" />
+      <TextField source="shortDescription" label="Zajawka" />
 
       {/* tagi są we wpisie jako relacja { tag: { name } } */}
       <FunctionField
-        label="Tags"
+        label="Tagi"
         render={(record: { tags?: { tag: { id: string; name: string } }[] }) => (
           <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
             {(record.tags ?? []).map(({ tag }) => (
@@ -93,7 +90,7 @@ export const BlogList = () => (
         )}
       />
 
-      <DateField source="createdAt" />
+      <DateField source="createdAt" label="Dodano" locales="pl-PL" />
       <FunctionField
         label="Na stronie"
         render={(r: { isPublished?: boolean }) => (r.isPublished === false ? 'nie (tylko newsletter)' : 'tak')}
@@ -115,11 +112,11 @@ export const BlogList = () => (
 );
 
 export const BlogCreate = () => (
-  <Create>
+  <Create title="Nowy wpis">
     <SimpleForm toolbar={<NewsletterSaveToolbar />}>
       <TextInput source="title" validate={[required()]} />
       <TextInput source="shortDescription" multiline />
-      <TextInput source="content" multiline />
+      <TextInput source="content" multiline minRows={6} helperText="Akapity oddziel pustą linią" />
 
       <TagInput />
       <PublishToggle />
@@ -135,7 +132,7 @@ export const BlogEdit = () => (
     <SimpleForm toolbar={<NewsletterSaveToolbar deletable />}>
       <TextInput source="title" validate={[required()]} />
       <TextInput source="shortDescription" multiline />
-      <TextInput source="content" multiline />
+      <TextInput source="content" multiline minRows={6} helperText="Akapity oddziel pustą linią" />
 
       <TagInput />
       <PublishToggle />

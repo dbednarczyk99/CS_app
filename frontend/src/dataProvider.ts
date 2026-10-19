@@ -116,7 +116,21 @@ export const dataProvider: DataProvider = {
           }))
         : base;
 
-    return { data: mapped, total: mapped.length };
+    // API zwraca całą listę – sortowanie (kliknięcie w nagłówek kolumny) i strony liczone w panelu;
+    // bez wybranego pola („id”) zostaje kolejność z API
+    const { field, order } = params?.sort ?? {};
+    const sorted =
+      field && field !== 'id'
+        ? [...mapped].sort((a: any, b: any) => {
+            const x = field.split('.').reduce((o: any, k: string) => o?.[k], a);
+            const y = field.split('.').reduce((o: any, k: string) => o?.[k], b);
+            const cmp =
+              x == null ? 1 : y == null ? -1 : String(x).localeCompare(String(y), 'pl', { numeric: true });
+            return order === 'DESC' ? -cmp : cmp;
+          })
+        : mapped;
+    const { page = 1, perPage = sorted.length } = params?.pagination ?? {};
+    return { data: sorted.slice((page - 1) * perPage, page * perPage), total: sorted.length };
   },
 
   // POJEDYNCZY

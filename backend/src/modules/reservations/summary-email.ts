@@ -170,6 +170,7 @@ ${body}
   ].join('\n');
 
   return {
+    category: 'zestawienie',
     to,
     subject: `Do przygotowania: ${day} – ${s.reservationsCount} rez.`,
     html,

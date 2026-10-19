@@ -50,8 +50,8 @@ export const AnnouncementList = () => (
           return <Chip size="small" label={s.label} color={s.color} />;
         }}
       />
-      <DateField source="startsAt" label="Od" showTime emptyText="od razu" />
-      <DateField source="endsAt" label="Do" showTime emptyText="bezterminowo" />
+      <DateField source="startsAt" label="Od" showTime locales="pl-PL" emptyText="od razu" />
+      <DateField source="endsAt" label="Do" showTime locales="pl-PL" emptyText="bezterminowo" />
       <NumberField source="order" label="Kolejność" />
     </Datagrid>
   </List>

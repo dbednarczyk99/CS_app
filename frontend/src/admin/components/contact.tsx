@@ -24,12 +24,12 @@ const contactTypeIcons: Record<string, ReactElement> = {
 };
 
 const contactTypeChoices = [
-  { id: 'PHONE', name: 'Phone', icon: <ContactPhoneIcon fontSize="small" /> },
-  { id: 'EMAIL', name: 'Email', icon: <AlternateEmailIcon fontSize="small" /> },
-  { id: 'OTHER', name: 'Other', icon: <InfoIcon fontSize="small" /> },
+  { id: 'PHONE', name: 'Telefon', icon: <ContactPhoneIcon fontSize="small" /> },
+  { id: 'EMAIL', name: 'E-mail', icon: <AlternateEmailIcon fontSize="small" /> },
+  { id: 'OTHER', name: 'Inne', icon: <InfoIcon fontSize="small" /> },
 ];
 
-const ContactTypeField = ({ source }: { source: string }) => {
+const ContactTypeField = ({ source }: { source: string; label?: string }) => {
   const record = useRecordContext<RaRecord>();
   if (!record) return null;
 
@@ -40,9 +40,9 @@ const ContactTypeField = ({ source }: { source: string }) => {
 };
 
 export const ContactInfoList = () => (
-  <List>
+  <List title="Dane kontaktowe">
     <Datagrid rowClick="edit">
-      <ContactTypeField source="type" />
+      <ContactTypeField source="type" label="Rodzaj" />
       <TextField source="value" />
       <TextField source="label" />
     </Datagrid>
@@ -52,12 +52,12 @@ export const ContactInfoList = () => (
 export const ContactInfoEdit = () => (
   <Edit>
     <SimpleForm>
-      <TextInput source="value" label="Value" validate={[required()]} />
-      <TextInput source="label" label="Label" validate={[required()]} />
+      <TextInput source="value" label="Wartość (numer, adres e-mail…)" validate={[required()]} />
+      <TextInput source="label" label="Opis (np. „Biuro”, „Zamówienia”)" validate={[required()]} />
 
       <SelectInput
         source="type"
-        label="Type"
+        label="Rodzaj"
         validate={[required()]}
         choices={contactTypeChoices}
         optionValue="id"
@@ -77,13 +77,13 @@ export const ContactInfoEdit = () => (
 );
 
 export const ContactInfoCreate = () => (
-  <Create>
+  <Create title="Nowe dane kontaktowe">
     <SimpleForm>
-      <TextInput source="value" label="Value" validate={[required()]} />
-      <TextInput source="label" label="Label" validate={[required()]} />
+      <TextInput source="value" label="Wartość (numer, adres e-mail…)" validate={[required()]} />
+      <TextInput source="label" label="Opis (np. „Biuro”, „Zamówienia”)" validate={[required()]} />
       <SelectInput
         source="type"
-        label="Type"
+        label="Rodzaj"
         validate={[required()]}
         choices={contactTypeChoices}
         optionValue="id"
