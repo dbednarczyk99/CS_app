@@ -6,11 +6,15 @@ import {
   SimpleForm,
   TextInput,
   TextField as RATextField,
-  required
+  required,
+  useRecordContext,
+  useNotify,
+  useRefresh,
 } from 'react-admin';
 import { useState } from 'react';
+import { apiUrl, httpClient } from '../../dataProvider';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { Box, FormControlLabel, Switch, Typography } from '@mui/material';
+import { Box, Button, FormControlLabel, Link, Switch, Typography } from '@mui/material';
 import { CoordinatesInput } from '../common/CoordinatesInput';
 import SortableImageInput from '../common/SortableImageInput';
 
@@ -54,6 +58,59 @@ const SectionTitle = ({ title, hint }: { title: string; hint: string }) => (
   </Box>
 );
 
+type GoogleRecord = {
+  googlePlaceId?: string | null;
+  googleRating?: number | null;
+  googleRatingCount?: number | null;
+  googleRatingAt?: string | null;
+};
+
+/** „1 opinia”, „24 opinie”, „136 opinii” */
+const opinions = (n: number) => {
+  const last = n % 10;
+  const lastTwo = n % 100;
+  const word = n === 1 ? 'opinia' : last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14) ? 'opinie' : 'opinii';
+  return `${n} ${word}`;
+};
+
+/** Ocena z Google (odświeżana raz dziennie) – informacja pod polem identyfikatora miejsca */
+const GoogleRatingInfo = () => {
+  const record = useRecordContext<GoogleRecord & { id: string }>();
+  const notify = useNotify();
+  const refresh = useRefresh();
+  const [loading, setLoading] = useState(false);
+  if (!record?.googlePlaceId) return null;
+
+  // „Odśwież ocenę teraz” – np. zaraz po dodaniu klucza Google (inaczej ocena odświeża się codziennie o 6:15)
+  const refreshNow = async () => {
+    setLoading(true);
+    try {
+      await httpClient(`${apiUrl}/contact/locations/${record.id}/refresh-rating`, { method: 'POST' });
+      notify('Ocena z Google pobrana', { type: 'success' });
+      refresh();
+    } catch (error) {
+      notify((error as { body?: { message?: string } }).body?.message ?? 'Nie udało się pobrać oceny z Google', {
+        type: 'error',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+      <Typography variant="body2" color="text.secondary">
+        {record.googleRating != null
+          ? `Ocena w Google: ${record.googleRating.toFixed(1).replace('.', ',')} ★ (${opinions(record.googleRatingCount ?? 0)}), pobrana ${new Date(record.googleRatingAt!).toLocaleString('pl-PL')}. Odświeża się codziennie rano.`
+          : 'Ocena z Google jeszcze nie została pobrana (link „Oceń nas w Google” działa już teraz).'}
+      </Typography>
+      <Button size="small" variant="outlined" onClick={refreshNow} disabled={loading}>
+        {loading ? 'Pobieranie…' : 'Odśwież ocenę teraz'}
+      </Button>
+    </Box>
+  );
+};
+
 // wspólny formularz dla tworzenia i edycji
 const LocationForm = () => (
   <SimpleForm>
@@ -63,6 +120,25 @@ const LocationForm = () => (
     <TextInput source="code" label="Kod do numerów rezerwacji (np. WIL)" helperText="2–6 liter; puste = z nazwy ulicy" />
     <TextInput source="googleMapsUrl" label="Link Google Maps" validate={[required()]} helperText="Link do wizytówki piekarni w Mapach Google (przycisk „Nawiguj”)" />
     <CoordinatesInput />
+    <SectionTitle
+      title="Opinie Google"
+      hint="Identyfikator miejsca (Place ID) – na stronie pojawi się ocena piekarni i link „Oceń nas w Google”."
+    />
+    <TextInput
+      source="googlePlaceId"
+      label="Identyfikator miejsca Google (Place ID)"
+      fullWidth
+      helperText={
+        <>
+          Zaczyna się zwykle od „ChIJ”. Znajdziesz go, wpisując adres piekarni na stronie{' '}
+          <Link href="https://developers.google.com/maps/documentation/places/web-service/place-id" target="_blank" rel="noreferrer">
+            Place ID Finder
+          </Link>
+          . Puste – bez oceny i linku.
+        </>
+      }
+    />
+    <GoogleRatingInfo />
     <SectionTitle title="Zdjęcia lokalu" hint="Karuzela na stronie „Piekarnie”; pierwsze zdjęcie pokazuje się od razu. Kolejność zmienisz, przeciągając zdjęcia." />
     <SortableImageInput source="images" validate={false} maxQty={6} />
     <SectionTitle title="Godziny otwarcia" hint="Wyłącz „Czynne”, jeśli lokal jest w ten dzień zamknięty." />

@@ -1,4 +1,4 @@
-import type { Product } from './api';
+import type { LabelColor, Product, ProductLabel } from './api';
 
 /** Produkt można teraz kupić/zarezerwować: aktywny, a sezonowy – w sezonie */
 export const isAvailable = (p: Product) => p.isActive && (!p.isSeasonal || p.inSeason);
@@ -6,25 +6,80 @@ export const isAvailable = (p: Product) => p.isActive && (!p.isSeasonal || p.inS
 /** Sezonowy poza sezonem – widoczny na stronie, ale wyciszony, bez ceny i rezerwacji */
 export const isOutOfSeason = (p: Product) => p.isActive && p.isSeasonal && !p.inSeason;
 
-/** Filtry etykiet w ofercie (?etykiety=nowosci,bestsellery); kilka zaznaczonych = dowolna z nich */
-export const LABEL_FILTERS = [
-  { key: 'nowosci', label: 'Nowości', test: (p: Product) => p.isNew },
-  { key: 'bestsellery', label: 'Bestsellery', test: (p: Product) => p.isBestseller },
-  { key: 'sezonowe', label: 'Sezonowe', test: (p: Product) => p.isSeasonal },
-] as const;
+/** Promocja trwa dziś (okres od–do sprawdza API) */
+export const isOnPromo = (p: Product) => p.promoActive === true;
 
-export type LabelFilterKey = (typeof LABEL_FILTERS)[number]['key'];
+/** Cena do zapłaty dziś – promocyjna, gdy promocja trwa i ma niższą cenę */
+export const priceOf = (p: Product) => p.currentPrice ?? p.price;
 
-/** Produkt z dowolną etykietą (Bestseller, Nowość, Teraz dostępne) */
-export const hasBadge = (p: Product) => p.isBestseller || p.isNew || p.isSeasonal;
+/** Cena przed promocją do przekreślenia – tylko gdy promocja obniża cenę */
+export const oldPriceOf = (p: Product) => (priceOf(p) < p.price ? p.price : null);
+
+/** Promocja obniżająca cenę – do przeliczenia ceny na dzień odbioru rezerwacji */
+export type PromoWindow = { price: number; from: string | null; to: string | null };
+
+export const promoWindow = (p: Product): PromoWindow | null =>
+  p.isPromo && p.promoPrice != null && p.promoPrice < p.price
+    ? { price: p.promoPrice, from: p.promoFrom, to: p.promoTo }
+    : null;
+
+/** Dzień (YYYY-MM-DD) mieści się w okresie promocji (daty włącznie, puste = bez ograniczenia) */
+export const inPromoWindow = (w: PromoWindow, date: string) => (!w.from || w.from <= date) && (!w.to || date <= w.to);
 
 /**
- * Produkty do karuzeli „Wypieki, po które się wraca”: wszystkie dostępne z etykietą (bestsellery, nowości,
+ * Cena przy odbiorze w danym dniu – tak samo liczy ją API przy rezerwacji: promocyjna tylko wtedy,
+ * gdy dzień odbioru mieści się w okresie promocji.
+ */
+export const priceOn = (item: { price: number; promo?: PromoWindow | null }, date: string) =>
+  item.promo && inPromoWindow(item.promo, date) ? item.promo.price : item.price;
+
+export type LabelFilter ={ key: string; label: string; test: (p: Product) => boolean };
+
+const byOrder = (a: ProductLabel, b: ProductLabel) => a.order - b.order || a.name.localeCompare(b.name, 'pl');
+
+// etykieta „Promocja”, gdy API jej nie podało (np. starsza odpowiedź) – nazwę, kolor i kolejność zmienia się w panelu
+const DEFAULT_PROMO_LABEL: ProductLabel = { id: 'promo', name: 'Promocja', slug: 'promocje', color: 'red', order: 0 };
+
+/** Etykiety produktu w kolejności z panelu – z etykietą „Promocja”, gdy promocja trwa */
+export const labelsOf = (p: Product): ProductLabel[] =>
+  [
+    ...(p.labels ?? []).filter((l) => l.active !== false),
+    ...(isOnPromo(p) ? [p.promoLabel ?? DEFAULT_PROMO_LABEL] : []),
+  ].sort(byOrder);
+
+/**
+ * Filtry etykiet w ofercie (?etykiety=promocje,nowosci): etykiety z panelu razem z „Promocją” (w kolejności
+ * z panelu) i „Sezonowe”. Kilka zaznaczonych = dowolna z nich. Etykiety bierzemy z produktów – nowa etykieta
+ * z panelu pojawia się w filtrach sama, gdy ma przypisany produkt.
+ */
+export function labelFilters(products: Product[]): LabelFilter[] {
+  const promo = products.find((p) => p.promoLabel)?.promoLabel ?? DEFAULT_PROMO_LABEL;
+  const labels = [
+    ...new Map(
+      [...products.flatMap((p) => (p.labels ?? []).filter((l) => l.active !== false)), promo].map((l) => [l.id, l]),
+    ).values(),
+  ].sort(byOrder);
+  return [
+    ...labels.map((l) => ({
+      key: l.slug,
+      label: l.name,
+      test: l.id === promo.id ? isOnPromo : (p: Product) => labelsOf(p).some((pl) => pl.id === l.id),
+    })),
+    { key: 'sezonowe', label: 'Sezonowe', test: (p: Product) => p.isSeasonal },
+  ];
+}
+
+/** Produkt z dowolną etykietą (promocja, etykieta z panelu, Teraz dostępne) */
+export const hasBadge = (p: Product) => labelsOf(p).length > 0 || p.isSeasonal;
+
+/**
+ * Produkty do karuzeli „Wypieki, po które się wraca”: wszystkie dostępne z etykietą (promocje, etykiety z panelu,
  * sezonowe), a gdy jest ich mniej niż `min` – dopełnienie losowymi z różnych kategorii (na zmianę).
  * Losowanie po stronie serwera, więc zestaw zmienia się przy odświeżeniu strony (ISR).
  */
 export function featuredProducts(available: Product[], min = 8): Product[] {
-  const rank = (p: Product) => (p.isBestseller ? 0 : p.isNew ? 1 : 2);
+  // wg pierwszej etykiety (kolejność z panelu, z „Promocją”), na końcu tylko sezonowe
+  const rank = (p: Product) => labelsOf(p)[0]?.order ?? Number.MAX_SAFE_INTEGER;
   const labeled = available.filter(hasBadge).sort((a, b) => rank(a) - rank(b));
   if (labeled.length >= min) return labeled;
 
@@ -43,14 +98,25 @@ export function featuredProducts(available: Product[], min = 8): Product[] {
   return [...labeled, ...fill];
 }
 
-export type BadgeTone = 'new' | 'bestseller' | 'season' | 'off';
+/** Wygląd etykiety: kolory z panelu + stałe: sezonowe, poza sezonem */
+export type BadgeTone = LabelColor | 'season' | 'off';
 
 /** Etykiety produktu w kolejności wyświetlania; poza sezonem tylko „Poza sezonem” */
 export function productBadges(p: Product): { label: string; tone: BadgeTone }[] {
   if (isOutOfSeason(p)) return [{ label: 'Poza sezonem', tone: 'off' }];
   const badges: { label: string; tone: BadgeTone }[] = [];
-  if (p.isNew) badges.push({ label: 'Nowość', tone: 'new' });
-  if (p.isBestseller) badges.push({ label: 'Bestseller', tone: 'bestseller' });
+  for (const l of labelsOf(p)) badges.push({ label: l.name, tone: l.color });
   if (p.isSeasonal) badges.push({ label: 'Teraz dostępne', tone: 'season' });
   return badges;
 }
+
+/** Style etykiet: na zdjęciu (karta produktu) i na stronie produktu (z obramowaniem) */
+export const BADGE_STYLE: Record<BadgeTone, { card: string; page: string }> = {
+  gold: { card: 'bg-gold text-ink', page: 'border-gold bg-gold text-ink' },
+  cream: { card: 'bg-cream text-ink', page: 'border-cream bg-cream text-ink' },
+  dark: { card: 'bg-ink/85 text-cream backdrop-blur-sm', page: 'border-cream/40 text-cream' },
+  green: { card: 'bg-olive text-cream', page: 'border-olive bg-olive text-cream' },
+  red: { card: 'bg-brick text-cream', page: 'border-brick bg-brick text-cream' },
+  season: { card: 'bg-ink/80 text-gold backdrop-blur-sm', page: 'border-gold/50 text-gold' },
+  off: { card: 'bg-ink/80 text-stone backdrop-blur-sm', page: 'border-line text-stone' },
+};

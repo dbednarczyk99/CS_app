@@ -5,6 +5,7 @@ import { LoopCarousel } from '@/components/LoopCarousel';
 import { HeroCarousel } from '@/components/HeroCarousel';
 import { LocationCard } from '@/components/LocationCard';
 import { ProductCard } from '@/components/ProductCard';
+import { GoogleRatingBand } from '@/components/GoogleRatingBand';
 import { Reveal } from '@/components/Reveal';
 import { SectionHeading } from '@/components/SectionHeading';
 import { api, orFallback } from '@/lib/api';
@@ -40,7 +41,7 @@ export default async function HomePage() {
 
   // karuzela: produkty z etykietami, dopełnione losowymi do min. 8 (tylko dostępne, ze zdjęciem)
   const featured = featuredProducts(products.filter((p) => isAvailable(p) && p.images?.length));
-  const latestArticles = [...articles].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
+  const latestArticles = [...articles].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt)).slice(0, 3);
   const instagram = media.find((m) => m.name === 'INSTAGRAM');
   const heroSlides = buildHeroSlides({ locations, stops, products });
 
@@ -95,6 +96,9 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+
+      {/* OCENA W GOOGLE – zbiorcza i każdej piekarni (link do wystawienia opinii) */}
+      <GoogleRatingBand locations={locations} />
 
       {/* HISTORIA */}
       <section className="bg-coal">
@@ -215,8 +219,8 @@ export default async function HomePage() {
             {latestArticles.map((article, i) => (
               <Reveal key={article.id} delay={i * 100}>
                 <Link href={`/aktualnosci/${article.id}`} className="group block border-t border-line pt-6">
-                  <time dateTime={article.createdAt} className="eyebrow text-[0.7rem] text-stone">
-                    {formatDate(article.createdAt)}
+                  <time dateTime={article.publishedAt} className="eyebrow text-[0.7rem] text-stone">
+                    {formatDate(article.publishedAt)}
                   </time>
                   <h3 className="heading mt-3 text-xl transition-colors group-hover:text-gold">
                     {article.title}

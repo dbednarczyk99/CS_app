@@ -15,6 +15,13 @@ export const NewsletterSaveToolbar = ({ deletable = false }: { deletable?: boole
   const record = useRecordContext<{ newsletterSentAt?: string | null }>();
   const send = useWatch({ name: 'sendAsNewsletter' }) as boolean | undefined;
   const published = useWatch({ name: 'isPublished' }) as boolean | undefined;
+  const publishAt = useWatch({ name: 'publishAt' }) as string | null | undefined;
+  // zaplanowany na później – newsletter wyśle się sam o tej porze
+  const [now] = useState(() => Date.now());
+  const scheduled = !!publishAt && new Date(publishAt).getTime() > now;
+  const when = scheduled
+    ? new Date(publishAt!).toLocaleString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
+    : '';
   const willSend = send !== false && !record?.newsletterSentAt;
   const [confirming, setConfirming] = useState(false);
   const confirmed = useSubscriberCount() ?? '…';
@@ -57,13 +64,22 @@ export const NewsletterSaveToolbar = ({ deletable = false }: { deletable?: boole
           <Stack direction="row" spacing={1.5} alignItems="center">
             <WarningAmberIcon sx={{ color: '#c9a36a' }} />
             <Typography id="newsletter-confirm-title" variant="h6">
-              Wysłać wpis jako newsletter?
+              {scheduled ? 'Zaplanować wysyłkę newslettera?' : 'Wysłać wpis jako newsletter?'}
             </Typography>
           </Stack>
           <Typography variant="body2" sx={{ mt: 1.5 }}>
-            Po kliknięciu „Wyślij i zapisz” wpis trafi e-mailem do <strong>{confirmed}</strong> potwierdzonych
-            subskrybentów. <strong>Wysłanej wiadomości nie będzie można już edytować</strong> – późniejsze poprawki
-            zmienią tylko wpis na stronie.
+            {scheduled ? (
+              <>
+                Wpis trafi e-mailem do potwierdzonych subskrybentów (obecnie <strong>{confirmed}</strong>){' '}
+                <strong>{when}</strong>. Do tego czasu możesz go poprawiać – wyślemy najnowszą wersję.
+              </>
+            ) : (
+              <>
+                Po kliknięciu „Wyślij i zapisz” wpis trafi e-mailem do <strong>{confirmed}</strong> potwierdzonych
+                subskrybentów. <strong>Wysłanej wiadomości nie będzie można już edytować</strong> – późniejsze poprawki
+                zmienią tylko wpis na stronie.
+              </>
+            )}
           </Typography>
           {published === false && (
             <Typography variant="body2" sx={{ mt: 1 }}>
@@ -74,7 +90,7 @@ export const NewsletterSaveToolbar = ({ deletable = false }: { deletable?: boole
             Przejrzyj jeszcze treść formularza – to okienko go nie zasłania.
           </Typography>
           <Box sx={{ mt: 2.5, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            <SaveButton label="Wyślij i zapisz" icon={<SendIcon />} alwaysEnable />
+            <SaveButton label={scheduled ? 'Zaplanuj i zapisz' : 'Wyślij i zapisz'} icon={<SendIcon />} alwaysEnable />
             <Button variant="outlined" onClick={saveWithoutSending}>
               Zapisz bez wysyłki
             </Button>

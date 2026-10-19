@@ -29,8 +29,24 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
         a: '„Produkty” → „Dodaj”. Produkt bez zaznaczenia „Aktywny” nie pokazuje się na stronie. „Można rezerwować online” decyduje, czy klient może go zarezerwować (np. lody – tylko na miejscu).',
       },
       {
-        q: 'Produkty sezonowe i etykiety',
-        a: 'Zaznacz „Produkt sezonowy”. Gdy sezon się kończy, wyłącz „W sezonie – teraz dostępny” – produkt przejdzie na stronie do sekcji „Wrócą w sezonie” (bez ceny i rezerwacji). Etykiety „Bestseller” i „Nowość” wyróżniają produkt w ofercie i na stronie głównej.',
+        q: 'Produkty sezonowe',
+        a: 'Zaznacz „Produkt sezonowy”. Gdy sezon się kończy, wyłącz „W sezonie – teraz dostępny” – produkt przejdzie na stronie do sekcji „Wrócą w sezonie” (bez ceny i rezerwacji).',
+      },
+      {
+        q: 'Etykiety (Nowość, Bestseller, własne)',
+        a: 'Etykiety zaznaczasz w formularzu produktu. Własne etykiety (np. „Wegańskie”, „Na święta”) dodasz w „Etykiety” – z nazwą, kolorem i kolejnością. Etykieta z co najmniej jednym produktem pojawia się na zdjęciu produktu i jako filtr w ofercie, a produkty z etykietami są pokazywane w pierwszej kolejności na stronie głównej. Usunięcie etykiety zdejmuje ją z produktów – same produkty zostają. Etykietę „Promocja” strona nadaje sama w czasie promocji – możesz zmienić jej nazwę, kolor i kolejność, ale nie da się jej usunąć. Etykieta może mieć okres widoczności („Widoczna od / do”, np. „Na święta”) – poza nim znika ze strony sama, a przypisania zostają na następny rok.',
+      },
+      {
+        q: 'Jak ustawić promocję?',
+        a: 'W formularzu produktu włącz „Promocja”. Cena promocyjna jest opcjonalna – bez niej produkt dostaje tylko etykietę „Promocja”. Daty „Od” i „Do” są włącznie; promocja włącza się i wyłącza sama (puste pole = od razu / bez końca). W czasie promocji stara cena jest na stronie przekreślona. Rezerwacja liczy się po cenie promocyjnej, gdy dzień odbioru mieści się w okresie promocji – jeśli odbiór wypada już po jej końcu, klient płaci cenę regularną (formularz rezerwacji wyraźnie go o tym uprzedza). W ofercie pojawia się filtr „Promocje”, a na pasku pod menu – zbiorczy komunikat o promocjach (jego treść zmienisz w „Baner informacyjny”).',
+      },
+      {
+        q: 'Czy promocja się opłaciła?',
+        a: '„Statystyki” → „Skuteczność promocji”: dla każdej promocji porównanie zarezerwowanych sztuk i wyświetleń produktu w czasie promocji z tak samo długim okresem tuż przed nią. Sprzedaży w sklepie bez rezerwacji strona nie widzi.',
+      },
+      {
+        q: 'Jak zaplanować pojawienie się produktu?',
+        a: 'W formularzu produktu, w sekcji „Planowanie”, ustaw „Dostępny od” (data) – od tego dnia nowy produkt pojawi się w ofercie, a sezonowy wróci do sprzedaży (także gdy nikt nie będzie wtedy przy komputerze). „Niedostępny od” działa odwrotnie: sezonowy przejdzie do „Wrócą w sezonie”, zwykły zniknie z oferty. Po wykonaniu data się czyści; ręczna zmiana przełączników działa od razu. Wpis zapowiadający produkt możesz zaplanować na tę samą godzinę – formularz wpisu ostrzeże, jeśli produkt albo promocja nie zdążą.',
       },
       {
         q: 'Kolejność zdjęć',
@@ -47,7 +63,11 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Jak ustawić trasę chlebowozu?',
-        a: '„Chlebowóz” → „Trasa”: jeden przystanek na dzień tygodnia (dzień, godziny, adres). Dzień, w którym chlebowóz nie kursuje, usuń z listy – na stronie pojawi się „Chlebowóz odpoczywa”. Gdy ten sam przystanek jest w kilka dni, wpisz za każdym razem ten sam adres i położenie.',
+        a: '„Chlebowóz” → zakładka „Trasa”: jeden przystanek na dzień tygodnia (dzień, godziny, adres). Dzień, w którym chlebowóz nie kursuje, usuń z listy – na stronie pojawi się „Chlebowóz odpoczywa”. Gdy ten sam przystanek jest w kilka dni, wpisz za każdym razem ten sam adres i położenie.',
+      },
+      {
+        q: 'Ocena piekarni w Google',
+        a: 'W formularzu piekarni wpisz „Identyfikator miejsca Google (Place ID)” – na stronie „Piekarnie” pojawi się ocena (gwiazdki i liczba opinii, odświeżane raz dziennie) i link „Oceń nas w Google”. Identyfikator znajdziesz w narzędziu Place ID Finder (link przy polu). W stopce strony pojawia się ocena zbiorcza (średnia ważona liczbą opinii wszystkich piekarni). Gwiazdki wymagają klucza Google w konfiguracji serwera; po jego dodaniu użyj „Odśwież ocenę teraz” w formularzu piekarni.',
       },
       {
         q: 'Punkt nie pojawia się na mapie',
@@ -73,11 +93,27 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
     ],
   },
   {
-    section: 'Komunikacja z klientami',
+    section: 'Marketing i komunikacja',
     items: [
       {
+        q: 'Gdzie zobaczę, co teraz trwa i co jest zaplanowane?',
+        a: 'Na „Pulpicie”, w sekcji „Marketing”: trwające i zaplanowane promocje, zaplanowane wpisy i newslettery, zaplanowane zmiany w ofercie („Dostępny od / Niedostępny od”), etykiety z datami, które w ciągu 14 dni się zaczynają lub kończą, oraz skrót wyników – wejścia z ostatniego newslettera i najczęściej oglądane produkty z ostatnich 7 dni. Kliknięcie pozycji otwiera jej formularz.',
+      },
+      {
         q: 'Jak wysłać newsletter?',
-        a: 'Newsletterem są wpisy w „Aktualnościach”. Przy zapisie wpisu z włączoną opcją „Wyślij jako newsletter” panel poprosi o potwierdzenie i wyśle wpis do potwierdzonych subskrybentów – tylko raz. Wyłącz „Opublikuj na stronie”, aby wysłać wpis tylko e-mailem.',
+        a: 'Newsletterem są wpisy w „Aktualności i newsletter”. Przy zapisie wpisu z włączoną opcją „Wyślij jako newsletter” panel poprosi o potwierdzenie i wyśle wpis do potwierdzonych subskrybentów – tylko raz. Wyłącz „Opublikuj na stronie”, aby wysłać wpis tylko e-mailem. „Podgląd e-maila” pod treścią pokazuje, jak wpis zobaczą subskrybenci – bez wysyłania.',
+      },
+      {
+        q: 'Jak zaplanować wpis lub newsletter na później?',
+        a: 'W formularzu wpisu ustaw „Zaplanuj publikację”. Wpis pojawi się na stronie i (jeśli zaznaczono) zostanie wysłany jako newsletter o wybranej godzinie – do tego czasu możesz go poprawiać, wyślemy najnowszą wersję. Na liście wpisów widać „zaplanowany: …”.',
+      },
+      {
+        q: 'Jak wstawić produkt do wpisu?',
+        a: 'Pod treścią wpisu wybierz produkt i kliknij „Wstaw kafelek” (w miejscu kursora) albo „Wstaw aktualne promocje”. W treści pojawi się akapit „[produkt: …]” – na stronie i w newsletterze zamienia się w kartę produktu ze zdjęciem, ceną i linkiem. Możesz go przesunąć albo usunąć jak zwykły tekst.',
+      },
+      {
+        q: 'Ile osób weszło z newslettera?',
+        a: '„Statystyki” → „Newslettery”: dla każdej wysyłki liczba odbiorców, wejść na stronę z linków w e-mailu i kliknięte produkty z kafelków. Bez pikseli śledzących – samo otwarcie e-maila nie jest liczone.',
       },
       {
         q: 'Jak dodać komunikat na pasku pod menu strony?',

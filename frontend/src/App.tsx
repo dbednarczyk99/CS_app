@@ -8,6 +8,7 @@ import { darkTheme, lightTheme } from './theme';
 
 import { ProductList, ProductCreate, ProductEdit } from './admin/components/products';
 import { CategoryList, CategoryCreate, CategoryEdit } from './admin/components/categories';
+import { LabelList, LabelCreate, LabelEdit } from './admin/components/labels';
 import { ContactInfoList, ContactInfoEdit, ContactInfoCreate } from './admin/components/contact';
 import { LocationList, LocationCreate, LocationEdit } from './admin/components/locations';
 import { MediaList, MediaCreate, MediaEdit } from './admin/components/socialmedia';
@@ -79,6 +80,13 @@ function App() {
               list={CategoryList}
               create={CategoryCreate}
               edit={CategoryEdit}
+              recordRepresentation="name"
+            />
+            <Resource
+              name="products/labels"
+              list={LabelList}
+              create={LabelCreate}
+              edit={LabelEdit}
               recordRepresentation="name"
             />
             <Resource

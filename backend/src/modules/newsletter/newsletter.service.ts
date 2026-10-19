@@ -1,4 +1,5 @@
 import { randomBytes } from 'crypto';
+import { readFile } from 'fs/promises';
 import {
   HttpException,
   HttpStatus,
@@ -12,10 +13,13 @@ import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { EmailContext } from '../reservations/reservation-emails';
 import type { SubscribeDto } from './dto/newsletter.dto';
+import { logoAttachment } from '../reservations/reservation-emails';
 import {
   newsletterArticleEmail,
   newsletterConfirmEmail,
 } from './newsletter-emails';
+import { productIdsIn, type TileProduct } from './product-tiles';
+import { isLabelActive, isPromoActive, withPromo } from '../products/promo';
 
 const WINDOW_MS = 15 * 60 * 1000;
 const PER_IP_LIMIT = 5; // zapisów z jednego adresu IP w oknie 15 min
@@ -104,7 +108,13 @@ export class NewsletterService {
    */
   async sendArticle(articleId: string) {
     const claimed = await this.prisma.article.updateMany({
-      where: { id: articleId, sendAsNewsletter: true, newsletterSentAt: null },
+      // zaplanowany wpis – dopiero po czasie publikacji
+      where: {
+        id: articleId,
+        sendAsNewsletter: true,
+        newsletterSentAt: null,
+        OR: [{ publishAt: null }, { publishAt: { lte: new Date() } }],
+      },
       data: { newsletterSentAt: new Date() },
     });
     if (claimed.count === 0) return;
@@ -121,6 +131,7 @@ export class NewsletterService {
       this.emailContext(),
     ]);
     if (!article) return;
+    const products = await this.tileProducts(article.content);
 
     for (const subscriber of subscribers) {
       this.mail.send(
@@ -128,6 +139,7 @@ export class NewsletterService {
           { ...article, imageUrl: article.images[0]?.imgUrl },
           subscriber,
           ctx,
+          products,
         ),
       );
     }
@@ -137,6 +149,80 @@ export class NewsletterService {
     });
     this.logger.log(
       `Newsletter „${article.title}” – wysłano do ${subscribers.length} os.`,
+    );
+  }
+
+  /**
+   * Podgląd e-maila z wersji roboczej wpisu (panel, bez zapisu i wysyłki): HTML z logo wstawionym
+   * bezpośrednio (w prawdziwej wysyłce logo jest załącznikiem).
+   */
+  async preview(draft: {
+    id?: string;
+    title: string;
+    shortDescription: string;
+    content: string;
+    isPublished: boolean;
+    imageUrl?: string | null;
+  }) {
+    const [ctx, products] = await Promise.all([
+      this.emailContext(),
+      this.tileProducts(draft.content),
+    ]);
+    const message = newsletterArticleEmail(
+      { ...draft, id: draft.id ?? 'podglad' },
+      { email: 'podglad@example.com', token: 'podglad' },
+      ctx,
+      products,
+    );
+    const logo = await readFile(logoAttachment().path)
+      .then((b) => `data:image/png;base64,${b.toString('base64')}`)
+      .catch(() => '');
+    return {
+      subject: message.subject,
+      html: message.html.replace(/cid:logo@chlebasmak/g, logo),
+    };
+  }
+
+  /** Produkty z kafelków w treści – aktywne, z ceną i etykietami z dnia wysyłki (jak na stronie) */
+  private async tileProducts(content: string) {
+    const ids = productIdsIn(content);
+    if (ids.length === 0) return new Map<string, TileProduct>();
+    const [products, promoLabel] = await Promise.all([
+      this.prisma.product.findMany({
+        where: { id: { in: ids }, isActive: true },
+        include: {
+          images: { orderBy: { order: 'asc' }, take: 1 },
+          labels: { orderBy: [{ order: 'asc' }, { name: 'asc' }] },
+        },
+      }),
+      this.prisma.productLabel.findUnique({ where: { system: 'promo' } }),
+    ]);
+    return new Map(
+      products.map((p) => {
+        const labels = p.labels.filter((l) => isLabelActive(l));
+        if (isPromoActive(p))
+          labels.push(
+            promoLabel ??
+              ({
+                name: 'Promocja',
+                color: 'red',
+                order: 0,
+              } as (typeof labels)[number]),
+          );
+        labels.sort((a, b) => a.order - b.order);
+        return [
+          p.id.toLowerCase(),
+          {
+            id: p.id,
+            name: p.name,
+            description: p.description,
+            price: p.price,
+            currentPrice: withPromo(p).currentPrice,
+            imageUrl: p.images[0]?.imgUrl ?? null,
+            labels: labels.map((l) => ({ name: l.name, color: l.color })),
+          } satisfies TileProduct,
+        ];
+      }),
     );
   }
 

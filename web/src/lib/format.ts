@@ -79,6 +79,12 @@ export function plural(n: number, [one, few, many]: [string, string, string]) {
 }
 
 /** Data odbioru (YYYY-MM-DD, czas polski) jako „sobota, 17 października” */
+/** „25 października” – dzień YYYY-MM-DD bez dnia tygodnia */
+export const formatDayMonth = (date: string) =>
+  new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'long', timeZone: 'UTC' }).format(
+    new Date(`${date}T12:00:00Z`),
+  );
+
 export function formatDay(date: string, style: 'long' | 'short' = 'long') {
   return new Intl.DateTimeFormat(
     'pl-PL',

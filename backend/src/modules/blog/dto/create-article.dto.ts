@@ -7,8 +7,9 @@ import {
   MaxLength,
   MinLength,
   ValidateNested,
+  IsDateString,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 class ArticleImageInlineDto {
   @IsString()
@@ -54,4 +55,10 @@ export class CreateArticleDto {
   @IsOptional()
   @IsArray()
   tags?: (string | { name: string })[];
+
+  /** zaplanowana publikacja na stronie i wysyłka newslettera (ISO); puste = od razu */
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) => (value === '' ? null : value))
+  @IsDateString({}, { message: 'Niepoprawna data publikacji' })
+  publishAt?: string | null;
 }

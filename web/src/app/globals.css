@@ -14,6 +14,9 @@
   --color-stone: #b9b1a4;
   --color-gold: #c9a36a;
   --color-gold-light: #dcc095;
+  /* etykiety: „Promocja” i zielona etykieta z panelu (kontrast z kremowym napisem ≥ 4.5:1) */
+  --color-brick: #b4473a;
+  --color-olive: #556f40;
   --color-line: rgb(244 239 230 / 0.12);
 
   --font-sans: var(--font-lato), system-ui, sans-serif;

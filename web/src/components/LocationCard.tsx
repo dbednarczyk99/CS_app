@@ -1,6 +1,7 @@
-import { FaLocationArrow, FaPhone } from 'react-icons/fa6';
+import { FaLocationArrow, FaPhone, FaStar } from 'react-icons/fa6';
 import type { Location } from '@/lib/api';
-import { groupedHours, telHref } from '@/lib/format';
+import { groupedHours, plural, telHref } from '@/lib/format';
+import { ratingFormat, reviewUrl } from '@/lib/google';
 import { OpenStatus } from './OpenStatus';
 import { PhotoCarousel } from './PhotoCarousel';
 import { ShowOnMapButton } from './StoresMap';
@@ -11,12 +12,15 @@ export function LocationCard({
   showHours = true,
   showOnMap = false,
   showPhotos = false,
+  showReviews = false,
 }: {
   location: Location;
   index: number;
   showHours?: boolean;
   showOnMap?: boolean;
   showPhotos?: boolean;
+  /** ocena Google i link „Oceń nas” (gdy piekarnia ma w panelu identyfikator miejsca Google) */
+  showReviews?: boolean;
 }) {
   const [street, city] = location.address.split(/,\s*(?=\d{2}-\d{3})/);
   const photos = showPhotos && location.images && location.images.length > 0 ? location.images : null;
@@ -44,6 +48,7 @@ export function LocationCard({
         </div>
         <h3 className="heading mt-5 text-xl">{street}</h3>
         {city && <p className="mt-1 text-stone">{city}</p>}
+        {showReviews && <GoogleRating location={location} />}
 
         {showHours && location.openingHours && (
           <dl className="mt-5 grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-sm">
@@ -77,5 +82,31 @@ export function LocationCard({
         </div>
       </div>
     </article>
+  );
+}
+
+
+/**
+ * Ocena piekarni w Google (odświeżana przez API raz dziennie) i link do wystawienia opinii.
+ * Bez oceny (brak klucza Google w API albo za mało opinii) – sam link „Oceń nas w Google”.
+ */
+function GoogleRating({ location }: { location: Location }) {
+  if (!location.googlePlaceId) return null;
+  const count = location.googleRatingCount ?? 0;
+  return (
+    <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+      {location.googleRating != null && count > 0 && (
+        <span className="flex items-center gap-1.5">
+          <FaStar aria-hidden className="text-gold" />
+          <span className="font-display text-base text-cream">{ratingFormat.format(location.googleRating)}</span>
+          <span className="text-stone">
+            · {count} {plural(count, ['opinia', 'opinie', 'opinii'])} w Google
+          </span>
+        </span>
+      )}
+      <a href={reviewUrl(location.googlePlaceId)} target="_blank" rel="noreferrer" className="link-arrow text-[0.7rem]">
+        Oceń nas w Google
+      </a>
+    </p>
   );
 }

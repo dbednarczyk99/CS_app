@@ -24,6 +24,20 @@ export interface Image {
   order: number;
 }
 
+/** wygląd etykiety (style: lib/products.ts – BADGE_STYLE) */
+export type LabelColor = 'gold' | 'cream' | 'dark' | 'green' | 'red';
+
+export interface ProductLabel {
+  id: string;
+  name: string;
+  /** w adresie filtra: /oferta?etykiety=nowosci */
+  slug: string;
+  color: LabelColor;
+  order: number;
+  /** etykieta z datami: widoczna dziś (liczone przez API); brak = widoczna */
+  active?: boolean;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -32,8 +46,20 @@ export interface Product {
   isSeasonal: boolean;
   /** sezonowy: false = poza sezonem (widoczny w sekcji „Wrócą w sezonie”, bez rezerwacji) */
   inSeason: boolean;
-  isBestseller: boolean;
-  isNew: boolean;
+  /** etykiety z panelu (Nowość, Bestseller, własne) – w kolejności z panelu; brak w /products/categories */
+  labels?: ProductLabel[];
+  /** wygląd etykiety „Promocja” z panelu (nazwa, kolor, kolejność, adres filtra) */
+  promoLabel?: ProductLabel | null;
+  /** promocja włączona w panelu (okres od–do sprawdza API: promoActive) */
+  isPromo: boolean;
+  promoPrice: number | null;
+  /** okres promocji (YYYY-MM-DD, czas polski); null = bez ograniczenia */
+  promoFrom: string | null;
+  promoTo: string | null;
+  /** promocja trwa dziś (liczone przez API w czasie polskim) */
+  promoActive?: boolean;
+  /** cena do zapłaty dziś – promocyjna, gdy promocja trwa i ma niższą cenę */
+  currentPrice?: number;
   isActive: boolean;
   isReservable: boolean;
   images?: Image[]; // brak w odpowiedzi /products/categories
@@ -63,6 +89,10 @@ export interface Location {
   lng: number | null;
   openingHours: OpeningHours | null;
   images?: Image[]; // zdjęcia lokalu (karuzela na /piekarnie)
+  /** Google: identyfikator miejsca (link „Wystaw opinię”) i ocena odświeżana raz dziennie */
+  googlePlaceId?: string | null;
+  googleRating?: number | null;
+  googleRatingCount?: number | null;
 }
 
 export type Weekday =
@@ -119,6 +149,8 @@ export interface Article {
   shortDescription: string;
   content?: string;
   createdAt: string;
+  /** data publikacji na stronie: zaplanowana albo dodania */
+  publishedAt: string;
   images: Image[];
   tags: { tag: { id: string; name: string } }[];
 }

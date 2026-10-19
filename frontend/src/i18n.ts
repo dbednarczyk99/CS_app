@@ -227,12 +227,21 @@ const resources = {
       isSeasonal: 'Sezonowy',
       isActive: 'Aktywny',
       categoryId: 'Kategoria',
+      labelIds: 'Etykiety',
+      isPromo: 'Promocja',
+      promoPrice: 'Cena promocyjna',
+      promoFrom: 'Promocja od',
+      promoTo: 'Promocja do',
       images: 'Zdjęcia',
     },
   },
   'products/categories': {
     name: 'Kategoria |||| Kategorie |||| Kategorii',
     fields: { name: 'Nazwa', products: 'Produkty' },
+  },
+  'products/labels': {
+    name: 'Etykieta |||| Etykiety |||| Etykiet',
+    fields: { name: 'Nazwa', color: 'Kolor', order: 'Kolejność', slug: 'Adres filtra' },
   },
   'contact/info': {
     name: 'Dane kontaktowe |||| Dane kontaktowe |||| Danych kontaktowych',

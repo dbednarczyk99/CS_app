@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import deleteImageFiles from './../../scripts/imageHandler';
@@ -6,17 +7,6 @@ import deleteImageFiles from './../../scripts/imageHandler';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { NewsletterService } from '../newsletter/newsletter.service';
-
-type ArticleWithRelations = Prisma.ArticleGetPayload<{
-  include: {
-    images: true;
-    tags: {
-      include: {
-        tag: true;
-      };
-    };
-  };
-}>;
 
 @Injectable()
 export class BlogService {
@@ -40,30 +30,61 @@ export class BlogService {
 
   /* ----------------- GET ----------------- */
 
-  /** onlyPublished: strona widzi tylko opublikowane; panel – wszystkie (też wpisy tylko do newslettera) */
-  findAllArticles(
-    onlyPublished = true,
-  ): Prisma.PrismaPromise<ArticleWithRelations[]> {
-    return this.prisma.article.findMany({
-      where: onlyPublished ? { isPublished: true } : undefined,
-      include: {
-        images: { orderBy: { order: 'asc' } },
-        tags: { include: { tag: true } },
-      },
-    });
+  /** Widoczne na stronie: opublikowane, a zaplanowane – dopiero od czasu publikacji */
+  private visibleNow(): Prisma.ArticleWhereInput {
+    return {
+      isPublished: true,
+      OR: [{ publishAt: null }, { publishAt: { lte: new Date() } }],
+    };
   }
 
-  findOneArticle(
-    id: string,
-    onlyPublished = true,
-  ): Prisma.PrismaPromise<ArticleWithRelations | null> {
-    return this.prisma.article.findFirst({
-      where: { id, ...(onlyPublished ? { isPublished: true } : {}) },
+  /** Data publikacji widoczna na stronie: zaplanowana albo dodania */
+  private withPublishedAt<
+    T extends { publishAt: Date | null; createdAt: Date },
+  >(article: T) {
+    return { ...article, publishedAt: article.publishAt ?? article.createdAt };
+  }
+
+  /** onlyPublished: strona widzi tylko opublikowane; panel – wszystkie (też wpisy tylko do newslettera i zaplanowane) */
+  async findAllArticles(onlyPublished = true) {
+    const articles = await this.prisma.article.findMany({
+      where: onlyPublished ? this.visibleNow() : undefined,
       include: {
         images: { orderBy: { order: 'asc' } },
         tags: { include: { tag: true } },
       },
     });
+    return articles.map((a) => this.withPublishedAt(a));
+  }
+
+  async findOneArticle(id: string, onlyPublished = true) {
+    const article = await this.prisma.article.findFirst({
+      where: { id, ...(onlyPublished ? this.visibleNow() : {}) },
+      include: {
+        images: { orderBy: { order: 'asc' } },
+        tags: { include: { tag: true } },
+      },
+    });
+    return article && this.withPublishedAt(article);
+  }
+
+  /** Wpis zaplanowany na później – bez wysyłki newslettera przy zapisie (wyśle ją zadanie co minutę) */
+  private isScheduled(article: { publishAt: Date | null }) {
+    return article.publishAt !== null && article.publishAt > new Date();
+  }
+
+  /** Co minutę: wysyłka newslettera dla wpisów, których czas publikacji właśnie minął */
+  @Cron(CronExpression.EVERY_MINUTE)
+  async sendScheduled() {
+    const due = await this.prisma.article.findMany({
+      where: {
+        sendAsNewsletter: true,
+        newsletterSentAt: null,
+        publishAt: { lte: new Date() },
+      },
+      select: { id: true },
+    });
+    for (const { id } of due) this.sendNewsletter(id);
   }
 
   /* ----------------- CREATE ----------------- */
@@ -85,6 +106,7 @@ export class BlogService {
     const article = await this.prisma.article.create({
       data: {
         ...rest,
+        publishAt: rest.publishAt ? new Date(rest.publishAt as string) : null,
         images: {
           create: imagesData,
         },
@@ -104,7 +126,8 @@ export class BlogService {
         tags: { include: { tag: true } },
       },
     });
-    if (article.sendAsNewsletter) this.sendNewsletter(article.id);
+    if (article.sendAsNewsletter && !this.isScheduled(article))
+      this.sendNewsletter(article.id);
     return article;
   }
 
@@ -133,6 +156,14 @@ export class BlogService {
         : {}),
       ...(rest.isPublished !== undefined
         ? { isPublished: rest.isPublished }
+        : {}),
+      // zmiana terminu możliwa tylko przed wysyłką newslettera (wysłanego nie da się cofnąć)
+      ...(rest.publishAt !== undefined && !existing.newsletterSentAt
+        ? {
+            publishAt: rest.publishAt
+              ? new Date(rest.publishAt as string)
+              : null,
+          }
         : {}),
     };
 
@@ -195,7 +226,11 @@ export class BlogService {
     }
 
     // flaga włączona, a artykuł jeszcze nie wysłany (np. zapisany wcześniej bez wysyłki) – wysyłka teraz
-    if (updated.sendAsNewsletter && !updated.newsletterSentAt)
+    if (
+      updated.sendAsNewsletter &&
+      !updated.newsletterSentAt &&
+      !this.isScheduled(updated)
+    )
       this.sendNewsletter(id);
 
     return updated;

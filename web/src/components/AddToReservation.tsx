@@ -3,13 +3,15 @@
 import Link from 'next/link';
 import { FaArrowRight, FaBasketShopping, FaMinus, FaPlus } from 'react-icons/fa6';
 import type { Product } from '@/lib/api';
+import { priceOf } from '@/lib/products';
 import { MAX_QUANTITY, useReservationCart } from '@/lib/reservation-cart';
 
 function toCartProduct(product: Product) {
   return {
     productId: product.id,
     name: product.name,
-    price: product.price,
+    // cena dziś – przy promocji promocyjna (tak samo liczy ją API przy rezerwacji)
+    price: priceOf(product),
     image: product.images?.[0]?.imgUrl,
   };
 }

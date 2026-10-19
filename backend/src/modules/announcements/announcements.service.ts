@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { isPromoActive } from '../products/promo';
 import type {
   CreateAnnouncementDto,
   UpdateAnnouncementDto,
@@ -15,26 +16,66 @@ const ORDER = [{ order: 'asc' as const }, { createdAt: 'desc' as const }];
 export class AnnouncementsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Komunikaty widoczne teraz na stronie: włączone i w okresie wyświetlania */
-  active() {
+  /**
+   * Komunikaty widoczne teraz na stronie: włączone i w okresie wyświetlania. Komunikat stały „promo”
+   * pojawia się sam, gdy trwa jakakolwiek promocja (bez nazw produktów – zbiorczo), i znika po ostatniej.
+   */
+  async active() {
     const now = new Date();
-    return this.prisma.announcement.findMany({
+    const [list, promoOn] = await Promise.all([
+      this.prisma.announcement.findMany({
+        where: {
+          isActive: true,
+          OR: [
+            { system: { not: null } },
+            {
+              AND: [
+                { OR: [{ startsAt: null }, { startsAt: { lte: now } }] },
+                { OR: [{ endsAt: null }, { endsAt: { gt: now } }] },
+              ],
+            },
+          ],
+        },
+        orderBy: ORDER,
+        select: {
+          id: true,
+          message: true,
+          linkUrl: true,
+          linkLabel: true,
+          updatedAt: true,
+          system: true,
+        },
+      }),
+      this.anyPromoNow(),
+    ]);
+    return list
+      .filter((a) => a.system !== 'promo' || promoOn)
+      .map((a) => ({
+        id: a.id,
+        message: a.message,
+        linkUrl: a.linkUrl,
+        linkLabel: a.linkLabel,
+        updatedAt: a.updatedAt,
+      }));
+  }
+
+  /** Czy trwa teraz promocja na jakikolwiek produkt widoczny na stronie (i dostępny – nie poza sezonem) */
+  private async anyPromoNow() {
+    const products = await this.prisma.product.findMany({
       where: {
+        isPromo: true,
         isActive: true,
-        AND: [
-          { OR: [{ startsAt: null }, { startsAt: { lte: now } }] },
-          { OR: [{ endsAt: null }, { endsAt: { gt: now } }] },
-        ],
+        OR: [{ isSeasonal: false }, { inSeason: true }],
       },
-      orderBy: ORDER,
       select: {
-        id: true,
-        message: true,
-        linkUrl: true,
-        linkLabel: true,
-        updatedAt: true,
+        price: true,
+        isPromo: true,
+        promoPrice: true,
+        promoFrom: true,
+        promoTo: true,
       },
     });
+    return products.some((p) => isPromoActive(p));
   }
 
   findAll() {
@@ -58,6 +99,8 @@ export class AnnouncementsService {
 
   async update(id: string, dto: UpdateAnnouncementDto) {
     const current = await this.findOne(id);
+    // komunikat stały pokazuje się wtedy, gdy trwa promocja – bez własnych dat
+    if (current.system) dto = { ...dto, startsAt: null, endsAt: null };
     this.checkDates(
       dto.startsAt === undefined ? current.startsAt : dto.startsAt,
       dto.endsAt === undefined ? current.endsAt : dto.endsAt,
@@ -69,7 +112,11 @@ export class AnnouncementsService {
   }
 
   async remove(id: string) {
-    await this.findOne(id);
+    const current = await this.findOne(id);
+    if (current.system)
+      throw new BadRequestException(
+        'Tego komunikatu nie można usunąć – pokazuje się sam w czasie promocji. Możesz zmienić treść albo go wyłączyć.',
+      );
     return this.prisma.announcement.delete({ where: { id } });
   }
 

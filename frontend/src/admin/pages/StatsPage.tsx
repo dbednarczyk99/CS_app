@@ -8,6 +8,11 @@ import {
   Chip,
   CircularProgress,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
@@ -16,8 +21,11 @@ import {
 import MailIcon from '@mui/icons-material/Mail';
 import MapIcon from '@mui/icons-material/Map';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import BakeryDiningIcon from '@mui/icons-material/BakeryDining';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
+import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -45,6 +53,31 @@ interface Stats {
   series: { date: string; views: number; maps: number; mails: number }[];
   pages: { key: string; count: number }[];
   sources: { key: string; count: number }[];
+  // wyświetlenia stron produktów (top 10); active: false – produkt ukryty na stronie
+  products?: { id: string; name: string; active: boolean; count: number }[];
+  // skuteczność newsletterów: wejścia na stronę z linków w e-mailach (od wysyłki)
+  newsletters?: {
+    id: string;
+    title: string;
+    sentAt: string;
+    recipients: number;
+    visits: number;
+    articleVisits: number;
+    products: { name: string; count: number }[];
+  }[];
+  // skuteczność promocji: rezerwacje (szt., wg dnia odbioru) i wyświetlenia w czasie promocji i tuż przed nią
+  promotions?: {
+    id: string;
+    name: string;
+    price: number;
+    promoPrice: number | null;
+    from: string;
+    to: string | null;
+    status: 'active' | 'ended';
+    days: number;
+    during: { quantity: number; views: number };
+    before: { quantity: number; views: number };
+  }[];
   mapsBySource: { key: string; count: number }[];
   mailsByCategory: { key: string; count: number }[];
   reservations: {
@@ -517,6 +550,23 @@ export default function StatsPage() {
               <RankList items={stats.pages} labels={PAGE_LABELS} empty="Brak odsłon w tym okresie." />
             </Section>
 
+            <Section title="Najczęściej oglądane produkty" icon={<BakeryDiningIcon />}>
+              <Typography variant="caption" color="text.secondary">
+                Wejścia na stronę produktu w ostatnich {days} dniach
+              </Typography>
+              <RankList
+                items={(stats.products ?? []).map((p) => ({ key: p.id, count: p.count }))}
+                labels={Object.fromEntries(
+                  (stats.products ?? []).map((p) => [p.id, p.active ? p.name : `${p.name} (ukryty na stronie)`]),
+                )}
+                empty="Nikt jeszcze nie oglądał stron produktów w tym okresie."
+              />
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
+                Pokazuje, co najbardziej ciekawi odwiedzających – warto porównać z najczęściej rezerwowanymi
+                produktami. Liczone bez danych osobowych.
+              </Typography>
+            </Section>
+
             {isOwner && (
               <>
                 <Section title="Rezerwacje" icon={<ReceiptLongIcon />}>
@@ -585,6 +635,9 @@ export default function StatsPage() {
             )}
           </Box>
 
+          <NewslettersSection items={stats.newsletters ?? []} />
+          <PromotionsSection items={stats.promotions ?? []} />
+
           <Typography variant="body2" color="text.secondary" sx={{ mt: 4 }}>
             Statystyki są anonimowe: strona liczy tylko odsłony i wczytania mapy – bez plików cookies, bez zapisywania
             adresów IP i bez śledzenia osób. Odsłony robotów wyszukiwarek nie są liczone.
@@ -594,5 +647,149 @@ export default function StatsPage() {
         </>
       )}
     </Box>
+  );
+}
+
+const dayMonth = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' });
+
+/** Zmiana „przed → w czasie” liczbami i procentem (bez dzielenia przez zero) */
+function Change({ before, during }: { before: number; during: number }) {
+  if (before === 0 && during === 0)
+    return (
+      <Typography variant="body2" color="text.disabled">
+        —
+      </Typography>
+    );
+  const pct = before === 0 ? null : Math.round(((during - before) / before) * 100);
+  const up = during >= before;
+  return (
+    <Stack spacing={0.25}>
+      <Typography variant="body2">
+        {fmt(before)} → <strong>{fmt(during)}</strong>
+      </Typography>
+      <Typography variant="caption" sx={{ color: up ? 'success.main' : 'error.main' }}>
+        {pct === null ? 'wcześniej 0' : `${pct > 0 ? '+' : ''}${pct}%`}
+      </Typography>
+    </Stack>
+  );
+}
+
+/** Newslettery: do ilu osób, ile wejść na stronę z e-maila, które produkty z kafelków klikano */
+function NewslettersSection({ items }: { items: NonNullable<Stats['newsletters']> }) {
+  return (
+    <Section title="Newslettery" icon={<MarkEmailReadIcon />} sx={{ mt: 2, height: 'auto' }}>
+      <Typography variant="caption" color="text.secondary">
+        Ostatnie wysyłki – wejścia na stronę z linków w e-mailu (od wysyłki do dziś; jedna osoba może wejść kilka razy,
+        np. z przekazanego dalej e-maila). Liczone bez pikseli śledzących, więc samo otwarcie e-maila nie jest widoczne.
+      </Typography>
+      {items.length === 0 ? (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+          Nie wysłano jeszcze newslettera z licznikiem wejść.
+        </Typography>
+      ) : (
+        <Box sx={{ overflowX: 'auto', mt: 1 }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Wpis</TableCell>
+                <TableCell>Wysłano</TableCell>
+                <TableCell align="right">Odbiorcy</TableCell>
+                <TableCell align="right">Wejścia</TableCell>
+                <TableCell>Kliknięte produkty</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {items.map((n) => (
+                <TableRow key={n.id}>
+                  <TableCell sx={{ maxWidth: 280 }}>{n.title}</TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{new Date(n.sentAt).toLocaleDateString('pl-PL')}</TableCell>
+                  <TableCell align="right">{fmt(n.recipients)}</TableCell>
+                  <TableCell align="right">
+                    <strong>{fmt(n.visits)}</strong>
+                    {/* wejścia to kliknięcia (ta sama osoba może wejść kilka razy) – bez procentu odbiorców */}
+                    {n.articleVisits > 0 && n.articleVisits !== n.visits && (
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                        w tym do wpisu: {fmt(n.articleVisits)}
+                      </Typography>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {n.products.length === 0 ? '—' : n.products.map((p) => `${p.name} (${fmt(p.count)})`).join(', ')}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Box>
+      )}
+    </Section>
+  );
+}
+
+/** Skuteczność promocji: rezerwacje i wyświetlenia w czasie promocji vs tak samo długi okres tuż przed nią */
+function PromotionsSection({ items }: { items: NonNullable<Stats['promotions']> }) {
+  return (
+    <Section title="Skuteczność promocji" icon={<LocalOfferIcon />} sx={{ mt: 2, height: 'auto' }}>
+      <Typography variant="caption" color="text.secondary">
+        Porównanie z tak samo długim okresem tuż przed promocją. Rezerwacje – zarezerwowane sztuki według dnia odbioru,
+        bez anulowanych; sprzedaży w sklepie bez rezerwacji strona nie widzi.
+      </Typography>
+      {items.length === 0 ? (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+          Nie było jeszcze promocji.
+        </Typography>
+      ) : (
+        <Box sx={{ overflowX: 'auto', mt: 1 }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Produkt</TableCell>
+                <TableCell>Cena</TableCell>
+                <TableCell>Okres</TableCell>
+                <TableCell>Rezerwacje (szt.)</TableCell>
+                <TableCell>Wyświetlenia produktu</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {items.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell>
+                    {p.name}
+                    <Chip
+                      size="small"
+                      label={p.status === 'active' ? 'trwa' : 'zakończona'}
+                      color={p.status === 'active' ? 'success' : 'default'}
+                      sx={{ ml: 1 }}
+                    />
+                  </TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                    {p.promoPrice != null ? (
+                      <>
+                        <s>{money(p.price)}</s> {money(p.promoPrice)}
+                      </>
+                    ) : (
+                      'tylko etykieta'
+                    )}
+                  </TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                    {dayMonth(p.from)} – {p.to ? dayMonth(p.to) : 'bez końca'}
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                      {p.status === 'active' ? 'do dziś: ' : ''}
+                      {p.days} {p.days === 1 ? 'dzień' : 'dni'}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Change before={p.before.quantity} during={p.during.quantity} />
+                  </TableCell>
+                  <TableCell>
+                    <Change before={p.before.views} during={p.during.views} />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Box>
+      )}
+    </Section>
   );
 }

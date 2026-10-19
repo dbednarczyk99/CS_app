@@ -41,7 +41,7 @@ const exporter: Exporter<Subscriber> = (records) => {
 
 export const NewsletterList = () => (
   <List
-    title="Newsletter – zapisani"
+    title="Subskrybenci newslettera"
     exporter={exporter}
     sort={{ field: 'consentAt', order: 'DESC' }}
     empty={false}

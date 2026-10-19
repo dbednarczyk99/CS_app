@@ -51,12 +51,21 @@ model Product {
   isSeasonal       Boolean           @default(false)
   // tylko dla sezonowych: false = poza sezonem (widoczny na stronie, ale niedostępny i bez rezerwacji)
   inSeason         Boolean           @default(true)
-  // etykiety na karcie produktu, ustawiane w panelu
-  isBestseller     Boolean           @default(false)
-  isNew            Boolean           @default(false)
+  // etykiety na karcie produktu (np. Nowość, Bestseller) – lista etykiet zarządzana w panelu
+  labels           ProductLabel[]
+  // promocja: etykieta „Promocja” i opcjonalnie niższa cena w okresie od–do
+  // (dni w czasie polskim YYYY-MM-DD; puste = bez ograniczenia z tej strony)
+  isPromo          Boolean           @default(false)
+  promoPrice       Float?
+  promoFrom        String?           @db.Char(10)
+  promoTo          String?           @db.Char(10)
   isActive         Boolean           @default(true)
   // czy produkt można zarezerwować online (np. lody i napoje – tylko do wglądu)
   isReservable     Boolean           @default(true)
+  // planowanie (dzień YYYY-MM-DD, czas polski): od tego dnia produkt sam się włącza (aktywny, a sezonowy –
+  // w sezonie) / wyłącza (sezonowy – poza sezonem, zwykły – ukryty); data czyści się po wykonaniu
+  availableFrom    String?           @db.Char(10)
+  unavailableFrom  String?           @db.Char(10)
   images           ProductImages[]
   reservationItems ReservationItem[]
   category         Category          @relation(fields: [categoryId], references: [id])
@@ -64,6 +73,47 @@ model Product {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// etykieta produktu dodawana w panelu (Nowość, Bestseller, Wegańskie…)
+model ProductLabel {
+  id         String    @id @default(uuid())
+  name       String    @unique @db.VarChar(30)
+  // w adresie filtra oferty: /oferta?etykiety=nowosci
+  slug       String    @unique @db.VarChar(40)
+  // wygląd na stronie: gold | cream | dark | green | red
+  color      String    @default("gold") @db.VarChar(10)
+  // etykieta stała, nadawana przez stronę ("promo" – trwająca promocja): można zmienić nazwę, kolor
+  // i kolejność, ale nie usunąć ani przypisać ręcznie do produktu
+  system     String?   @unique @db.VarChar(20)
+  // okres widoczności na stronie (YYYY-MM-DD, czas polski, włącznie); puste = bez ograniczenia
+  activeFrom String?   @db.Char(10)
+  activeTo   String?   @db.Char(10)
+  // kolejność na karcie produktu i w filtrach (mniejsza = wcześniej)
+  order      Int       @default(0)
+  products   Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// historia promocji – do zestawienia „Skuteczność promocji” (rezerwacje w czasie promocji i przed nią)
+model PromoPeriod {
+  id          String    @id @default(uuid())
+  productId   String
+  productName String
+  price       Float
+  promoPrice  Float?
+  // okres (YYYY-MM-DD); from – początek (data z panelu albo dzień włączenia), to – koniec (null = bez końca)
+  from        String    @db.Char(10)
+  to          String?   @db.Char(10)
+  // promocję wyłączono w panelu (null = trwa / zaplanowana)
+  endedAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId, endedAt])
 }
 
 model ProductImages {
@@ -81,20 +131,25 @@ model ProductImages {
 // CONTACT INFO
 
 model Location {
-  id            String        @id @default(uuid())
-  name          String?
-  address       String
-  phone         String?
+  id                String          @id @default(uuid())
+  name              String?
+  address           String
+  phone             String?
   // skrót do numerów rezerwacji, np. WIL → WIL-1017-03
-  code          String?       @unique @db.VarChar(6)
-  googleMapsUrl String
+  code              String?         @unique @db.VarChar(6)
+  googleMapsUrl     String
   // współrzędne do mapy na stronie
-  lat           Float?
-  lng           Float?
-  openingHours  Json?
-  reservations  Reservation[]
+  lat               Float?
+  lng               Float?
+  openingHours      Json?
+  reservations      Reservation[]
   // zdjęcia lokalu (karuzela na stronie /piekarnie)
-  images        LocationImage[]
+  images            LocationImage[]
+  // Google: identyfikator miejsca (ocena i link „Wystaw opinię”) + ocena odświeżana raz dziennie
+  googlePlaceId     String?         @db.VarChar(300)
+  googleRating      Float?
+  googleRatingCount Int?
+  googleRatingAt    DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -214,18 +269,20 @@ model ArticleImages {
 }
 
 model Article {
-  id               String          @id @default(uuid())
-  title            String
-  shortDescription String          @db.VarChar(500)
-  content          String          @db.Text
-  images           ArticleImages[]
-  tags             TagOnArticle[]
+  id                   String          @id @default(uuid())
+  title                String
+  shortDescription     String          @db.VarChar(500)
+  content              String          @db.Text
+  images               ArticleImages[]
+  tags                 TagOnArticle[]
   // false = wpis tylko dla subskrybentów newslettera (niewidoczny na stronie)
-  isPublished          Boolean   @default(true)
+  isPublished          Boolean         @default(true)
   // wysyłka do zapisanych w newsletterze – raz, przy zapisaniu artykułu z zaznaczoną flagą
-  sendAsNewsletter     Boolean   @default(true)
+  sendAsNewsletter     Boolean         @default(true)
   newsletterSentAt     DateTime?
   newsletterRecipients Int?
+  // zaplanowana publikacja na stronie i wysyłka newslettera (czas); null = od razu przy zapisie
+  publishAt            DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -323,6 +380,8 @@ model Announcement {
   endsAt    DateTime?
   // kolejność przy kilku aktywnych komunikatach
   order     Int       @default(0)
+  // komunikat stały ("promo"): pokazywany automatycznie, gdy trwa jakakolwiek promocja – bez usuwania
+  system    String?   @unique @db.VarChar(20)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -355,7 +414,7 @@ model DailyStat {
   // view | map | mail | mail_failed
   metric String @db.VarChar(20)
   // np. ścieżka podstrony, miejsce mapy, rodzaj e-maila
-  key    String @default("") @db.VarChar(60)
+  key    String @default("") @db.VarChar(100)
   count  Int    @default(0)
 
   @@unique([date, metric, key])

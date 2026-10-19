@@ -10,6 +10,14 @@ import {
   paragraph,
   type EmailContext,
 } from '../reservations/reservation-emails';
+import {
+  PRODUCT_TOKEN,
+  productIdsIn,
+  productTileHtml,
+  productTileText,
+  tileIdOf,
+  type TileProduct,
+} from './product-tiles';
 
 const NOTE =
   'Otrzymujesz tę wiadomość, bo ktoś podał ten adres przy zapisie do newslettera Chleba Smak.';
@@ -27,24 +35,46 @@ export function newsletterArticleEmail(
   },
   to: { email: string; token: string },
   ctx: EmailContext,
+  /** produkty z kafelków w treści ([produkt:id]) – aktywne, z ceną w dniu wysyłki */
+  products: Map<string, TileProduct> = new Map(),
 ): MailMessage {
-  // znacznik źródła – wejścia z newslettera widać w panelu „Statystyki”
-  const articleUrl = `${ctx.webUrl}/aktualnosci/${article.id}?utm_source=newsletter`;
+  // znaczniki źródła i wysyłki – wejścia z tego newslettera (i kliknięte produkty) widać w panelu „Statystyki”
+  const campaign = `utm_source=newsletter&utm_campaign=${article.id}`;
+  const articleUrl = `${ctx.webUrl}/aktualnosci/${article.id}?${campaign}`;
+  const productUrl = (id: string) =>
+    `${ctx.webUrl}/oferta/${id}?${campaign}&utm_content=${id}`;
   const unsubscribeUrl = `${ctx.webUrl}/newsletter/wypisz/${to.token}`;
   const img = article.imageUrl
     ? `<img src="${esc(article.imageUrl)}" width="520" alt="" style="display:block;width:100%;height:auto;margin:22px 0 4px;border:0">`
     : '';
-  // opublikowany: zajawka + „Czytaj dalej”; tylko newsletter: pełna treść (akapity)
+  const paragraphs = article.content
+    .split(/\r?\n\s*\r?\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  const tile = (id: string) => {
+    const p = products.get(id);
+    return p ? productTileHtml(p, productUrl(id)) : '';
+  };
+  // opublikowany: zajawka + kafelki produktów z wpisu + „Czytaj dalej”; tylko newsletter: pełna treść
   const body = article.isPublished
     ? `${img ? `<a href="${articleUrl}">${img}</a>` : ''}
 ${paragraph(esc(article.shortDescription), C.cream)}
+${productIdsIn(article.content).map(tile).join('\n')}
 <div style="margin-top:26px">${button(articleUrl, 'Czytaj dalej', 'gold')}</div>`
     : `${img}
 ${paragraph(esc(article.shortDescription), C.cream)}
-${article.content
-  .split(/\n{2,}/)
-  .map((p) => paragraph(esc(p.trim()).replace(/\n/g, '<br>')))
+${paragraphs
+  .map((p) => {
+    const id = tileIdOf(p);
+    return id
+      ? tile(id)
+      : paragraph(esc(p.replace(PRODUCT_TOKEN, '')).replace(/\r?\n/g, '<br>'));
+  })
   .join('\n')}`;
+  const textTile = (id: string) => {
+    const p = products.get(id);
+    return p ? productTileText(p, productUrl(id)) : '';
+  };
   const content = `
 ${eyebrow('Z piekarni Chleba Smak')}
 ${heading(article.title, 26)}
@@ -69,7 +99,18 @@ ${paragraph(
       '',
       article.shortDescription,
       '',
-      article.isPublished ? `Czytaj dalej: ${articleUrl}` : article.content,
+      article.isPublished
+        ? [
+            ...productIdsIn(article.content).map(textTile).filter(Boolean),
+            `Czytaj dalej: ${articleUrl}`,
+          ].join('\n\n')
+        : paragraphs
+            .map((p) => {
+              const id = tileIdOf(p);
+              return id ? textTile(id) : p.replace(PRODUCT_TOKEN, '');
+            })
+            .filter(Boolean)
+            .join('\n\n'),
       '',
       `Wypisz się z newslettera: ${unsubscribeUrl}`,
     ].join('\n'),

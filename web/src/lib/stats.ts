@@ -2,7 +2,7 @@
  * Anonimowe statystyki: odsłony podstron i wczytania mapy Google (licznik kosztów w panelu).
  * Bez cookies i identyfikatorów – serwer zapisuje tylko liczbę zdarzeń danego dnia.
  */
-export function trackEvent(type: 'view' | 'map' | 'source', key: string) {
+export function trackEvent(type: 'view' | 'map' | 'source' | 'product' | 'newsletter', key: string) {
   try {
     fetch('/api/statystyki', {
       method: 'POST',
@@ -55,3 +55,17 @@ export function trafficSource(): string | null {
   if (/(^|.)tiktok.com$/.test(host)) return 'tiktok';
   return 'inne-strony';
 }
+
+/**
+ * Wejście z linku w newsletterze (?utm_campaign=<id wpisu>&utm_content=<id produktu z kafelka>) → klucz
+ * „id wpisu|wpis” albo „id wpisu|id produktu” – skuteczność każdej wysyłki w panelu, bez pikseli śledzących.
+ */
+export function newsletterCampaign(): string | null {
+  const params = new URLSearchParams(window.location.search);
+  const campaign = params.get('utm_campaign') ?? '';
+  if (params.get('utm_source')?.toLowerCase() !== 'newsletter' || !UUID.test(campaign)) return null;
+  const content = params.get('utm_content') ?? '';
+  return `${campaign}|${UUID.test(content) ? content : 'wpis'}`;
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

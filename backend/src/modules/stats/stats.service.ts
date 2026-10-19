@@ -2,8 +2,18 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { warsawNow } from '../reservations/reservation-rules';
+import { isPromoActive } from '../products/promo';
 
-export type Metric = 'view' | 'map' | 'source' | 'mail' | 'mail_failed';
+// product – wyświetlenie strony produktu (klucz: id produktu)
+// newsletter – wejście z linku w newsletterze (klucz: „id wpisu|wpis” albo „id wpisu|id produktu”)
+export type Metric =
+  | 'view'
+  | 'map'
+  | 'source'
+  | 'product'
+  | 'newsletter'
+  | 'mail'
+  | 'mail_failed';
 
 // podstrony strony (dynamiczne ścieżki sprowadzone do wzorca) – inne adresy liczą się jako „(inne)”
 export const VIEW_KEYS = [
@@ -67,12 +77,34 @@ export class StatsService {
   increment(metric: Metric, key = ''): void {
     const date = warsawNow().date;
     this.prisma.$executeRaw`
-      INSERT INTO DailyStat (date, metric, \`key\`, count) VALUES (${date}, ${metric}, ${key.slice(0, 60)}, 1)
+      INSERT INTO DailyStat (date, metric, \`key\`, count) VALUES (${date}, ${metric}, ${key.slice(0, 100)}, 1)
       ON DUPLICATE KEY UPDATE count = count + 1`
       .then(() => undefined)
       .catch((error: unknown) =>
         this.logger.warn(`Nie udało się zapisać statystyki: ${String(error)}`),
       );
+  }
+
+  /** Wyświetlenie strony produktu – liczone tylko dla istniejącego, aktywnego produktu */
+  async incrementProduct(productId: string): Promise<void> {
+    const exists = await this.prisma.product
+      .count({ where: { id: productId, isActive: true } })
+      .catch(() => 0);
+    if (exists) this.increment('product', productId);
+  }
+
+  /** Wejście z newslettera – tylko dla wysłanego wpisu (i istniejącego produktu przy kafelku) */
+  async incrementNewsletter(key: string): Promise<void> {
+    const [articleId, target] = key.split('|');
+    const [article, product] = await Promise.all([
+      this.prisma.article
+        .count({ where: { id: articleId, newsletterSentAt: { not: null } } })
+        .catch(() => 0),
+      target === 'wpis'
+        ? 1
+        : this.prisma.product.count({ where: { id: target } }).catch(() => 0),
+    ]);
+    if (article && product) this.increment('newsletter', key);
   }
 
   limits() {
@@ -167,10 +199,327 @@ export class StatsService {
       series,
       pages: byKey('view', inRange),
       sources: byKey('source', inRange),
+      products: await this.topProducts(byKey('product', inRange)),
+      newsletters: await this.newsletters(),
+      promotions: await this.promotions(today),
       mapsBySource: byKey('map', inMonth),
       mailsByCategory: byKey('mail', inMonth),
       reservations: await this.reservations(from),
     };
+  }
+
+  /**
+   * Skuteczność newsletterów: ostatnie wysłane wpisy – do ilu osób, ile wejść na stronę z e-maila (od wysyłki)
+   * i które produkty z kafelków klikano. Liczone z oznaczonych linków, bez pikseli śledzących.
+   */
+  /**
+   * Pulpit „Marketing”: co trwa i co jest zaplanowane (promocje, wpisy i newslettery, zmiany produktów, etykiety
+   * z datami kończące się lub zaczynające w ciągu 14 dni) oraz skrót wyników (ostatni newsletter, top produkt 7 dni).
+   */
+  async marketingOverview() {
+    const { date: today } = warsawNow();
+    const soon = shiftDate(today, 14);
+    const weekAgo = shiftDate(today, -6);
+    const [
+      promoProducts,
+      articles,
+      subscribers,
+      scheduledProducts,
+      labels,
+      newsletters,
+      views,
+    ] = await Promise.all([
+      this.prisma.product.findMany({
+        where: { isPromo: true, isActive: true },
+        select: {
+          id: true,
+          name: true,
+          price: true,
+          isPromo: true,
+          promoPrice: true,
+          promoFrom: true,
+          promoTo: true,
+        },
+      }),
+      this.prisma.article.findMany({
+        where: { publishAt: { gt: new Date() } },
+        orderBy: { publishAt: 'asc' },
+        select: {
+          id: true,
+          title: true,
+          publishAt: true,
+          isPublished: true,
+          sendAsNewsletter: true,
+          newsletterSentAt: true,
+        },
+      }),
+      this.prisma.newsletterSubscriber.count({
+        where: { status: 'CONFIRMED' },
+      }),
+      this.prisma.product.findMany({
+        where: {
+          OR: [
+            { availableFrom: { not: null } },
+            { unavailableFrom: { not: null } },
+          ],
+        },
+        select: {
+          id: true,
+          name: true,
+          isSeasonal: true,
+          availableFrom: true,
+          unavailableFrom: true,
+        },
+      }),
+      this.prisma.productLabel.findMany({
+        where: {
+          system: null,
+          OR: [
+            { activeTo: { gte: today, lte: soon } },
+            { activeFrom: { gt: today, lte: soon } },
+          ],
+        },
+        select: {
+          id: true,
+          name: true,
+          color: true,
+          activeFrom: true,
+          activeTo: true,
+          _count: { select: { products: true } },
+        },
+      }),
+      this.newsletters(),
+      this.prisma.dailyStat.groupBy({
+        by: ['key'],
+        where: { metric: 'product', date: { gte: weekAgo } },
+        _sum: { count: true },
+        orderBy: { _sum: { count: 'desc' } },
+        take: 3,
+      }),
+    ]);
+    const names = new Map(
+      (
+        await this.prisma.product.findMany({
+          where: { id: { in: views.map((v) => v.key) } },
+          select: { id: true, name: true },
+        })
+      ).map((p) => [p.id, p.name]),
+    );
+    const promoView = (p: (typeof promoProducts)[number]) => ({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      promoPrice: p.promoPrice,
+      from: p.promoFrom,
+      to: p.promoTo,
+    });
+    return {
+      today,
+      activePromotions: promoProducts
+        .filter((p) => isPromoActive(p))
+        .map(promoView),
+      scheduledPromotions: promoProducts
+        .filter((p) => p.promoFrom && p.promoFrom > today)
+        .map(promoView),
+      scheduledArticles: articles
+        .filter((a) => !a.newsletterSentAt || a.isPublished)
+        .map((a) => ({
+          id: a.id,
+          title: a.title,
+          publishAt: a.publishAt,
+          onSite: a.isPublished,
+          newsletter: a.sendAsNewsletter && !a.newsletterSentAt,
+        })),
+      subscribers,
+      scheduledProducts: scheduledProducts
+        .flatMap((p) => [
+          ...(p.availableFrom
+            ? [
+                {
+                  id: p.id,
+                  name: p.name,
+                  date: p.availableFrom,
+                  change: 'available' as const,
+                  seasonal: p.isSeasonal,
+                },
+              ]
+            : []),
+          ...(p.unavailableFrom
+            ? [
+                {
+                  id: p.id,
+                  name: p.name,
+                  date: p.unavailableFrom,
+                  change: 'unavailable' as const,
+                  seasonal: p.isSeasonal,
+                },
+              ]
+            : []),
+        ])
+        .sort((a, b) => a.date.localeCompare(b.date)),
+      labels: labels.map((l) => ({
+        id: l.id,
+        name: l.name,
+        color: l.color,
+        from: l.activeFrom,
+        to: l.activeTo,
+        products: l._count.products,
+        // zaczyna się w ciągu 14 dni albo kończy w ciągu 14 dni
+        change:
+          l.activeFrom && l.activeFrom > today
+            ? ('starts' as const)
+            : ('ends' as const),
+      })),
+      lastNewsletter: newsletters[0] ?? null,
+      topProducts: views
+        .filter((v) => names.has(v.key))
+        .map((v) => ({
+          id: v.key,
+          name: names.get(v.key)!,
+          count: v._sum.count ?? 0,
+        })),
+    };
+  }
+
+  private async newsletters() {
+    const sent = await this.prisma.article.findMany({
+      where: { newsletterSentAt: { not: null } },
+      orderBy: { newsletterSentAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        title: true,
+        newsletterSentAt: true,
+        newsletterRecipients: true,
+      },
+    });
+    if (sent.length === 0) return [];
+    const rows = await this.prisma.dailyStat.findMany({
+      where: {
+        metric: 'newsletter',
+        OR: sent.map((a) => ({ key: { startsWith: `${a.id}|` } })),
+      },
+    });
+    const productIds = [
+      ...new Set(
+        rows.map((r) => r.key.split('|')[1]).filter((t) => t !== 'wpis'),
+      ),
+    ];
+    const names = new Map(
+      (
+        await this.prisma.product.findMany({
+          where: { id: { in: productIds } },
+          select: { id: true, name: true },
+        })
+      ).map((p) => [p.id, p.name]),
+    );
+    return sent.map((a) => {
+      const own = rows.filter((r) => r.key.startsWith(`${a.id}|`));
+      const byTarget = new Map<string, number>();
+      for (const r of own) {
+        const target = r.key.split('|')[1];
+        byTarget.set(target, (byTarget.get(target) ?? 0) + r.count);
+      }
+      const visits = own.reduce((sum, r) => sum + r.count, 0);
+      return {
+        id: a.id,
+        title: a.title,
+        sentAt: a.newsletterSentAt,
+        recipients: a.newsletterRecipients ?? 0,
+        visits,
+        articleVisits: byTarget.get('wpis') ?? 0,
+        products: [...byTarget.entries()]
+          .filter(([target]) => target !== 'wpis' && names.has(target))
+          .map(([target, count]) => ({ name: names.get(target)!, count }))
+          .sort((x, y) => y.count - x.count),
+      };
+    });
+  }
+
+  /**
+   * Skuteczność promocji: dla ostatnich promocji – zarezerwowane sztuki (wg dnia odbioru, bez anulowanych)
+   * i wyświetlenia produktu w czasie promocji oraz w tak samo długim okresie tuż przed nią.
+   */
+  private async promotions(today: string) {
+    const periods = await this.prisma.promoPeriod.findMany({
+      where: { from: { lte: today } },
+      orderBy: { from: 'desc' },
+      take: 12,
+    });
+    return Promise.all(
+      periods.map(async (p) => {
+        const ended = p.endedAt
+          ? new Intl.DateTimeFormat('en-CA', {
+              timeZone: 'Europe/Warsaw',
+            }).format(p.endedAt)
+          : null;
+        const end = [p.to ?? today, ended ?? today, today].sort()[0];
+        const days =
+          Math.round((Date.parse(end) - Date.parse(p.from)) / DAY_MS) + 1;
+        const beforeFrom = shiftDate(p.from, -days);
+        const beforeTo = shiftDate(p.from, -1);
+        const [during, before] = await Promise.all([
+          this.productActivity(p.productId, p.from, end),
+          this.productActivity(p.productId, beforeFrom, beforeTo),
+        ]);
+        return {
+          id: p.id,
+          productId: p.productId,
+          name: p.productName,
+          price: p.price,
+          promoPrice: p.promoPrice,
+          from: p.from,
+          to: p.to,
+          status: ended ? 'ended' : p.to && p.to < today ? 'ended' : 'active',
+          days,
+          during,
+          before,
+        };
+      }),
+    );
+  }
+
+  /** Zarezerwowane sztuki (dzień odbioru w okresie, bez anulowanych) i wyświetlenia strony produktu */
+  private async productActivity(productId: string, from: string, to: string) {
+    const [items, views] = await Promise.all([
+      this.prisma.reservationItem.aggregate({
+        _sum: { quantity: true },
+        where: {
+          productId,
+          reservation: {
+            pickupDate: { gte: from, lte: to },
+            status: { not: 'CANCELLED' },
+          },
+        },
+      }),
+      this.prisma.dailyStat.aggregate({
+        _sum: { count: true },
+        where: {
+          metric: 'product',
+          key: productId,
+          date: { gte: from, lte: to },
+        },
+      }),
+    ]);
+    return { quantity: items._sum.quantity ?? 0, views: views._sum.count ?? 0 };
+  }
+
+  /** Najczęściej oglądane produkty: liczniki z nazwami (produkty usunięte z oferty – pominięte) */
+  private async topProducts(counts: { key: string; count: number }[]) {
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: counts.map((c) => c.key) } },
+      select: { id: true, name: true, isActive: true },
+    });
+    const byId = new Map(products.map((p) => [p.id, p]));
+    return counts
+      .filter((c) => byId.has(c.key))
+      .slice(0, 10)
+      .map((c) => ({
+        id: c.key,
+        name: byId.get(c.key)!.name,
+        active: byId.get(c.key)!.isActive,
+        count: c.count,
+      }));
   }
 
   /** Rezerwacje złożone w okresie (bez danych osobowych): liczba, anulowane, kwota, punkty, produkty */

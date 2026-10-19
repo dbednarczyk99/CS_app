@@ -6,8 +6,9 @@ import { FaArrowLeft, FaArrowRight } from 'react-icons/fa6';
 import { AddToReservation } from '@/components/AddToReservation';
 import { ProductCard } from '@/components/ProductCard';
 import { api, orFallback } from '@/lib/api';
-import { isAvailable, isOutOfSeason, productBadges } from '@/lib/products';
-import { formatPrice } from '@/lib/format';
+import { ProductViewTracker } from '@/components/ProductViewTracker';
+import { BADGE_STYLE, isAvailable, isOnPromo, isOutOfSeason, oldPriceOf, priceOf, productBadges } from '@/lib/products';
+import { formatDate, formatPrice } from '@/lib/format';
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -28,12 +29,14 @@ export default async function ProductPage({ params }: Props) {
   const image = product.images?.[0];
   const outOfSeason = isOutOfSeason(product);
   const badges = productBadges(product);
+  const oldPrice = oldPriceOf(product);
   const related = all
     .filter((p) => isAvailable(p) && p.categoryId === product.categoryId && p.id !== product.id)
     .slice(0, 4);
 
   return (
     <>
+      <ProductViewTracker productId={product.id} />
       <div className="mx-auto max-w-7xl px-5 pb-20 pt-header sm:px-8">
         <Link href="/oferta" className="link-arrow inline-flex items-center gap-3 text-[0.75rem]">
           <FaArrowLeft aria-hidden /> Oferta
@@ -60,20 +63,32 @@ export default async function ProductPage({ params }: Props) {
               </Link>
             )}
             <h1 className="heading mt-4 text-4xl sm:text-5xl">{product.name}</h1>
-            {!outOfSeason && <p className="mt-6 font-display text-3xl text-gold">{formatPrice(product.price)}</p>}
+            {!outOfSeason && (
+              <p className="mt-6 flex flex-wrap items-baseline gap-x-4 gap-y-1 font-display">
+                <span className="text-3xl text-gold">
+                  {oldPrice !== null && <span className="sr-only">Cena promocyjna: </span>}
+                  {formatPrice(priceOf(product))}
+                </span>
+                {oldPrice !== null && (
+                  <s className="text-xl text-stone">
+                    <span className="sr-only">Cena przed promocją: </span>
+                    {formatPrice(oldPrice)}
+                  </s>
+                )}
+              </p>
+            )}
+            {!outOfSeason && isOnPromo(product) && product.promoTo && (
+              <p className="mt-2 text-sm text-stone">
+                Promocja trwa do {formatDate(`${product.promoTo}T12:00:00`)}.
+                {product.isReservable && ' Rezerwując, wybierz odbiór najpóźniej tego dnia, żeby zapłacić cenę promocyjną.'}
+              </p>
+            )}
             {badges.length > 0 && (
               <ul className="mt-4 flex flex-wrap gap-2">
                 {badges.map((badge) => (
                   <li
                     key={badge.label}
-                    className={`border px-3 py-1 font-display text-[0.7rem] uppercase tracking-[0.25em] ${
-                      {
-                        new: 'border-gold bg-gold text-ink',
-                        bestseller: 'border-cream bg-cream text-ink',
-                        season: 'border-gold/50 text-gold',
-                        off: 'border-line text-stone',
-                      }[badge.tone]
-                    }`}
+                    className={`border px-3 py-1 font-display text-[0.7rem] uppercase tracking-[0.25em] ${BADGE_STYLE[badge.tone].page}`}
                   >
                     {badge.label}
                   </li>
@@ -108,9 +123,6 @@ export default async function ProductPage({ params }: Props) {
                 <li>Rezerwacje przyjmujemy do 18:00 dnia poprzedzającego odbiór, maksymalnie 5 dni do przodu.</li>
                 <li>Płacisz na miejscu, przy odbiorze.</li>
               </ul>
-              <Link href="/piekarnie" className="link-arrow mt-5 inline-flex items-center gap-3 text-[0.75rem]">
-                Nasze piekarnie <FaArrowRight aria-hidden />
-              </Link>
             </div>
           </div>
         </div>

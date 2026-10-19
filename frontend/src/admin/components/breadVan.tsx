@@ -21,14 +21,32 @@ import {
   SelectInput,
   type RaRecord,
 } from 'react-admin';
-import { Alert, Box } from '@mui/material';
+import { Alert, Box, Tab, Tabs } from '@mui/material';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { CoordinatesInput } from '../common/CoordinatesInput';
 import { ImagePreview } from '../common/ImagePreview';
 import SortableImageInput from '../common/SortableImageInput';
 import { weekdayName, weekdayOption } from '../common/weekdays';
 
+/** Jeden ekran „Chlebowóz” w menu: zakładki Trasa | Opis i zdjęcia (dwa zasoby API pod spodem) */
+const BreadVanTabs = () => {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const value = pathname.startsWith('/bread-van/description') ? '/bread-van/description/view/show' : '/bread-van/locations';
+  return (
+    <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 1 }}>
+      <Tabs value={value} onChange={(_, to: string) => navigate(to)}>
+        <Tab label="Trasa" value="/bread-van/locations" />
+        <Tab label="Opis i zdjęcia" value="/bread-van/description/view/show" />
+      </Tabs>
+    </Box>
+  );
+};
+
 export const BreadVanDescriptionShow = () => (
-  <Show resource="bread-van/description" id="singleton" title="Chlebowóz – opis i zdjęcia">
+  <>
+  <BreadVanTabs />
+  <Show resource="bread-van/description" id="singleton" title="Chlebowóz">
     <SimpleShowLayout>
       <RichTextField source="shortDescription" />
       <RichTextField source="longDescription" />
@@ -42,6 +60,7 @@ export const BreadVanDescriptionShow = () => (
       </ArrayField>
     </SimpleShowLayout>
   </Show>
+  </>
 );
 
 export const BreadVanDescriptionEdit = () => (
@@ -73,7 +92,9 @@ const WeekdayTextField = ({ source }: { source: string; label?: string }) => {
 };
 
 export const BreadVanScheduleList = () => (
-  <List resource="bread-van/locations" title="Trasa chlebowozu" pagination={false}>
+  <>
+  <BreadVanTabs />
+  <List resource="bread-van/locations" title="Chlebowóz" pagination={false}>
     <Box sx={{ px: 2, pt: 2 }}>
       <Alert severity="info" variant="outlined">
         Jeden przystanek na dzień tygodnia. Dzień, w którym chlebowóz nie kursuje, po prostu usuń z listy – na stronie
@@ -88,6 +109,7 @@ export const BreadVanScheduleList = () => (
       <TextField source="googleMapsUrl" />
     </Datagrid>
   </List>
+  </>
 );
 
 const ScheduleForm = () => (

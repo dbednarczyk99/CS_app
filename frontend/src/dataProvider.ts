@@ -2,9 +2,9 @@
 
 import { fetchUtils, type DataProvider } from 'react-admin';
 
-const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+export const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-const httpClient = (url: string, options: fetchUtils.Options = {}) => {
+export const httpClient = (url: string, options: fetchUtils.Options = {}) => {
   const headers = new Headers(options.headers ?? { Accept: 'application/json' });
 
   if (!(options.body instanceof FormData)) {
@@ -74,6 +74,12 @@ const preparePayload = async (data: any) => {
   };
 };
 
+/** Produkt: etykiety z API (obiekty) → labelIds do pól wyboru w formularzu (zapis wysyła labelIds) */
+const labelIdsOf = (resource: string, record: any) =>
+  resource === 'products' && Array.isArray(record.labels)
+    ? { labelIds: (record.labels as { id: string }[]).map((l) => l.id) }
+    : {};
+
 export const dataProvider: DataProvider = {
   // LISTA
   async getList(resource, params) {
@@ -103,10 +109,17 @@ export const dataProvider: DataProvider = {
     const { json } = await httpClient(resource === 'blog' ? `${apiUrl}/blog/admin/all` : `${apiUrl}/${resource}`);
     const base = Array.isArray(json) ? json : [json];
 
+    // etykiety do zaznaczenia przy produkcie – bez stałych (np. „Promocja” nadawana przez stronę)
+    if (resource === 'products/labels' && params?.filter?.assignable) {
+      const data = (base as { system?: string | null }[]).filter((l) => !l.system);
+      return { data, total: data.length } as any;
+    }
+
     const mapped =
       WITH_IMAGES.includes(resource)
         ? (base as any[]).map((product: any) => ({
             ...product,
+            ...labelIdsOf(resource, product),
             images: Array.isArray(product.images)
               ? (product.images as any[]).map((img: any) => ({
                   ...img,
@@ -166,6 +179,7 @@ export const dataProvider: DataProvider = {
       const product = json as any;
       const mapped = {
         ...product,
+        ...labelIdsOf(resource, product),
         images: Array.isArray(product.images)
           ? (product.images as any[]).map((img: any) => ({
               ...img,
