@@ -52,7 +52,7 @@ export const CustomMenu = () => {
   return (
     <Menu>
       <Menu.Item to="/" primaryText="Pulpit" leftIcon={<DashboardIcon />} />
-      {isOwner && <Menu.Item to="/statystyki" primaryText="Statystyki" leftIcon={<InsightsIcon />} />}
+      <Menu.Item to="/statystyki" primaryText="Statystyki" leftIcon={<InsightsIcon />} />
       <Menu.Item to="/help" primaryText="Pomoc" leftIcon={<HelpIcon />} />
 
       {isOwner && (

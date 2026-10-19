@@ -57,7 +57,7 @@ function App() {
               <Route path="/help" element={<HelpPage />} />
               <Route path="/konto" element={<AccountPage />} />
               {isOwner && <Route path="/przygotowanie" element={<PreparationPage />} />}
-              {isOwner && <Route path="/statystyki" element={<StatsPage />} />}
+              <Route path="/statystyki" element={<StatsPage />} />
             </CustomRoutes>
             {isOwner && (
               <Resource

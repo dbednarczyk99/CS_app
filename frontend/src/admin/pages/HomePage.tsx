@@ -149,7 +149,11 @@ const HomePage = () => {
         <Action icon={<ArticleIcon />} label="Nowy wpis / newsletter" onClick={() => navigate('/blog/create')} />
         <Action icon={<CampaignIcon />} label="Baner informacyjny" onClick={() => navigate('/announcements')} />
         <Action icon={<EditCalendarIcon />} label="Trasa chlebowozu" onClick={() => navigate('/bread-van/locations')} />
-        {isOwner && <Action icon={<InsightsIcon />} label="Statystyki i koszty" onClick={() => navigate('/statystyki')} />}
+        <Action
+          icon={<InsightsIcon />}
+          label={isOwner ? 'Statystyki i koszty' : 'Statystyki odwiedzin'}
+          onClick={() => navigate('/statystyki')}
+        />
         <Button
           variant="outlined"
           startIcon={<OpenInNewIcon />}

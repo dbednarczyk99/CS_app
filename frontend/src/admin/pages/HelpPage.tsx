@@ -60,7 +60,7 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
     items: [
       {
         q: 'Kto ma dostęp do czego?',
-        a: 'Właściciel widzi wszystko, w tym rezerwacje z danymi klientów, listę subskrybentów newslettera i konta. Konto „Treści strony” (social media) edytuje produkty, piekarnie, chlebowóz, aktualności, baner i media społecznościowe – bez dostępu do danych klientów.',
+        a: 'Właściciel widzi wszystko, w tym rezerwacje z danymi klientów, listę subskrybentów newslettera i konta. Konto „Treści strony” (social media) edytuje produkty, piekarnie, chlebowóz, aktualności, baner i media społecznościowe oraz widzi statystyki odwiedzin (skąd przychodzi ruch, najczęściej odwiedzane strony) – bez dostępu do danych klientów i kosztów.',
       },
       {
         q: 'Jak zmienić swoje hasło?',

@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Title } from 'react-admin';
+import { Title, usePermissions } from 'react-admin';
 import {
   Alert,
   Box,
@@ -309,6 +309,9 @@ const Kpi = ({ label, value }: { label: string; value: string }) => (
 
 /** Statystyki strony: limity i koszty (e-maile, Mapa Google), odwiedziny, rezerwacje – tylko właściciel */
 export default function StatsPage() {
+  // właściciel – całość; treści strony (marketing) – odwiedziny, źródła, najczęściej odwiedzane
+  const { permissions } = usePermissions();
+  const isOwner = permissions === 'ADMIN';
   const [days, setDays] = useState(30);
   const [result, setResult] = useState<{ days: number; stats?: Stats; error?: string } | null>(null);
   const [metric, setMetric] = useState<SeriesKey>('views');
@@ -343,8 +346,8 @@ export default function StatsPage() {
       </Typography>
       {stats && (
         <Typography color="text.secondary" sx={{ mt: 1 }}>
-          Dzień {stats.month.dayOfMonth} z {stats.month.daysInMonth} – limity planów liczą się w miesiącach
-          kalendarzowych.
+          Dzień {stats.month.dayOfMonth} z {stats.month.daysInMonth}
+          {isOwner && ' – limity planów liczą się w miesiącach kalendarzowych.'}
         </Typography>
       )}
 
@@ -357,86 +360,88 @@ export default function StatsPage() {
 
       {stats && (
         <>
-          {/* 1. LIMITY I KOSZTY */}
-          <Box sx={{ display: 'grid', gap: 2, mt: 4, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
-            <Section title="Wysyłka e-maili" icon={<MailIcon />}>
-              <LimitBar
-                label="Dziś"
-                value={stats.todayTotals.mails}
-                limit={stats.limits.emailDaily}
-                hint="Limit dzienny planu dostawcy"
-              />
-              {/* dzień wysyłki newslettera = najwięcej e-maili naraz – to on decyduje o dziennym limicie planu */}
-              <LimitBar
-                label={`Najwięcej w jednym dniu (${days} dni)`}
-                value={peak.mails}
-                limit={stats.limits.emailDaily}
-                hint={
-                  peak.mails > stats.limits.emailDaily
-                    ? `${shortDate(peak.date)} wysłano więcej, niż pozwala dzienny limit planu – część e-maili mogła nie dojść. Zwykle to dzień wysyłki newslettera.`
-                    : peak.mails > 0
-                      ? `${shortDate(peak.date)} – zwykle dzień wysyłki newslettera`
-                      : 'Brak wysłanych e-maili w tym okresie'
-                }
-              />
-              <LimitBar
-                label="W tym miesiącu"
-                value={stats.month.mails}
-                limit={stats.limits.emailMonthly}
-                forecast={stats.month.forecast.mails}
-                hint={
-                  <>
-                    Prognoza na koniec miesiąca: ok. {fmt(stats.month.forecast.mails)}
-                    {stats.month.forecast.mails > stats.limits.emailMonthly &&
-                      ' – przekracza limit planu (porównanie planów: dokument 05-Koszty)'}
-                  </>
-                }
-              />
-              {stats.month.mailsFailed > 0 && (
-                <Alert severity="warning" variant="outlined" sx={{ mt: 2 }}>
-                  Nieudane wysyłki w tym miesiącu: {stats.month.mailsFailed}
-                  {stats.todayTotals.mailsFailed > 0 && ` (dziś: ${stats.todayTotals.mailsFailed})`} – możliwe
-                  przekroczenie limitu albo problem z kontem dostawcy.
-                </Alert>
-              )}
-            </Section>
+          {/* 1. LIMITY I KOSZTY – tylko właściciel */}
+          {isOwner && (
+            <Box sx={{ display: 'grid', gap: 2, mt: 4, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
+              <Section title="Wysyłka e-maili" icon={<MailIcon />}>
+                <LimitBar
+                  label="Dziś"
+                  value={stats.todayTotals.mails}
+                  limit={stats.limits.emailDaily}
+                  hint="Limit dzienny planu dostawcy"
+                />
+                {/* dzień wysyłki newslettera = najwięcej e-maili naraz – to on decyduje o dziennym limicie planu */}
+                <LimitBar
+                  label={`Najwięcej w jednym dniu (${days} dni)`}
+                  value={peak.mails}
+                  limit={stats.limits.emailDaily}
+                  hint={
+                    peak.mails > stats.limits.emailDaily
+                      ? `${shortDate(peak.date)} wysłano więcej, niż pozwala dzienny limit planu – część e-maili mogła nie dojść. Zwykle to dzień wysyłki newslettera.`
+                      : peak.mails > 0
+                        ? `${shortDate(peak.date)} – zwykle dzień wysyłki newslettera`
+                        : 'Brak wysłanych e-maili w tym okresie'
+                  }
+                />
+                <LimitBar
+                  label="W tym miesiącu"
+                  value={stats.month.mails}
+                  limit={stats.limits.emailMonthly}
+                  forecast={stats.month.forecast.mails}
+                  hint={
+                    <>
+                      Prognoza na koniec miesiąca: ok. {fmt(stats.month.forecast.mails)}
+                      {stats.month.forecast.mails > stats.limits.emailMonthly &&
+                        ' – przekracza limit planu (porównanie planów: dokument 05-Koszty)'}
+                    </>
+                  }
+                />
+                {stats.month.mailsFailed > 0 && (
+                  <Alert severity="warning" variant="outlined" sx={{ mt: 2 }}>
+                    Nieudane wysyłki w tym miesiącu: {stats.month.mailsFailed}
+                    {stats.todayTotals.mailsFailed > 0 && ` (dziś: ${stats.todayTotals.mailsFailed})`} – możliwe
+                    przekroczenie limitu albo problem z kontem dostawcy.
+                  </Alert>
+                )}
+              </Section>
 
-            <Section title="Mapa Google" icon={<MapIcon />}>
-              <LimitBar
-                label="Wczytania mapy w tym miesiącu"
-                value={stats.month.maps}
-                limit={stats.limits.mapsMonthlyFree}
-                forecast={stats.month.forecast.maps}
-                hint={`Darmowa pula Google: ${fmt(stats.limits.mapsMonthlyFree)} miesięcznie. Prognoza na koniec miesiąca: ok. ${fmt(stats.month.forecast.maps)}`}
-              />
-              <Stack direction="row" spacing={4} sx={{ mt: 2.5 }}>
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Dziś
-                  </Typography>
-                  <Typography sx={{ fontSize: '1.25rem', fontWeight: 700 }}>{fmt(stats.todayTotals.maps)}</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Szacowany koszt w tym miesiącu
-                  </Typography>
-                  <Typography sx={{ fontSize: '1.25rem', fontWeight: 700 }}>
-                    {money(stats.month.mapsCostPln)}
-                  </Typography>
-                </Box>
-              </Stack>
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 2 }}>
-                {stats.mapsBySource.map((m) => (
-                  <Chip
-                    key={m.key}
-                    size="small"
-                    variant="outlined"
-                    label={`${MAP_LABELS[m.key] ?? m.key}: ${fmt(m.count)}`}
-                  />
-                ))}
-              </Stack>
-            </Section>
-          </Box>
+              <Section title="Mapa Google" icon={<MapIcon />}>
+                <LimitBar
+                  label="Wczytania mapy w tym miesiącu"
+                  value={stats.month.maps}
+                  limit={stats.limits.mapsMonthlyFree}
+                  forecast={stats.month.forecast.maps}
+                  hint={`Darmowa pula Google: ${fmt(stats.limits.mapsMonthlyFree)} miesięcznie. Prognoza na koniec miesiąca: ok. ${fmt(stats.month.forecast.maps)}`}
+                />
+                <Stack direction="row" spacing={4} sx={{ mt: 2.5 }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Dziś
+                    </Typography>
+                    <Typography sx={{ fontSize: '1.25rem', fontWeight: 700 }}>{fmt(stats.todayTotals.maps)}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Szacowany koszt w tym miesiącu
+                    </Typography>
+                    <Typography sx={{ fontSize: '1.25rem', fontWeight: 700 }}>
+                      {money(stats.month.mapsCostPln)}
+                    </Typography>
+                  </Box>
+                </Stack>
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 2 }}>
+                  {stats.mapsBySource.map((m) => (
+                    <Chip
+                      key={m.key}
+                      size="small"
+                      variant="outlined"
+                      label={`${MAP_LABELS[m.key] ?? m.key}: ${fmt(m.count)}`}
+                    />
+                  ))}
+                </Stack>
+              </Section>
+            </Box>
+          )}
 
           {/* 2. ODWIEDZINY */}
           <Card variant="outlined" sx={{ mt: 2 }}>
@@ -470,20 +475,22 @@ export default function StatsPage() {
                 />
               </Stack>
 
-              <ToggleButtonGroup
-                size="small"
-                exclusive
-                value={metric}
-                onChange={(_, v) => v && setMetric(v)}
-                sx={{ mt: 3 }}
-                aria-label="Wykres"
-              >
-                {(Object.keys(SERIES_LABELS) as SeriesKey[]).map((k) => (
-                  <ToggleButton key={k} value={k}>
-                    {SERIES_LABELS[k]}
-                  </ToggleButton>
-                ))}
-              </ToggleButtonGroup>
+              {isOwner && (
+                <ToggleButtonGroup
+                  size="small"
+                  exclusive
+                  value={metric}
+                  onChange={(_, v) => v && setMetric(v)}
+                  sx={{ mt: 3 }}
+                  aria-label="Wykres"
+                >
+                  {(Object.keys(SERIES_LABELS) as SeriesKey[]).map((k) => (
+                    <ToggleButton key={k} value={k}>
+                      {SERIES_LABELS[k]}
+                    </ToggleButton>
+                  ))}
+                </ToggleButtonGroup>
+              )}
               <DailyChart series={stats.series} metric={metric} />
             </CardContent>
           </Card>
@@ -510,74 +517,79 @@ export default function StatsPage() {
               <RankList items={stats.pages} labels={PAGE_LABELS} empty="Brak odsłon w tym okresie." />
             </Section>
 
-            <Section title="Rezerwacje" icon={<ReceiptLongIcon />}>
-              <Typography variant="caption" color="text.secondary">
-                Złożone w ostatnich {days} dniach
-              </Typography>
-              <Stack direction="row" spacing={3} sx={{ mt: 2 }}>
-                <Box>
-                  <Typography sx={{ fontSize: '1.5rem', fontWeight: 700 }}>
-                    {fmt(stats.reservations.count - stats.reservations.cancelled)}
+            {isOwner && (
+              <>
+                <Section title="Rezerwacje" icon={<ReceiptLongIcon />}>
+                  <Typography variant="caption" color="text.secondary">
+                    Złożone w ostatnich {days} dniach
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    przyjętych
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography sx={{ fontSize: '1.5rem', fontWeight: 700 }}>
-                    {fmt(stats.reservations.cancelled)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    anulowanych
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography sx={{ fontSize: '1.5rem', fontWeight: 700 }}>
-                    {money(stats.reservations.total)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    wartość
-                  </Typography>
-                </Box>
-              </Stack>
-              <RankList
-                items={[
-                  { key: 'Piekarnie', count: stats.reservations.store },
-                  { key: 'Chlebowóz', count: stats.reservations.van },
-                ].filter((i) => i.count > 0)}
-                labels={{}}
-                empty="Brak rezerwacji w tym okresie."
-              />
-              {stats.reservations.topProducts.length > 0 && (
-                <>
-                  <Typography variant="subtitle2" sx={{ mt: 3 }}>
-                    Najczęściej rezerwowane
+                  <Stack direction="row" spacing={3} sx={{ mt: 2 }}>
+                    <Box>
+                      <Typography sx={{ fontSize: '1.5rem', fontWeight: 700 }}>
+                        {fmt(stats.reservations.count - stats.reservations.cancelled)}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        przyjętych
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontSize: '1.5rem', fontWeight: 700 }}>
+                        {fmt(stats.reservations.cancelled)}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        anulowanych
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontSize: '1.5rem', fontWeight: 700 }}>
+                        {money(stats.reservations.total)}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        wartość
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <RankList
+                    items={[
+                      { key: 'Piekarnie', count: stats.reservations.store },
+                      { key: 'Chlebowóz', count: stats.reservations.van },
+                    ].filter((i) => i.count > 0)}
+                    labels={{}}
+                    empty="Brak rezerwacji w tym okresie."
+                  />
+                  {stats.reservations.topProducts.length > 0 && (
+                    <>
+                      <Typography variant="subtitle2" sx={{ mt: 3 }}>
+                        Najczęściej rezerwowane
+                      </Typography>
+                      <RankList
+                        items={stats.reservations.topProducts.map((p) => ({ key: p.name, count: p.quantity }))}
+                        labels={{}}
+                        empty=""
+                      />
+                    </>
+                  )}
+                </Section>
+
+                <Section title="E-maile według rodzaju" icon={<MailIcon />}>
+                  <Typography variant="caption" color="text.secondary">
+                    Wysłane w tym miesiącu
                   </Typography>
                   <RankList
-                    items={stats.reservations.topProducts.map((p) => ({ key: p.name, count: p.quantity }))}
-                    labels={{}}
-                    empty=""
+                    items={stats.mailsByCategory}
+                    labels={MAIL_LABELS}
+                    empty="W tym miesiącu nie wysłano jeszcze e-maili."
                   />
-                </>
-              )}
-            </Section>
-
-            <Section title="E-maile według rodzaju" icon={<MailIcon />}>
-              <Typography variant="caption" color="text.secondary">
-                Wysłane w tym miesiącu
-              </Typography>
-              <RankList
-                items={stats.mailsByCategory}
-                labels={MAIL_LABELS}
-                empty="W tym miesiącu nie wysłano jeszcze e-maili."
-              />
-            </Section>
+                </Section>
+              </>
+            )}
           </Box>
 
           <Typography variant="body2" color="text.secondary" sx={{ mt: 4 }}>
             Statystyki są anonimowe: strona liczy tylko odsłony i wczytania mapy – bez plików cookies, bez zapisywania
-            adresów IP i bez śledzenia osób. Odsłony robotów wyszukiwarek nie są liczone. Limity planów (e-maile, Mapa
-            Google) ustawia osoba administrująca serwerem – przy zmianie planu dostawcy trzeba je zaktualizować.
+            adresów IP i bez śledzenia osób. Odsłony robotów wyszukiwarek nie są liczone.
+            {isOwner &&
+              ' Limity planów (e-maile, Mapa Google) ustawia osoba administrująca serwerem – przy zmianie planu dostawcy trzeba je zaktualizować.'}
           </Typography>
         </>
       )}

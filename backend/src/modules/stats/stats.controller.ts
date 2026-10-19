@@ -7,9 +7,11 @@ import {
   Ip,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { IsIn, IsString, MaxLength } from 'class-validator';
-import { OWNER_ROLES, Public, Roles } from '../auth/auth.decorators';
+import { CONTENT_ROLES, Public, Roles } from '../auth/auth.decorators';
+import type { StaffRequest } from '../auth/auth.guard';
 import {
   MAP_KEYS,
   SOURCE_KEYS,
@@ -68,11 +70,31 @@ export class StatsController {
     this.service.increment(dto.type, dto.key);
   }
 
-  /** Zestawienie dla panelu – tylko właściciel (koszty, rezerwacje) */
-  @Roles(...OWNER_ROLES)
+  /**
+   * Zestawienie dla panelu. Właściciel – całość (limity, koszty, e-maile, rezerwacje);
+   * treści strony (marketing) – tylko odwiedziny, źródła ruchu i najczęściej odwiedzane podstrony.
+   */
+  @Roles(...CONTENT_ROLES)
   @Get()
-  summary(@Query('days') days?: string) {
+  async summary(
+    @Query('days') days: string | undefined,
+    @Req() req: StaffRequest,
+  ) {
     const n = Math.min(90, Math.max(7, Number(days) || 30));
-    return this.service.summary(n);
+    const full = await this.service.summary(n);
+    if (req.user?.role === 'ADMIN') return full;
+    return {
+      today: full.today,
+      month: {
+        start: full.month.start,
+        dayOfMonth: full.month.dayOfMonth,
+        daysInMonth: full.month.daysInMonth,
+        views: full.month.views,
+      },
+      todayTotals: { views: full.todayTotals.views },
+      series: full.series.map(({ date, views }) => ({ date, views })),
+      pages: full.pages,
+      sources: full.sources,
+    };
   }
 }
