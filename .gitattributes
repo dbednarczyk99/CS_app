@@ -1,0 +1,2 @@
+# migracje Prisma: sumy kontrolne liczone z pliku – zawsze końce linii LF (inaczej Prisma uzna migrację za zmienioną)
+backend/prisma/migrations/**/*.sql text eol=lf

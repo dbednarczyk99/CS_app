@@ -5,7 +5,7 @@ import { DropdownPanel } from '@/components/DropdownPanel';
 import { PageHeader } from '@/components/PageHeader';
 import { ProductCard } from '@/components/ProductCard';
 import { api, orFallback, type Product } from '@/lib/api';
-import { LABEL_FILTERS, isAvailable, isOutOfSeason, type LabelFilterKey } from '@/lib/products';
+import { isAvailable, isOutOfSeason, labelFilters } from '@/lib/products';
 
 export const metadata: Metadata = {
   title: 'Oferta',
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 /** Adres oferty z filtrami (kategorie + wyróżnione), oba z wielokrotnym wyborem */
-function offerHref(kategorie: string[], etykiety: LabelFilterKey[]) {
+function offerHref(kategorie: string[], etykiety: string[]) {
   const params = new URLSearchParams();
   if (kategorie.length) params.set('kategorie', kategorie.join(','));
   if (etykiety.length) params.set('etykiety', etykiety.join(','));
@@ -46,9 +46,11 @@ export default async function OfferPage({
 
   // etykiety z adresu; ?sezonowe – stary link z karuzeli na stronie głównej
   const requested = [...(params.etykiety?.split(',') ?? []), ...(params.sezonowe !== undefined ? ['sezonowe'] : [])];
-  const labels = LABEL_FILTERS.filter((f) => requested.includes(f.key)).map((f) => f.key);
+  // filtry: Promocje, etykiety z panelu, Sezonowe – tylko te, które mają produkty
+  const filters = labelFilters(all);
+  const labels = filters.filter((f) => requested.includes(f.key)).map((f) => f.key);
   const matchesLabels = (p: Product) =>
-    labels.length === 0 || LABEL_FILTERS.some((f) => labels.includes(f.key) && f.test(p));
+    labels.length === 0 || filters.some((f) => labels.includes(f.key) && f.test(p));
 
   const groups = (activeCategories.length ? activeCategories : categories)
     .map((category) => ({
@@ -62,11 +64,11 @@ export default async function OfferPage({
   );
 
   // przełączniki wyróżnionych: tylko te, które mają produkty (liczba w obrębie wybranych kategorii)
-  const labelOptions = LABEL_FILTERS.map((f) => ({
+  const labelOptions = filters.map((f) => ({
     ...f,
     selected: labels.includes(f.key),
     count: products.filter((p) => inCategory(p) && f.test(p)).length,
-    href: offerHref(activeIds, toggle<LabelFilterKey>(labels, f.key)),
+    href: offerHref(activeIds, toggle(labels, f.key)),
   })).filter((f) => f.count > 0 || f.selected);
   const filtered = activeIds.length > 0 || labels.length > 0;
 

@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma, Category, Product } from '@prisma/client';
 import deleteImageFiles from './../../scripts/imageHandler';
@@ -6,10 +11,122 @@ import deleteImageFiles from './../../scripts/imageHandler';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { CreateLabelDto, UpdateLabelDto } from './dto/label.dto';
+import { withPromo } from './promo';
+
+// zdjęcia w kolejności, kategoria i etykiety (w kolejności z panelu) – w każdej odpowiedzi z produktem
+const PRODUCT_INCLUDE = {
+  images: { orderBy: { order: 'asc' } },
+  category: true,
+  labels: { orderBy: [{ order: 'asc' }, { name: 'asc' }] },
+} satisfies Prisma.ProductInclude;
+
+/** „Wegańskie!” → „weganskie” – adres filtra w ofercie (?etykiety=weganskie) */
+const slugify = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/ł/g, 'l')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 36) || 'etykieta';
+
+type PromoInput = {
+  price?: number;
+  isPromo?: boolean;
+  promoPrice?: number | null;
+  promoFrom?: string | null;
+  promoTo?: string | null;
+};
 
 @Injectable()
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
+
+  // LABELS
+  findAllLabels() {
+    return this.prisma.productLabel.findMany({
+      orderBy: [{ order: 'asc' }, { name: 'asc' }],
+      include: { _count: { select: { products: true } } },
+    });
+  }
+
+  async findLabel(id: string) {
+    const label = await this.prisma.productLabel.findUnique({
+      where: { id },
+      include: { _count: { select: { products: true } } },
+    });
+    if (!label) throw new NotFoundException('Nie ma takiej etykiety');
+    return label;
+  }
+
+  async createLabel(dto: CreateLabelDto) {
+    await this.assertLabelNameFree(dto.name);
+    // adres filtra ustalany raz, przy dodaniu – zmiana nazwy nie psuje udostępnionych linków
+    const base = slugify(dto.name);
+    let slug = base;
+    for (
+      let i = 2;
+      await this.prisma.productLabel.findUnique({ where: { slug } });
+      i++
+    )
+      slug = `${base}-${i}`;
+    const last = await this.prisma.productLabel.aggregate({
+      _max: { order: true },
+    });
+    return this.prisma.productLabel.create({
+      data: {
+        name: dto.name,
+        slug,
+        color: dto.color ?? 'gold',
+        order: dto.order ?? (last._max.order ?? 0) + 1,
+      },
+    });
+  }
+
+  async updateLabel(id: string, dto: UpdateLabelDto) {
+    if (dto.name !== undefined) await this.assertLabelNameFree(dto.name, id);
+    return this.prisma.productLabel.update({
+      where: { id },
+      data: {
+        ...(dto.name !== undefined ? { name: dto.name } : {}),
+        ...(dto.color !== undefined ? { color: dto.color } : {}),
+        ...(dto.order !== undefined ? { order: dto.order } : {}),
+      },
+    });
+  }
+
+  /** Usunięcie etykiety zdejmuje ją ze wszystkich produktów (same produkty zostają) */
+  deleteLabel(id: string) {
+    return this.prisma.productLabel.delete({ where: { id } });
+  }
+
+  private async assertLabelNameFree(name: string, exceptId?: string) {
+    const same = await this.prisma.productLabel.findFirst({
+      where: { name, ...(exceptId ? { NOT: { id: exceptId } } : {}) },
+    });
+    // „Promocja” i „Teraz dostępne” nadaje strona sama (promocja z datami, produkty sezonowe)
+    const reserved = ['promocja', 'promocje', 'teraz dostępne', 'poza sezonem'];
+    if (same || reserved.includes(name.toLowerCase()))
+      throw new ConflictException(`Etykieta „${name}” już istnieje`);
+  }
+
+  /** Promocja: daty w dobrej kolejności, cena promocyjna niższa od zwykłej */
+  private assertPromo(next: PromoInput) {
+    if (next.promoFrom && next.promoTo && next.promoFrom > next.promoTo)
+      throw new BadRequestException(
+        'Promocja nie może kończyć się przed jej rozpoczęciem',
+      );
+    if (
+      next.promoPrice != null &&
+      next.price !== undefined &&
+      next.promoPrice >= next.price
+    )
+      throw new BadRequestException(
+        'Cena promocyjna musi być niższa od zwykłej ceny',
+      );
+  }
 
   // CATEGORY
   createCategory(dto: CreateCategoryDto): Prisma.PrismaPromise<Category> {
@@ -49,37 +166,30 @@ export class ProductsService {
   }
 
   // PRODUCT
-  findAllProducts(): Prisma.PrismaPromise<Product[]> {
-    return this.prisma.product.findMany({
+  async findAllProducts() {
+    const products = await this.prisma.product.findMany({
       // kolejność jak w panelu: kategorie, potem produkty wg dodania
       orderBy: [
         { category: { createdAt: 'asc' } },
         { createdAt: 'asc' },
         { name: 'asc' },
       ],
-      include: {
-        images: {
-          orderBy: { order: 'asc' },
-        },
-        category: true,
-      },
+      include: PRODUCT_INCLUDE,
     });
+    return products.map(withPromo);
   }
 
-  findProduct(id: string): Prisma.PrismaPromise<Product | null> {
-    return this.prisma.product.findUnique({
+  async findProduct(id: string) {
+    const product = await this.prisma.product.findUnique({
       where: { id },
-      include: {
-        images: {
-          orderBy: { order: 'asc' },
-        },
-        category: true,
-      },
+      include: PRODUCT_INCLUDE,
     });
+    return product && withPromo(product);
   }
 
-  createProduct(dto: CreateProductDto): Prisma.PrismaPromise<Product> {
-    const { images, ...productData } = dto as any;
+  async createProduct(dto: CreateProductDto) {
+    const { images, labelIds, ...productData } = dto as any;
+    this.assertPromo(dto);
 
     const imagesData = (images || []).map(
       (img: { imgUrl: string; order: number }, index: number) => ({
@@ -88,26 +198,42 @@ export class ProductsService {
       }),
     );
 
-    return this.prisma.product.create({
+    const created = await this.prisma.product.create({
       data: {
         ...productData,
         isActive: dto.isActive,
         images: {
           create: imagesData,
         },
+        labels: {
+          connect: ((labelIds as string[]) ?? []).map((labelId) => ({
+            id: labelId,
+          })),
+        },
       },
-      include: { images: true, category: true },
+      include: PRODUCT_INCLUDE,
     });
+    return withPromo(created);
   }
 
-  async updateProduct(id: string, dto: UpdateProductDto): Promise<Product> {
+  async updateProduct(id: string, dto: UpdateProductDto) {
     // 1) pobierz stare zdjęcia
     const existing = await this.prisma.product.findUnique({
       where: { id },
       include: { images: true },
     });
+    if (!existing) throw new NotFoundException('Nie ma takiego produktu');
 
     const { images, ...rest } = dto as any;
+    // promocję sprawdzamy na danych po zmianie (np. nowa cena zwykła przy starej promocyjnej)
+    const pick = <K extends keyof PromoInput>(key: K) =>
+      (rest[key] !== undefined ? rest[key] : existing[key]) as PromoInput[K];
+    this.assertPromo({
+      price: pick('price'),
+      promoPrice: pick('promoPrice'),
+      promoFrom: pick('promoFrom'),
+      promoTo: pick('promoTo'),
+    });
 
     const data: Prisma.ProductUpdateInput = {
       ...(rest.name !== undefined ? { name: rest.name } : {}),
@@ -117,10 +243,19 @@ export class ProductsService {
       ...(rest.price !== undefined ? { price: rest.price } : {}),
       ...(rest.isSeasonal !== undefined ? { isSeasonal: rest.isSeasonal } : {}),
       ...(rest.inSeason !== undefined ? { inSeason: rest.inSeason } : {}),
-      ...(rest.isBestseller !== undefined
-        ? { isBestseller: rest.isBestseller }
+      ...(Array.isArray(rest.labelIds)
+        ? {
+            labels: {
+              set: (rest.labelIds as string[]).map((labelId) => ({
+                id: labelId,
+              })),
+            },
+          }
         : {}),
-      ...(rest.isNew !== undefined ? { isNew: rest.isNew } : {}),
+      ...(rest.isPromo !== undefined ? { isPromo: rest.isPromo } : {}),
+      ...(rest.promoPrice !== undefined ? { promoPrice: rest.promoPrice } : {}),
+      ...(rest.promoFrom !== undefined ? { promoFrom: rest.promoFrom } : {}),
+      ...(rest.promoTo !== undefined ? { promoTo: rest.promoTo } : {}),
       ...(rest.isActive !== undefined ? { isActive: rest.isActive } : {}),
       ...(rest.isReservable !== undefined
         ? { isReservable: rest.isReservable }
@@ -153,14 +288,14 @@ export class ProductsService {
     const updated = await this.prisma.product.update({
       where: { id },
       data,
-      include: { images: true, category: true },
+      include: PRODUCT_INCLUDE,
     });
 
     if (urlsToDelete.length > 0) {
       await deleteImageFiles(urlsToDelete);
     }
 
-    return updated;
+    return withPromo(updated);
   }
 
   async deleteProduct(id: string): Promise<Product> {

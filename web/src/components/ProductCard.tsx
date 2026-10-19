@@ -1,15 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Product } from '@/lib/api';
-import { isOutOfSeason, productBadges, type BadgeTone } from '@/lib/products';
-
-// etykiety na zdjęciu: wyróżnione pełnym tłem, sezonowe – jak dotąd napisem na ciemnym tle
-const BADGE_STYLE: Record<BadgeTone, string> = {
-  new: 'bg-gold text-ink',
-  bestseller: 'bg-cream text-ink',
-  season: 'bg-ink/80 text-gold backdrop-blur-sm',
-  off: 'bg-ink/80 text-stone backdrop-blur-sm',
-};
+import { BADGE_STYLE, isOutOfSeason, oldPriceOf, priceOf, productBadges } from '@/lib/products';
 import { formatPrice } from '@/lib/format';
 import { AddToReservationCompact } from './AddToReservation';
 
@@ -53,7 +45,7 @@ export function ProductCard({
               {badges.map((badge) => (
                 <li
                   key={badge.label}
-                  className={`px-2.5 py-1 font-display text-[0.65rem] uppercase tracking-[0.25em] ${BADGE_STYLE[badge.tone]}`}
+                  className={`px-2.5 py-1 font-display text-[0.65rem] uppercase tracking-[0.25em] ${BADGE_STYLE[badge.tone].card}`}
                 >
                   {badge.label}
                 </li>
@@ -65,7 +57,7 @@ export function ProductCard({
           <h3 className="font-display text-base uppercase leading-snug tracking-wide transition-colors group-hover:text-gold sm:text-lg">
             {product.name}
           </h3>
-          {!outOfSeason && <span className="shrink-0 font-display text-gold">{formatPrice(product.price)}</span>}
+          {!outOfSeason && <Price product={product} />}
         </div>
         <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-stone">{product.description}</p>
       </Link>
@@ -75,5 +67,24 @@ export function ProductCard({
         </div>
       )}
     </div>
+  );
+}
+
+/** Cena; przy promocji – nowa cena i przekreślona stara */
+function Price({ product }: { product: Product }) {
+  const oldPrice = oldPriceOf(product);
+  return (
+    <span className="flex shrink-0 items-baseline gap-2 font-display">
+      {oldPrice !== null && (
+        <s className="text-sm text-stone">
+          <span className="sr-only">Cena przed promocją: </span>
+          {formatPrice(oldPrice)}
+        </s>
+      )}
+      <span className="text-gold">
+        {oldPrice !== null && <span className="sr-only">Cena promocyjna: </span>}
+        {formatPrice(priceOf(product))}
+      </span>
+    </span>
   );
 }

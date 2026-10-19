@@ -11,6 +11,7 @@ import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { CreateLabelDto, UpdateLabelDto } from './dto/label.dto';
 import { Public, Roles, CONTENT_ROLES } from '../auth/auth.decorators';
 
 @Roles(...CONTENT_ROLES)
@@ -44,6 +45,33 @@ export class ProductsController {
   @Delete('categories/:id')
   deleteCategory(@Param('id') id: string) {
     return this.service.deleteCategory(id);
+  }
+
+  // Labels (etykiety na kartach produktów) – przed „:id”, żeby „labels” nie było brane za id produktu
+  @Public()
+  @Get('labels')
+  getLabels() {
+    return this.service.findAllLabels();
+  }
+
+  @Get('labels/:id')
+  getLabel(@Param('id') id: string) {
+    return this.service.findLabel(id);
+  }
+
+  @Post('labels')
+  createLabel(@Body() dto: CreateLabelDto) {
+    return this.service.createLabel(dto);
+  }
+
+  @Patch('labels/:id')
+  updateLabel(@Param('id') id: string, @Body() dto: UpdateLabelDto) {
+    return this.service.updateLabel(id, dto);
+  }
+
+  @Delete('labels/:id')
+  deleteLabel(@Param('id') id: string) {
+    return this.service.deleteLabel(id);
   }
 
   // Products

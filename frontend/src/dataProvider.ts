@@ -74,6 +74,12 @@ const preparePayload = async (data: any) => {
   };
 };
 
+/** Produkt: etykiety z API (obiekty) → labelIds do pól wyboru w formularzu (zapis wysyła labelIds) */
+const labelIdsOf = (resource: string, record: any) =>
+  resource === 'products' && Array.isArray(record.labels)
+    ? { labelIds: (record.labels as { id: string }[]).map((l) => l.id) }
+    : {};
+
 export const dataProvider: DataProvider = {
   // LISTA
   async getList(resource, params) {
@@ -107,6 +113,7 @@ export const dataProvider: DataProvider = {
       WITH_IMAGES.includes(resource)
         ? (base as any[]).map((product: any) => ({
             ...product,
+            ...labelIdsOf(resource, product),
             images: Array.isArray(product.images)
               ? (product.images as any[]).map((img: any) => ({
                   ...img,
@@ -166,6 +173,7 @@ export const dataProvider: DataProvider = {
       const product = json as any;
       const mapped = {
         ...product,
+        ...labelIdsOf(resource, product),
         images: Array.isArray(product.images)
           ? (product.images as any[]).map((img: any) => ({
               ...img,

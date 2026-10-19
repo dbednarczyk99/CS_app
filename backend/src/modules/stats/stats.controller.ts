@@ -20,8 +20,8 @@ import {
 } from './stats.service';
 
 class StatEventDto {
-  @IsIn(['view', 'map', 'source'])
-  type: 'view' | 'map' | 'source';
+  @IsIn(['view', 'map', 'source', 'product'])
+  type: 'view' | 'map' | 'source' | 'product';
 
   @IsString()
   @MaxLength(60)
@@ -32,6 +32,7 @@ class StatEventDto {
 const PER_IP_LIMIT = 300;
 const WINDOW_MS = 10 * 60 * 1000;
 // roboty wyszukiwarek, podglądy linków, przeglądarki sterowane automatycznie
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const BOT =
   /bot|crawl|spider|slurp|preview|headless|lighthouse|facebookexternalhit|curl|wget|python|java\//i;
 
@@ -55,10 +56,15 @@ export class StatsController {
     @Headers('user-agent') userAgent = '',
   ) {
     if (BOT.test(userAgent)) return;
-    const allowed = { view: VIEW_KEYS, map: MAP_KEYS, source: SOURCE_KEYS }[
-      dto.type
-    ];
-    if (!allowed.includes(dto.key)) return;
+    if (dto.type === 'product') {
+      // tylko istniejące produkty (sprawdzane przy zapisie) – bez dowolnych kluczy w statystykach
+      if (!UUID.test(dto.key)) return;
+    } else {
+      const allowed = { view: VIEW_KEYS, map: MAP_KEYS, source: SOURCE_KEYS }[
+        dto.type
+      ];
+      if (!allowed.includes(dto.key)) return;
+    }
 
     const client = forwardedFor?.split(',')[0]?.trim() || ip;
     const now = Date.now();
@@ -67,12 +73,13 @@ export class StatsController {
     if (this.hits.filter((h) => h.ip === client).length >= PER_IP_LIMIT) return;
     this.hits.push({ ip: client, at: now });
 
-    this.service.increment(dto.type, dto.key);
+    if (dto.type === 'product') void this.service.incrementProduct(dto.key);
+    else this.service.increment(dto.type, dto.key);
   }
 
   /**
    * Zestawienie dla panelu. Właściciel – całość (limity, koszty, e-maile, rezerwacje);
-   * treści strony (marketing) – tylko odwiedziny, źródła ruchu i najczęściej odwiedzane podstrony.
+   * treści strony (marketing) – tylko odwiedziny, źródła ruchu, najczęściej odwiedzane podstrony i produkty.
    */
   @Roles(...CONTENT_ROLES)
   @Get()
@@ -95,6 +102,7 @@ export class StatsController {
       series: full.series.map(({ date, views }) => ({ date, views })),
       pages: full.pages,
       sources: full.sources,
+      products: full.products,
     };
   }
 }

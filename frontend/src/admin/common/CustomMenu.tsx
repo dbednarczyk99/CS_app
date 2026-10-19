@@ -18,6 +18,7 @@ import CampaignIcon from '@mui/icons-material/Campaign';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import GroupIcon from '@mui/icons-material/Group';
 import InsightsIcon from '@mui/icons-material/Insights';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
 /** Nagłówek grupy w menu (widoczny przy rozwiniętym menu) */
 const Section = ({ title }: { title: string }) => {
@@ -35,7 +36,7 @@ const Section = ({ title }: { title: string }) => {
   );
 };
 
-// „Produkty” (/products) nie podświetla się na stronach kategorii (/products/categories)
+// „Produkty” (/products) nie podświetla się na stronach kategorii i etykiet (/products/categories, /products/labels)
 const notActive = {
   '&.RaMenuItemLink-active': {
     borderLeftColor: 'transparent',
@@ -68,9 +69,10 @@ export const CustomMenu = () => {
         to="/products"
         primaryText="Produkty"
         leftIcon={<BakeryDiningIcon />}
-        sx={pathname.startsWith('/products/categories') ? notActive : undefined}
+        sx={/^\/products\/(categories|labels)/.test(pathname) ? notActive : undefined}
       />
       <Menu.Item to="/products/categories" primaryText="Kategorie" leftIcon={<CategoryIcon />} />
+      <Menu.Item to="/products/labels" primaryText="Etykiety" leftIcon={<LocalOfferIcon />} />
 
       <Section title="Piekarnie i kontakt" />
       <Menu.Item to="/contact/locations" primaryText="Piekarnie" leftIcon={<StorefrontIcon />} />

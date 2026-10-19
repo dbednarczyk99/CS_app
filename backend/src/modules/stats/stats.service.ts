@@ -3,7 +3,14 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { warsawNow } from '../reservations/reservation-rules';
 
-export type Metric = 'view' | 'map' | 'source' | 'mail' | 'mail_failed';
+// product – wyświetlenie strony produktu (klucz: id produktu)
+export type Metric =
+  | 'view'
+  | 'map'
+  | 'source'
+  | 'product'
+  | 'mail'
+  | 'mail_failed';
 
 // podstrony strony (dynamiczne ścieżki sprowadzone do wzorca) – inne adresy liczą się jako „(inne)”
 export const VIEW_KEYS = [
@@ -73,6 +80,14 @@ export class StatsService {
       .catch((error: unknown) =>
         this.logger.warn(`Nie udało się zapisać statystyki: ${String(error)}`),
       );
+  }
+
+  /** Wyświetlenie strony produktu – liczone tylko dla istniejącego, aktywnego produktu */
+  async incrementProduct(productId: string): Promise<void> {
+    const exists = await this.prisma.product
+      .count({ where: { id: productId, isActive: true } })
+      .catch(() => 0);
+    if (exists) this.increment('product', productId);
   }
 
   limits() {
@@ -167,10 +182,29 @@ export class StatsService {
       series,
       pages: byKey('view', inRange),
       sources: byKey('source', inRange),
+      products: await this.topProducts(byKey('product', inRange)),
       mapsBySource: byKey('map', inMonth),
       mailsByCategory: byKey('mail', inMonth),
       reservations: await this.reservations(from),
     };
+  }
+
+  /** Najczęściej oglądane produkty: liczniki z nazwami (produkty usunięte z oferty – pominięte) */
+  private async topProducts(counts: { key: string; count: number }[]) {
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: counts.map((c) => c.key) } },
+      select: { id: true, name: true, isActive: true },
+    });
+    const byId = new Map(products.map((p) => [p.id, p]));
+    return counts
+      .filter((c) => byId.has(c.key))
+      .slice(0, 10)
+      .map((c) => ({
+        id: c.key,
+        name: byId.get(c.key)!.name,
+        active: byId.get(c.key)!.isActive,
+        count: c.count,
+      }));
   }
 
   /** Rezerwacje złożone w okresie (bez danych osobowych): liczba, anulowane, kwota, punkty, produkty */

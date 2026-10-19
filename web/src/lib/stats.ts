@@ -2,7 +2,7 @@
  * Anonimowe statystyki: odsłony podstron i wczytania mapy Google (licznik kosztów w panelu).
  * Bez cookies i identyfikatorów – serwer zapisuje tylko liczbę zdarzeń danego dnia.
  */
-export function trackEvent(type: 'view' | 'map' | 'source', key: string) {
+export function trackEvent(type: 'view' | 'map' | 'source' | 'product', key: string) {
   try {
     fetch('/api/statystyki', {
       method: 'POST',

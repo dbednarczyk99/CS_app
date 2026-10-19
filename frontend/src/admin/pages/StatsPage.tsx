@@ -16,6 +16,7 @@ import {
 import MailIcon from '@mui/icons-material/Mail';
 import MapIcon from '@mui/icons-material/Map';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import BakeryDiningIcon from '@mui/icons-material/BakeryDining';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 
@@ -45,6 +46,8 @@ interface Stats {
   series: { date: string; views: number; maps: number; mails: number }[];
   pages: { key: string; count: number }[];
   sources: { key: string; count: number }[];
+  // wyświetlenia stron produktów (top 10); active: false – produkt ukryty na stronie
+  products?: { id: string; name: string; active: boolean; count: number }[];
   mapsBySource: { key: string; count: number }[];
   mailsByCategory: { key: string; count: number }[];
   reservations: {
@@ -515,6 +518,23 @@ export default function StatsPage() {
                 Ostatnie {days} dni
               </Typography>
               <RankList items={stats.pages} labels={PAGE_LABELS} empty="Brak odsłon w tym okresie." />
+            </Section>
+
+            <Section title="Najczęściej oglądane produkty" icon={<BakeryDiningIcon />}>
+              <Typography variant="caption" color="text.secondary">
+                Wejścia na stronę produktu w ostatnich {days} dniach
+              </Typography>
+              <RankList
+                items={(stats.products ?? []).map((p) => ({ key: p.id, count: p.count }))}
+                labels={Object.fromEntries(
+                  (stats.products ?? []).map((p) => [p.id, p.active ? p.name : `${p.name} (ukryty na stronie)`]),
+                )}
+                empty="Nikt jeszcze nie oglądał stron produktów w tym okresie."
+              />
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
+                Pokazuje, co najbardziej ciekawi odwiedzających – warto porównać z najczęściej rezerwowanymi
+                produktami. Liczone bez danych osobowych.
+              </Typography>
             </Section>
 
             {isOwner && (

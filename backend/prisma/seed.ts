@@ -224,15 +224,36 @@ async function main() {
     data: { inSeason: false },
   });
 
-  // przykładowe etykiety
-  await prisma.product.updateMany({
-    where: { name: { in: ['Chleb pszenny na zakwasie', 'Jagodzianka'] } },
-    data: { isBestseller: true },
-  });
-  await prisma.product.updateMany({
-    where: { name: 'Drożdżówka z truskawkami' },
-    data: { isNew: true },
-  });
+  // etykiety (lista w panelu) i przykładowe przypisania
+  await prisma.productLabel.deleteMany();
+  const label = (
+    name: string,
+    slug: string,
+    color: string,
+    order: number,
+    products: string[],
+  ) =>
+    prisma.productLabel.create({
+      data: {
+        name,
+        slug,
+        color,
+        order,
+        products: {
+          connect: products.map((n) => ({ id: productIds.get(n)! })),
+        },
+      },
+    });
+  const productIds = new Map(
+    (await prisma.product.findMany({ select: { id: true, name: true } })).map(
+      (p) => [p.name, p.id],
+    ),
+  );
+  await label('Nowość', 'nowosci', 'gold', 1, ['Drożdżówka z truskawkami']);
+  await label('Bestseller', 'bestsellery', 'cream', 2, [
+    'Chleb pszenny na zakwasie',
+    'Jagodzianka',
+  ]);
 
   console.log('✅ Categories & products seeded');
 
@@ -293,7 +314,9 @@ async function main() {
     ];
     return Object.fromEntries(
       days
-        .filter((entry): entry is [string, [string, string]] => entry[1] !== null)
+        .filter(
+          (entry): entry is [string, [string, string]] => entry[1] !== null,
+        )
         .map(([day, [openFrom, openTo]]) => [day, { openFrom, openTo }]),
     );
   };
@@ -313,7 +336,11 @@ async function main() {
 
   for (const data of locations) {
     await prisma.location.create({
-      data: { ...data, openingHours: openingHours[data.code], images: seedImages(data.code) },
+      data: {
+        ...data,
+        openingHours: openingHours[data.code],
+        images: seedImages(data.code),
+      },
     });
   }
 
@@ -546,7 +573,12 @@ async function main() {
         'Dziękujemy za cierpliwość – wrócimy na trasę wypoczęci i z pełnym bagażnikiem wypieków.',
       ].join('\n\n'),
       images: {
-        create: [{ imgUrl: `${API_PUBLIC_URL}/uploads/seed/chlebowoz-1.jpg`, order: 0 }],
+        create: [
+          {
+            imgUrl: `${API_PUBLIC_URL}/uploads/seed/chlebowoz-1.jpg`,
+            order: 0,
+          },
+        ],
       },
     },
   });
@@ -573,7 +605,8 @@ async function main() {
   });
   await prisma.announcement.create({
     data: {
-      message: 'Zapisz się do newslettera – nowości i wypieki sezonowe prosto na Twoją skrzynkę.',
+      message:
+        'Zapisz się do newslettera – nowości i wypieki sezonowe prosto na Twoją skrzynkę.',
       linkUrl: '#newsletter', // otwiera okienko zapisu
       linkLabel: 'Zapisz się',
       order: 1,
@@ -584,7 +617,11 @@ async function main() {
   // --- NEWSLETTER (fikcyjni subskrybenci – do zrzutów i testów) ---
   await prisma.newsletterSubscriber.deleteMany();
   const daysAgo = (d: number) => new Date(Date.now() - d * 24 * 60 * 60 * 1000);
-  const subscribers: [string, 'CONFIRMED' | 'PENDING' | 'UNSUBSCRIBED', number][] = [
+  const subscribers: [
+    string,
+    'CONFIRMED' | 'PENDING' | 'UNSUBSCRIBED',
+    number,
+  ][] = [
     ['magdalena@example.com', 'CONFIRMED', 21],
     ['tomasz@example.com', 'CONFIRMED', 14],
     ['ewa.nowak@example.com', 'CONFIRMED', 9],

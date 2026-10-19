@@ -24,6 +24,18 @@ export interface Image {
   order: number;
 }
 
+/** wygląd etykiety: gold | cream | dark | green (style w components/ProductCard.tsx) */
+export type LabelColor = 'gold' | 'cream' | 'dark' | 'green';
+
+export interface ProductLabel {
+  id: string;
+  name: string;
+  /** w adresie filtra: /oferta?etykiety=nowosci */
+  slug: string;
+  color: LabelColor;
+  order: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -32,8 +44,18 @@ export interface Product {
   isSeasonal: boolean;
   /** sezonowy: false = poza sezonem (widoczny w sekcji „Wrócą w sezonie”, bez rezerwacji) */
   inSeason: boolean;
-  isBestseller: boolean;
-  isNew: boolean;
+  /** etykiety z panelu (Nowość, Bestseller, własne) – w kolejności z panelu; brak w /products/categories */
+  labels?: ProductLabel[];
+  /** promocja włączona w panelu (okres od–do sprawdza API: promoActive) */
+  isPromo: boolean;
+  promoPrice: number | null;
+  /** okres promocji (YYYY-MM-DD, czas polski); null = bez ograniczenia */
+  promoFrom: string | null;
+  promoTo: string | null;
+  /** promocja trwa dziś (liczone przez API w czasie polskim) */
+  promoActive?: boolean;
+  /** cena do zapłaty dziś – promocyjna, gdy promocja trwa i ma niższą cenę */
+  currentPrice?: number;
   isActive: boolean;
   isReservable: boolean;
   images?: Image[]; // brak w odpowiedzi /products/categories

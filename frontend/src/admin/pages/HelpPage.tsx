@@ -29,8 +29,16 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
         a: '„Produkty” → „Dodaj”. Produkt bez zaznaczenia „Aktywny” nie pokazuje się na stronie. „Można rezerwować online” decyduje, czy klient może go zarezerwować (np. lody – tylko na miejscu).',
       },
       {
-        q: 'Produkty sezonowe i etykiety',
-        a: 'Zaznacz „Produkt sezonowy”. Gdy sezon się kończy, wyłącz „W sezonie – teraz dostępny” – produkt przejdzie na stronie do sekcji „Wrócą w sezonie” (bez ceny i rezerwacji). Etykiety „Bestseller” i „Nowość” wyróżniają produkt w ofercie i na stronie głównej.',
+        q: 'Produkty sezonowe',
+        a: 'Zaznacz „Produkt sezonowy”. Gdy sezon się kończy, wyłącz „W sezonie – teraz dostępny” – produkt przejdzie na stronie do sekcji „Wrócą w sezonie” (bez ceny i rezerwacji).',
+      },
+      {
+        q: 'Etykiety (Nowość, Bestseller, własne)',
+        a: 'Etykiety zaznaczasz w formularzu produktu. Własne etykiety (np. „Wegańskie”, „Na święta”) dodasz w „Etykiety” – z nazwą, kolorem i kolejnością. Etykieta z co najmniej jednym produktem pojawia się na zdjęciu produktu i jako filtr w ofercie, a produkty z etykietami są pokazywane w pierwszej kolejności na stronie głównej. Usunięcie etykiety zdejmuje ją z produktów – same produkty zostają.',
+      },
+      {
+        q: 'Jak ustawić promocję?',
+        a: 'W formularzu produktu włącz „Promocja”. Cena promocyjna jest opcjonalna – bez niej produkt dostaje tylko etykietę „Promocja”. Daty „Od” i „Do” są włącznie; promocja włącza się i wyłącza sama (puste pole = od razu / bez końca). W czasie promocji stara cena jest na stronie przekreślona, a rezerwacje liczą się po cenie promocyjnej. W ofercie pojawia się filtr „Promocje”.',
       },
       {
         q: 'Kolejność zdjęć',

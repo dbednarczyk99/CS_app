@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { ReservationForm } from '@/components/ReservationForm';
 import { api, orFallback } from '@/lib/api';
-import { isAvailable } from '@/lib/products';
+import { isAvailable, priceOf } from '@/lib/products';
 
 export const metadata: Metadata = {
   title: 'Rezerwacja',
@@ -21,7 +21,7 @@ export default async function ReservationPage() {
   // aktualne ceny i dostępność – do odświeżenia zawartości zapamiętanej w przeglądarce
   const reservable = products
     .filter((p) => isAvailable(p) && p.isReservable)
-    .map((p) => ({ id: p.id, name: p.name, price: p.price, image: p.images?.[0]?.imgUrl }));
+    .map((p) => ({ id: p.id, name: p.name, price: priceOf(p), image: p.images?.[0]?.imgUrl }));
 
   return (
     <div className="mx-auto max-w-7xl px-5 pb-24 pt-header sm:px-8">

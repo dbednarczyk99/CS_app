@@ -10,6 +10,7 @@ import { PickupType, Prisma, ReservationStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MailService, type MailMessage } from '../mail/mail.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
+import { currentPrice } from '../products/promo';
 import {
   reservationCancelledEmail,
   reservationConfirmationEmail,
@@ -83,7 +84,8 @@ export class ReservationsService {
     const stores = locations
       .map((location) => {
         const slots: Record<string, string[]> = {};
-        const openingHours: Record<string, { open: string; close: string }> = {};
+        const openingHours: Record<string, { open: string; close: string }> =
+          {};
         for (const date of dates) {
           const hours = storeHoursOn(location.openingHours as never, date);
           if (hours) {
@@ -209,7 +211,8 @@ export class ReservationsService {
     const items = products.map((p) => ({
       productId: p.id,
       productName: p.name,
-      unitPrice: new Prisma.Decimal(p.price),
+      // cena z dnia złożenia rezerwacji – taka, jaką klient widział na stronie (także promocyjna)
+      unitPrice: new Prisma.Decimal(currentPrice(p)),
       quantity: Math.min(quantities.get(p.id)!, 50),
     }));
     const total = items.reduce(
