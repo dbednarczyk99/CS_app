@@ -63,7 +63,7 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Jak ustawić trasę chlebowozu?',
-        a: '„Chlebowóz” → „Trasa”: jeden przystanek na dzień tygodnia (dzień, godziny, adres). Dzień, w którym chlebowóz nie kursuje, usuń z listy – na stronie pojawi się „Chlebowóz odpoczywa”. Gdy ten sam przystanek jest w kilka dni, wpisz za każdym razem ten sam adres i położenie.',
+        a: '„Chlebowóz – trasa”: jeden przystanek na dzień tygodnia (dzień, godziny, adres). Dzień, w którym chlebowóz nie kursuje, usuń z listy – na stronie pojawi się „Chlebowóz odpoczywa”. Gdy ten sam przystanek jest w kilka dni, wpisz za każdym razem ten sam adres i położenie.',
       },
       {
         q: 'Ocena piekarni w Google',
@@ -93,11 +93,15 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
     ],
   },
   {
-    section: 'Komunikacja z klientami',
+    section: 'Marketing i komunikacja',
     items: [
       {
+        q: 'Gdzie zobaczę, co teraz trwa i co jest zaplanowane?',
+        a: 'Na „Pulpicie”, w sekcji „Marketing”: trwające i zaplanowane promocje, zaplanowane wpisy i newslettery, zaplanowane zmiany w ofercie („Dostępny od / Niedostępny od”), etykiety z datami, które w ciągu 14 dni się zaczynają lub kończą, oraz skrót wyników – wejścia z ostatniego newslettera i najczęściej oglądane produkty z ostatnich 7 dni. Kliknięcie pozycji otwiera jej formularz.',
+      },
+      {
         q: 'Jak wysłać newsletter?',
-        a: 'Newsletterem są wpisy w „Aktualnościach”. Przy zapisie wpisu z włączoną opcją „Wyślij jako newsletter” panel poprosi o potwierdzenie i wyśle wpis do potwierdzonych subskrybentów – tylko raz. Wyłącz „Opublikuj na stronie”, aby wysłać wpis tylko e-mailem. „Podgląd e-maila” pod treścią pokazuje, jak wpis zobaczą subskrybenci – bez wysyłania.',
+        a: 'Newsletterem są wpisy w „Aktualności i newsletter”. Przy zapisie wpisu z włączoną opcją „Wyślij jako newsletter” panel poprosi o potwierdzenie i wyśle wpis do potwierdzonych subskrybentów – tylko raz. Wyłącz „Opublikuj na stronie”, aby wysłać wpis tylko e-mailem. „Podgląd e-maila” pod treścią pokazuje, jak wpis zobaczą subskrybenci – bez wysyłania.',
       },
       {
         q: 'Jak zaplanować wpis lub newsletter na później?',

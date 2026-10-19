@@ -114,7 +114,7 @@ const PublishToggle = () => {
 };
 
 export const BlogList = () => (
-  <List title="Aktualności (blog)" sort={{ field: 'createdAt', order: 'DESC' }}>
+  <List title="Aktualności i newsletter" sort={{ field: 'createdAt', order: 'DESC' }}>
     <Datagrid rowClick="edit">
       <TextField source="title" label="Tytuł" />
       <TextField source="shortDescription" label="Zajawka" />

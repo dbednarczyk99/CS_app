@@ -54,7 +54,6 @@ export const CustomMenu = () => {
     <Menu>
       <Menu.Item to="/" primaryText="Pulpit" leftIcon={<DashboardIcon />} />
       <Menu.Item to="/statystyki" primaryText="Statystyki" leftIcon={<InsightsIcon />} />
-      <Menu.Item to="/help" primaryText="Pomoc" leftIcon={<HelpIcon />} />
 
       {isOwner && (
         <>
@@ -74,30 +73,27 @@ export const CustomMenu = () => {
       <Menu.Item to="/products/categories" primaryText="Kategorie" leftIcon={<CategoryIcon />} />
       <Menu.Item to="/products/labels" primaryText="Etykiety" leftIcon={<LocalOfferIcon />} />
 
-      <Section title="Piekarnie i kontakt" />
-      <Menu.Item to="/contact/locations" primaryText="Piekarnie" leftIcon={<StorefrontIcon />} />
-      <Menu.Item to="/contact/info" primaryText="Dane kontaktowe" leftIcon={<PhoneIcon />} />
-      <Menu.Item to="/contact/media" primaryText="Media społecznościowe" leftIcon={<ShareIcon />} />
+      <Section title="Marketing" />
+      <Menu.Item to="/blog" primaryText="Aktualności i newsletter" leftIcon={<ArticleIcon />} />
+      <Menu.Item to="/announcements" primaryText="Baner informacyjny" leftIcon={<CampaignIcon />} />
+      {isOwner && <Menu.Item to="/newsletter" primaryText="Subskrybenci" leftIcon={<MarkEmailReadIcon />} />}
 
-      <Section title="Chlebowóz" />
-      <Menu.Item to="/bread-van/locations" primaryText="Trasa" leftIcon={<EditCalendarIcon />} />
+      <Section title="Piekarnie" />
+      <Menu.Item to="/contact/locations" primaryText="Piekarnie" leftIcon={<StorefrontIcon />} />
+      <Menu.Item to="/bread-van/locations" primaryText="Chlebowóz – trasa" leftIcon={<EditCalendarIcon />} />
       <Menu.Item
         to="/bread-van/description/view/show"
-        primaryText="Opis i zdjęcia"
+        primaryText="Chlebowóz – opis"
         leftIcon={<DirectionsBusFilledIcon />}
       />
 
-      <Section title="Komunikacja" />
-      <Menu.Item to="/blog" primaryText="Aktualności (blog)" leftIcon={<ArticleIcon />} />
-      <Menu.Item to="/announcements" primaryText="Baner informacyjny" leftIcon={<CampaignIcon />} />
-      {isOwner && <Menu.Item to="/newsletter" primaryText="Newsletter" leftIcon={<MarkEmailReadIcon />} />}
+      <Section title="Kontakt" />
+      <Menu.Item to="/contact/info" primaryText="Dane kontaktowe" leftIcon={<PhoneIcon />} />
+      <Menu.Item to="/contact/media" primaryText="Media społecznościowe" leftIcon={<ShareIcon />} />
 
-      {isOwner && (
-        <>
-          <Section title="Ustawienia" />
-          <Menu.Item to="/users" primaryText="Konta" leftIcon={<GroupIcon />} />
-        </>
-      )}
+      <Section title="Ustawienia" />
+      {isOwner && <Menu.Item to="/users" primaryText="Konta" leftIcon={<GroupIcon />} />}
+      <Menu.Item to="/help" primaryText="Pomoc" leftIcon={<HelpIcon />} />
     </Menu>
   );
 };

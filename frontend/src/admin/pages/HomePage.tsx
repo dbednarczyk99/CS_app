@@ -9,6 +9,7 @@ import CampaignIcon from '@mui/icons-material/Campaign';
 import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import InsightsIcon from '@mui/icons-material/Insights';
+import { MarketingOverview } from './MarketingOverview';
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const webUrl = import.meta.env.VITE_WEB_URL || 'http://localhost:3001';
@@ -112,8 +113,9 @@ const HomePage = () => {
         {todayLabel}
       </Typography>
 
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 4 }}>
-        {isOwner && (
+      {/* właściciel: najpierw rezerwacje (dziś, jutro) i newsletter; konto treści – od razu marketing */}
+      {isOwner && (
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 4 }}>
           <>
             <StatCard
               label="Rezerwacje na dziś"
@@ -130,16 +132,19 @@ const HomePage = () => {
               onClick={() => navigate('/przygotowanie')}
             />
           </>
-        )}
-        <StatCard
-          label="Newsletter"
-          value={confirmed}
-          hint={
-            isOwner ? 'Potwierdzeni subskrybenci' : 'Potwierdzeni subskrybenci – wyślesz do nich wpis z „Aktualności”'
-          }
-          onClick={() => navigate(isOwner ? '/newsletter' : '/blog/create')}
-        />
-      </Stack>
+          <StatCard
+            label="Newsletter"
+            value={confirmed}
+            hint="Potwierdzeni subskrybenci"
+            onClick={() => navigate('/newsletter')}
+          />
+        </Stack>
+      )}
+
+      <Typography variant="h6" sx={{ mt: isOwner ? 5 : 4, mb: 2 }}>
+        Marketing – co trwa i co jest zaplanowane
+      </Typography>
+      <MarketingOverview />
 
       <Typography variant="h6" sx={{ mt: 5, mb: 2 }}>
         Szybkie akcje
