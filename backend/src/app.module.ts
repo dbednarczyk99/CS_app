@@ -18,6 +18,7 @@ import { ReservationsModule } from './modules/reservations/reservations.module';
 import { RevalidateModule } from './modules/revalidate/revalidate.module';
 import { ContactMessagesModule } from './modules/contact/messages/contact-messages.module';
 import { AnnouncementsModule } from './modules/announcements/announcements.module';
+import { ContentModule } from './modules/content/content.module';
 import { NewsletterModule } from './modules/newsletter/newsletter.module';
 import { StatsModule } from './modules/stats/stats.module';
 
@@ -43,6 +44,7 @@ import { StatsModule } from './modules/stats/stats.module';
     RevalidateModule,
     ContactMessagesModule,
     AnnouncementsModule,
+    ContentModule,
     NewsletterModule,
   ],
   controllers: [UploadController, DebugController],

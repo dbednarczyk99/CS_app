@@ -424,3 +424,51 @@ model DailyStat {
   @@unique([date, metric, key])
   @@index([metric, date])
 }
+
+// TREŚCI STRONY („domowy WordPress”) – teksty i zdjęcia sekcji edytowane w panelu.
+// Klucz sekcji, np. "home.values"; data – pola sekcji (opis pól i wartości domyślne: modules/content/sections.ts).
+// Brak wiersza = wartości domyślne (obecne teksty strony).
+model SiteContent {
+  key       String   @id @db.VarChar(60)
+  data      Json
+  updatedAt DateTime @updatedAt
+}
+
+// Rodzaj slajdu karuzeli: własny albo automatyczny (dane z panelu: trasa chlebowozu, liczba piekarni, produkty sezonowe)
+enum HeroSlideKind {
+  CUSTOM
+  VAN
+  BAKERIES
+  SEASONAL
+}
+
+// Slajd karuzeli na górze strony głównej
+model HeroSlide {
+  id                  String        @id @default(uuid())
+  kind                HeroSlideKind @default(CUSTOM)
+  // krótka nazwa pod paskiem postępu karuzeli
+  name                String        @db.VarChar(20)
+  eyebrow             String        @db.VarChar(50)
+  // tytuł w dwóch liniach (druga – złota); BAKERIES: {piekarnie} → „4 piekarnie”
+  titleLine1          String        @db.VarChar(30)
+  titleLine2          String        @default("") @db.VarChar(30)
+  text                String        @db.VarChar(220)
+  cta1Label           String?       @db.VarChar(30)
+  cta1Href            String?       @db.VarChar(300)
+  cta2Label           String?       @db.VarChar(30)
+  cta2Href            String?       @db.VarChar(300)
+  // zdjęcie na komputer (SEASONAL bez zdjęcia – zdjęcie produktu sezonowego) i opcjonalnie osobny kadr na telefon
+  imageUrl            String?       @db.VarChar(500)
+  imageAlt            String        @default("") @db.VarChar(160)
+  // punkt kadrowania, np. "60% center"
+  imagePosition       String        @default("center") @db.VarChar(30)
+  mobileImageUrl      String?       @db.VarChar(500)
+  mobileImagePosition String        @default("center") @db.VarChar(30)
+  isActive            Boolean       @default(true)
+  startsAt            DateTime?
+  endsAt              DateTime?
+  order               Int           @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

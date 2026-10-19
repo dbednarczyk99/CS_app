@@ -1,3 +1,4 @@
+import type { SiteContent } from './content';
 // Komunikacja z API (NestJS). Wywoływane po stronie serwera Next.js.
 const API_URL = process.env.API_URL ?? 'http://localhost:3000';
 
@@ -213,6 +214,27 @@ export interface PublicReservation {
   cancelDeadline: { date: string; hour: string };
 }
 
+/** Slajd karuzeli strony głównej z panelu (Strona → Karuzela) */
+export interface HeroSlideData {
+  id: string;
+  /** CUSTOM – własny; VAN, BAKERIES, SEASONAL – z danymi z panelu (trasa, liczba piekarni, produkty sezonowe) */
+  kind: 'CUSTOM' | 'VAN' | 'BAKERIES' | 'SEASONAL';
+  name: string;
+  eyebrow: string;
+  titleLine1: string;
+  titleLine2: string;
+  text: string;
+  cta1Label: string | null;
+  cta1Href: string | null;
+  cta2Label: string | null;
+  cta2Href: string | null;
+  imageUrl: string | null;
+  imageAlt: string;
+  imagePosition: string;
+  mobileImageUrl: string | null;
+  mobileImagePosition: string;
+}
+
 export const API_BASE_URL = API_URL;
 
 export const api = {
@@ -231,6 +253,9 @@ export const api = {
   articles: () => get<Article[]>('/blog'),
   article: (id: string) => get<Article | null>(`/blog/${encodeURIComponent(id)}`),
   announcements: () => get<Announcement[]>('/announcements/active'),
+  // treści edytowane w panelu („Strona”) – typy i wartości awaryjne w lib/content.ts
+  content: () => get<Partial<SiteContent>>('/content'),
+  heroSlides: () => get<HeroSlideData[]>('/content/hero'),
 };
 
 // Strona ma się wyświetlić nawet wtedy, gdy część API nie odpowiada

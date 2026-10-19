@@ -39,7 +39,16 @@ const bakeryLabel = (location: Location) => shortStreet(location.address);
  * każdy prowadzi do wystawienia opinii o tej piekarni. Same oceny, bez treści opinii (cytaty – po przejściu
  * na Google Business Profile API). Bez żadnej oceny – sekcji nie ma.
  */
-export function GoogleRatingBand({ locations }: { locations: Location[] }) {
+export function GoogleRatingBand({
+  locations,
+  eyebrow = 'Opinie naszych gości',
+  cta = 'Byłeś u nas? Oceń swoją piekarnię w Google',
+}: {
+  locations: Location[];
+  /** teksty z panelu (Strona → Strona główna → Opinie w Google) */
+  eyebrow?: string;
+  cta?: string;
+}) {
   const summary = ratingSummary(locations);
   const bakeries = locations.filter((l) => l.googlePlaceId);
   if (!summary || bakeries.length === 0) return null;
@@ -48,7 +57,7 @@ export function GoogleRatingBand({ locations }: { locations: Location[] }) {
     <section aria-labelledby="opinie-google" className="border-y border-line">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 md:py-20 lg:grid-cols-[minmax(0,22rem)_1fr] lg:items-center lg:gap-16">
         <div>
-          <p className="eyebrow">Opinie naszych gości</p>
+          <p className="eyebrow">{eyebrow}</p>
           <h2 id="opinie-google" className="sr-only">
             Ocena w Google
           </h2>
@@ -68,7 +77,7 @@ export function GoogleRatingBand({ locations }: { locations: Location[] }) {
 
         <div>
           <p className="font-display text-sm uppercase tracking-[0.2em] text-cream/85">
-            Byłeś u nas? Oceń swoją piekarnię w Google
+            {cta}
           </p>
           <ul className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
             {bakeries.map((location) => {

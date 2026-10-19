@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaArrowRight, FaInstagram } from 'react-icons/fa6';
@@ -6,16 +7,15 @@ import { HeroCarousel } from '@/components/HeroCarousel';
 import { LocationCard } from '@/components/LocationCard';
 import { ProductCard } from '@/components/ProductCard';
 import { GoogleRatingBand } from '@/components/GoogleRatingBand';
+import { JsonLd } from '@/components/JsonLd';
 import { Reveal } from '@/components/Reveal';
 import { SectionHeading } from '@/components/SectionHeading';
 import { api, orFallback } from '@/lib/api';
+import { getContent, paragraphs } from '@/lib/content';
 import { featuredProducts, isAvailable } from '@/lib/products';
 import { formatDate, plural } from '@/lib/format';
 import { buildHeroSlides } from '@/lib/heroSlides';
-import { articlePath } from '@/lib/site';
-import type { Metadata } from 'next';
-import { pageMetadata } from '@/lib/site';
-import { JsonLd } from '@/components/JsonLd';
+import { articlePath, pageMetadata } from '@/lib/site';
 import { bakeryLd } from '@/lib/structured-data';
 
 export const metadata: Metadata = pageMetadata({
@@ -25,37 +25,33 @@ export const metadata: Metadata = pageMetadata({
   path: '/',
 });
 
-const VALUES = [
-  {
-    title: 'Naturalny zakwas',
-    text: 'Bez polepszaczy i skrótów. Tylko mąka, woda, sól i czas potrzebny na dobrą fermentację.',
-  },
-  {
-    title: 'Ręczna praca',
-    text: 'Każdy bochenek formujemy ręcznie. Dlatego żaden nie jest identyczny – i dobrze.',
-  },
-  {
-    title: 'Codziennie świeże',
-    text: 'Pieczemy nocą i nad ranem, żeby rano na półkach czekało pieczywo prosto z pieca.',
-  },
-];
-
-const GALLERY = ['01', '02', '03', '04', '05', '06', '07', '08'];
-
+/** Teksty, zdjęcia i widoczność sekcji – z panelu (Strona → Strona główna, Karuzela) */
 export default async function HomePage() {
-  const [products, locations, articles, media, stops] = await Promise.all([
+  const [products, locations, articles, media, stops, slides, content] = await Promise.all([
     orFallback(api.products(), []),
     orFallback(api.locations(), []),
     orFallback(api.articles(), []),
     orFallback(api.media(), []),
     orFallback(api.breadVanStops(), []),
+    orFallback(api.heroSlides(), []),
+    getContent(),
   ]);
+  const values = content['home.values'];
+  const featuredText = content['home.featured'];
+  const rating = content['home.rating'];
+  const about = content['home.about'];
+  const quote = content['home.quote'];
+  const locationsText = content['home.locations'];
+  const van = content['home.van'];
+  const news = content['home.news'];
+  const gallery = content['home.gallery'];
 
   // karuzela: produkty z etykietami, dopełnione losowymi do min. 8 (tylko dostępne, ze zdjęciem)
   const featured = featuredProducts(products.filter((p) => isAvailable(p) && p.images?.length));
   const latestArticles = [...articles].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt)).slice(0, 3);
   const instagram = media.find((m) => m.name === 'INSTAGRAM');
-  const heroSlides = buildHeroSlides({ locations, stops, products });
+  const heroSlides = buildHeroSlides({ slides, locations, stops, products });
+  const first = heroSlides[0];
 
   return (
     <>
@@ -67,12 +63,13 @@ export default async function HomePage() {
         slides={heroSlides}
         firstImage={
           <picture>
-            <source media="(min-width: 768px)" srcSet="/images/hero-desktop.jpg" />
+            <source media="(min-width: 768px)" srcSet={first.image.src} />
             {/* art direction: różne kadry na telefon i komputer */}
             <img
-              src="/images/hero-mobile.jpg"
-              alt="Przekrojony chleb na zakwasie w lnianej ściereczce"
-              className="absolute inset-0 size-full object-cover object-[70%_center]"
+              src={first.mobileImage?.src ?? first.image.src}
+              alt={first.image.alt}
+              className="absolute inset-0 size-full object-cover"
+              style={{ objectPosition: first.mobileImage?.position ?? first.image.position }}
               fetchPriority="high"
             />
           </picture>
@@ -82,8 +79,8 @@ export default async function HomePage() {
       {/* WARTOŚCI */}
       <section id="wartosci" className="border-b border-line bg-coal">
         <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 md:grid-cols-3 md:gap-12 md:py-20">
-          {VALUES.map((value, i) => (
-            <Reveal key={value.title} delay={i * 120}>
+          {values.items.map((value, i) => (
+            <Reveal key={i} delay={i * 120}>
               <span className="font-display text-sm tracking-[0.3em] text-gold">0{i + 1}</span>
               <h2 className="heading mt-3 text-2xl">{value.title}</h2>
               <p className="mt-3 leading-relaxed text-stone">{value.text}</p>
@@ -96,14 +93,14 @@ export default async function HomePage() {
       {featured.length > 0 && (
         <section className="mx-auto max-w-7xl px-5 py-24 sm:px-8 md:py-32">
           <div className="flex flex-wrap items-end justify-between gap-6">
-            <SectionHeading eyebrow="Z naszego pieca" title="Wypieki, po które się wraca" />
+            <SectionHeading eyebrow={featuredText.eyebrow} title={featuredText.title} />
             <Link href="/oferta" className="link-arrow inline-flex items-center gap-3">
-              Cała oferta <FaArrowRight aria-hidden />
+              {featuredText.linkLabel} <FaArrowRight aria-hidden />
             </Link>
           </div>
           <div className="mt-14">
             <LoopCarousel
-              label="Wypieki, po które się wraca"
+              label={featuredText.title}
               perView="[--n:2] sm:[--n:3] lg:[--n:4]"
               gap="[--gap:1rem] sm:[--gap:1.5rem]"
               items={featured.map((product) => ({ key: product.id, node: <ProductCard product={product} /> }))}
@@ -113,7 +110,7 @@ export default async function HomePage() {
       )}
 
       {/* OCENA W GOOGLE – zbiorcza i każdej piekarni (link do wystawienia opinii) */}
-      <GoogleRatingBand locations={locations} />
+      {rating.visible && <GoogleRatingBand locations={locations} eyebrow={rating.eyebrow} cta={rating.cta} />}
 
       {/* HISTORIA */}
       <section className="bg-coal">
@@ -121,14 +118,14 @@ export default async function HomePage() {
           <Reveal className="relative">
             <div className="relative aspect-[4/5] overflow-hidden sm:aspect-[3/2] lg:aspect-[4/5]">
               <Image
-                src="/images/piekarz.jpg"
-                alt="Piekarz trzymający świeże bochenki chleba"
+                src={about.image.url}
+                alt={about.image.alt}
                 fill
                 sizes="(min-width: 1024px) 40vw, 100vw"
                 className="object-cover"
               />
             </div>
-            {locations.length > 0 && (
+            {about.showCount && locations.length > 0 && (
               <div className="absolute -bottom-6 -right-4 hidden border border-gold/50 bg-ink px-6 py-5 sm:block lg:-right-8">
                 <p className="font-display text-4xl text-gold">{locations.length}</p>
                 <p className="eyebrow mt-1 text-[0.65rem] text-cream">
@@ -138,49 +135,50 @@ export default async function HomePage() {
             )}
           </Reveal>
           <Reveal delay={150}>
-            <SectionHeading eyebrow="O nas" title="Rzemiosło, które czuć w każdym kęsie">
-              <p>
-                Chleba Smak to piekarnia rzemieślnicza, w której chleb robi się tak jak kiedyś: na
-                naturalnym zakwasie, z dobrej mąki i bez pośpiechu.
-              </p>
-              <p className="mt-4">
-                Codziennie rano na nasze półki trafiają chrupiące bochenki, maślane drożdżówki i
-                sezonowe wypieki – w naszych krakowskich piekarniach i w chlebowozie.
-              </p>
+            <SectionHeading eyebrow={about.eyebrow} title={about.title}>
+              {paragraphs(about.text).map((p, i) => (
+                <p key={i} className={i > 0 ? 'mt-4' : undefined}>
+                  {p}
+                </p>
+              ))}
             </SectionHeading>
             <Link href="/o-nas" className="link-arrow mt-10 inline-flex items-center gap-3">
-              Poznaj nas <FaArrowRight aria-hidden />
+              {about.linkLabel} <FaArrowRight aria-hidden />
             </Link>
           </Reveal>
         </div>
       </section>
 
       {/* CYTAT NA ZDJĘCIU */}
-      <section className="relative overflow-hidden">
-        <Image src="/images/zakwas.jpg" alt="" fill sizes="100vw" className="object-cover" />
-        <div className="absolute inset-0 bg-ink/70" />
-        <div className="relative mx-auto max-w-4xl px-5 py-32 text-center sm:px-8 md:py-44">
-          <Reveal>
-            <p className="eyebrow">Nasza filozofia</p>
-            <blockquote className="heading mt-6 text-3xl leading-tight sm:text-4xl lg:text-5xl">
-              Mąka, woda, sól
-              <br />
-              <span className="text-gold">i czas.</span>
-            </blockquote>
-            <p className="mx-auto mt-6 max-w-xl text-lg text-cream/80">
-              Tyle potrzeba, żeby upiec dobry chleb. Resztę robi cierpliwość.
-            </p>
-          </Reveal>
-        </div>
-      </section>
+      {quote.visible && (
+        <section className="relative overflow-hidden">
+          <Image src={quote.image.url} alt={quote.image.alt} fill sizes="100vw" className="object-cover" />
+          <div className="absolute inset-0 bg-ink/70" />
+          <div className="relative mx-auto max-w-4xl px-5 py-32 text-center sm:px-8 md:py-44">
+            <Reveal>
+              <p className="eyebrow">{quote.eyebrow}</p>
+              <blockquote className="heading mt-6 text-3xl leading-tight sm:text-4xl lg:text-5xl">
+                {quote.line1}
+                {quote.highlight && (
+                  <>
+                    <br />
+                    <span className="text-gold">{quote.highlight}</span>
+                  </>
+                )}
+              </blockquote>
+              {quote.text && <p className="mx-auto mt-6 max-w-xl text-lg text-cream/80">{quote.text}</p>}
+            </Reveal>
+          </div>
+        </section>
+      )}
 
       {/* PIEKARNIE */}
       {locations.length > 0 && (
         <section className="mx-auto max-w-7xl px-5 py-24 sm:px-8 md:py-32">
           <div className="flex flex-wrap items-end justify-between gap-6">
-            <SectionHeading eyebrow="Odwiedź nas" title="Nasze piekarnie" />
+            <SectionHeading eyebrow={locationsText.eyebrow} title={locationsText.title} />
             <Link href="/piekarnie" className="link-arrow inline-flex items-center gap-3">
-              Godziny i dojazd <FaArrowRight aria-hidden />
+              {locationsText.linkLabel} <FaArrowRight aria-hidden />
             </Link>
           </div>
           <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -199,8 +197,8 @@ export default async function HomePage() {
           <Reveal className="lg:order-2">
             <div className="relative aspect-[3/2] overflow-hidden">
               <Image
-                src="/images/chlebowoz.jpg"
-                alt="Świeże bochenki na drewnianej łopacie"
+                src={van.image.url}
+                alt={van.image.alt}
                 fill
                 sizes="(min-width: 1024px) 45vw, 100vw"
                 className="object-cover"
@@ -208,14 +206,15 @@ export default async function HomePage() {
             </div>
           </Reveal>
           <Reveal delay={150} className="lg:order-1">
-            <SectionHeading eyebrow="Chlebowóz" title="Przyjeżdżamy z pieczywem do Ciebie">
-              <p>
-                Nasz chlebowóz w stałe dni tygodnia zatrzymuje się w kolejnych punktach miasta. Sprawdź
-                trasę i złap świeży chleb po drodze.
-              </p>
+            <SectionHeading eyebrow={van.eyebrow} title={van.title}>
+              {paragraphs(van.text).map((p, i) => (
+                <p key={i} className={i > 0 ? 'mt-4' : undefined}>
+                  {p}
+                </p>
+              ))}
             </SectionHeading>
             <Link href="/chlebowoz" className="btn btn-outline mt-10">
-              Sprawdź trasę
+              {van.buttonLabel}
             </Link>
           </Reveal>
         </div>
@@ -225,9 +224,9 @@ export default async function HomePage() {
       {latestArticles.length > 0 && (
         <section className="mx-auto max-w-7xl px-5 py-24 sm:px-8 md:py-32">
           <div className="flex flex-wrap items-end justify-between gap-6">
-            <SectionHeading eyebrow="Aktualności" title="Co słychać w piekarni" />
+            <SectionHeading eyebrow={news.eyebrow} title={news.title} />
             <Link href="/aktualnosci" className="link-arrow inline-flex items-center gap-3">
-              Wszystkie wpisy <FaArrowRight aria-hidden />
+              {news.linkLabel} <FaArrowRight aria-hidden />
             </Link>
           </div>
           <div className="mt-14 grid gap-10 md:grid-cols-3 md:gap-6">
@@ -252,44 +251,46 @@ export default async function HomePage() {
       )}
 
       {/* GALERIA */}
-      <section className="border-t border-line pb-24 pt-20 md:pb-32">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-6 px-5 sm:px-8">
-          <SectionHeading eyebrow="Zajrzyj do nas" title="Prosto z piekarni" />
-          {instagram && (
-            <a
-              href={instagram.url}
-              target="_blank"
-              rel="noreferrer"
-              className="link-arrow inline-flex items-center gap-3"
-            >
-              <FaInstagram size={18} aria-hidden /> Obserwuj nas
-            </a>
-          )}
-        </div>
-        {/* galeria w szerokości treści – krawędzie zgrane z nagłówkiem i resztą strony */}
-        <div className="mx-auto max-w-7xl px-5 sm:px-8">
-          <div className="mt-12">
-            <LoopCarousel
-              label="Zdjęcia z piekarni"
-              perView="[--n:1] sm:[--n:2] lg:[--n:4]"
-              items={GALLERY.map((name, i) => ({
-                key: name,
-                node: (
-                  <div className="relative aspect-[3/4] overflow-hidden">
-                    <Image
-                      src={`/images/galeria/${name}.jpg`}
-                      alt={`Wypieki Chleba Smak – zdjęcie ${i + 1}`}
-                      fill
-                      sizes="(min-width: 1280px) 300px, (min-width: 1024px) 24vw, (min-width: 640px) 46vw, 92vw"
-                      className="object-cover transition-transform duration-700 hover:scale-105"
-                    />
-                  </div>
-                ),
-              }))}
-            />
+      {gallery.visible && gallery.images.length > 0 && (
+        <section className="border-t border-line pb-24 pt-20 md:pb-32">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-end justify-between gap-6 px-5 sm:px-8">
+            <SectionHeading eyebrow={gallery.eyebrow} title={gallery.title} />
+            {instagram && gallery.instagramLabel && (
+              <a
+                href={instagram.url}
+                target="_blank"
+                rel="noreferrer"
+                className="link-arrow inline-flex items-center gap-3"
+              >
+                <FaInstagram size={18} aria-hidden /> {gallery.instagramLabel}
+              </a>
+            )}
           </div>
-        </div>
-      </section>
+          {/* galeria w szerokości treści – krawędzie zgrane z nagłówkiem i resztą strony */}
+          <div className="mx-auto max-w-7xl px-5 sm:px-8">
+            <div className="mt-12">
+              <LoopCarousel
+                label={gallery.title}
+                perView="[--n:1] sm:[--n:2] lg:[--n:4]"
+                items={gallery.images.map(({ image }, i) => ({
+                  key: `${i}-${image.url}`,
+                  node: (
+                    <div className="relative aspect-[3/4] overflow-hidden">
+                      <Image
+                        src={image.url}
+                        alt={image.alt}
+                        fill
+                        sizes="(min-width: 1280px) 300px, (min-width: 1024px) 24vw, (min-width: 640px) 46vw, 92vw"
+                        className="object-cover transition-transform duration-700 hover:scale-105"
+                      />
+                    </div>
+                  ),
+                }))}
+              />
+            </div>
+          </div>
+        </section>
+      )}
     </>
   );
 }
