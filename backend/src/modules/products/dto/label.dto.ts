@@ -8,8 +8,8 @@ import {
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-// wygląd etykiety na stronie (style w web/src/components/ProductCard.tsx)
-export const LABEL_COLORS = ['gold', 'cream', 'dark', 'green'] as const;
+// wygląd etykiety na stronie (style: web/src/lib/products.ts – BADGE_STYLE; panel: labels.tsx)
+export const LABEL_COLORS = ['gold', 'cream', 'dark', 'green', 'red'] as const;
 
 export class CreateLabelDto {
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))

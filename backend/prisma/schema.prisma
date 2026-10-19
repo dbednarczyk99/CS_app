@@ -77,8 +77,11 @@ model ProductLabel {
   name     String    @unique @db.VarChar(30)
   // w adresie filtra oferty: /oferta?etykiety=nowosci
   slug     String    @unique @db.VarChar(40)
-  // wygląd na stronie: gold | cream | dark | green
+  // wygląd na stronie: gold | cream | dark | green | red
   color    String    @default("gold") @db.VarChar(10)
+  // etykieta stała, nadawana przez stronę ("promo" – trwająca promocja): można zmienić nazwę, kolor
+  // i kolejność, ale nie usunąć ani przypisać ręcznie do produktu
+  system   String?   @unique @db.VarChar(20)
   // kolejność na karcie produktu i w filtrach (mniejsza = wcześniej)
   order    Int       @default(0)
   products Product[]

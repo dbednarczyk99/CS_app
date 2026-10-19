@@ -76,6 +76,7 @@ const LabelInputs = () => (
     <ReferenceArrayInput
       source="labelIds"
       reference="products/labels"
+      filter={{ assignable: true }}
       sort={{ field: 'order', order: 'ASC' }}
       perPage={100}
     >
@@ -106,7 +107,7 @@ const PromoInputs = () => {
         source="isPromo"
         label="Promocja"
         defaultValue={false}
-        helperText="Etykieta „Promocja” na stronie i filtr „Promocje” w ofercie – w wybranym okresie"
+        helperText="Etykieta promocji na stronie i filtr w ofercie – w wybranym okresie (nazwę i kolor etykiety zmienisz w Oferta → Etykiety)"
       />
       {values.isPromo && (
         <>

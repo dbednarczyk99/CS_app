@@ -109,6 +109,12 @@ export const dataProvider: DataProvider = {
     const { json } = await httpClient(resource === 'blog' ? `${apiUrl}/blog/admin/all` : `${apiUrl}/${resource}`);
     const base = Array.isArray(json) ? json : [json];
 
+    // etykiety do zaznaczenia przy produkcie – bez stałych (np. „Promocja” nadawana przez stronę)
+    if (resource === 'products/labels' && params?.filter?.assignable) {
+      const data = (base as { system?: string | null }[]).filter((l) => !l.system);
+      return { data, total: data.length } as any;
+    }
+
     const mapped =
       WITH_IMAGES.includes(resource)
         ? (base as any[]).map((product: any) => ({

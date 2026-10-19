@@ -34,7 +34,7 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Etykiety (Nowość, Bestseller, własne)',
-        a: 'Etykiety zaznaczasz w formularzu produktu. Własne etykiety (np. „Wegańskie”, „Na święta”) dodasz w „Etykiety” – z nazwą, kolorem i kolejnością. Etykieta z co najmniej jednym produktem pojawia się na zdjęciu produktu i jako filtr w ofercie, a produkty z etykietami są pokazywane w pierwszej kolejności na stronie głównej. Usunięcie etykiety zdejmuje ją z produktów – same produkty zostają.',
+        a: 'Etykiety zaznaczasz w formularzu produktu. Własne etykiety (np. „Wegańskie”, „Na święta”) dodasz w „Etykiety” – z nazwą, kolorem i kolejnością. Etykieta z co najmniej jednym produktem pojawia się na zdjęciu produktu i jako filtr w ofercie, a produkty z etykietami są pokazywane w pierwszej kolejności na stronie głównej. Usunięcie etykiety zdejmuje ją z produktów – same produkty zostają. Etykietę „Promocja” strona nadaje sama w czasie promocji – możesz zmienić jej nazwę, kolor i kolejność, ale nie da się jej usunąć.',
       },
       {
         q: 'Jak ustawić promocję?',

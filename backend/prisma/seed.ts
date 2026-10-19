@@ -249,6 +249,10 @@ async function main() {
       (p) => [p.name, p.id],
     ),
   );
+  // stała etykieta trwającej promocji – strona nadaje ją sama (nie przypisuje się jej ręcznie)
+  await prisma.productLabel.create({
+    data: { name: 'Promocja', slug: 'promocje', color: 'red', order: 0, system: 'promo' },
+  });
   await label('Nowość', 'nowosci', 'gold', 1, ['Drożdżówka z truskawkami']);
   await label('Bestseller', 'bestsellery', 'cream', 2, [
     'Chleb pszenny na zakwasie',

@@ -24,8 +24,8 @@ export interface Image {
   order: number;
 }
 
-/** wygląd etykiety: gold | cream | dark | green (style w components/ProductCard.tsx) */
-export type LabelColor = 'gold' | 'cream' | 'dark' | 'green';
+/** wygląd etykiety (style: lib/products.ts – BADGE_STYLE) */
+export type LabelColor = 'gold' | 'cream' | 'dark' | 'green' | 'red';
 
 export interface ProductLabel {
   id: string;
@@ -46,6 +46,8 @@ export interface Product {
   inSeason: boolean;
   /** etykiety z panelu (Nowość, Bestseller, własne) – w kolejności z panelu; brak w /products/categories */
   labels?: ProductLabel[];
+  /** wygląd etykiety „Promocja” z panelu (nazwa, kolor, kolejność, adres filtra) */
+  promoLabel?: ProductLabel | null;
   /** promocja włączona w panelu (okres od–do sprawdza API: promoActive) */
   isPromo: boolean;
   promoPrice: number | null;

@@ -18,9 +18,10 @@ import {
   minLength,
   maxLength,
 } from 'react-admin';
-import { Alert, Box } from '@mui/material';
+import { Alert, Box, Typography } from '@mui/material';
 
-type LabelRecord = { id: string; name: string; color: string; _count?: { products: number } };
+// system – etykieta stała nadawana przez stronę ("promo": trwająca promocja): bez usuwania i ręcznego przypisania
+type LabelRecord = { id: string; name: string; color: string; system?: string | null; _count?: { products: number } };
 
 // te same kolory co na stronie (web/src/lib/products.ts – BADGE_STYLE)
 const LABEL_COLORS: Record<string, { name: string; bg: string; fg: string; border?: string }> = {
@@ -28,6 +29,7 @@ const LABEL_COLORS: Record<string, { name: string; bg: string; fg: string; borde
   cream: { name: 'Kremowa', bg: '#f4efe6', fg: '#141618' },
   dark: { name: 'Ciemna', bg: '#141618', fg: '#f4efe6', border: 'rgba(244,239,230,0.4)' },
   green: { name: 'Zielona', bg: '#556f40', fg: '#f4efe6' },
+  red: { name: 'Czerwona', bg: '#b4473a', fg: '#f4efe6' },
 };
 
 /** Etykieta tak, jak wygląda na stronie (wersaliki, kolor z panelu) */
@@ -57,13 +59,16 @@ export const LabelChip = ({ name, color }: { name: string; color: string }) => {
 
 const colorChoices = Object.entries(LABEL_COLORS).map(([id, c]) => ({ id, name: c.name }));
 
-const Info = () => (
-  <Alert severity="info" sx={{ mb: 2, maxWidth: 640 }}>
-    Etykiety pojawiają się na zdjęciu produktu i jako filtry w ofercie (gdy mają przypisany co najmniej jeden
-    produkt). Przypisujesz je w formularzu produktu. Etykiety „Promocja” i „Teraz dostępne” strona dodaje sama –
-    przy promocji i produktach sezonowych.
-  </Alert>
-);
+const Info = () => {
+  const record = useRecordContext<LabelRecord>();
+  return (
+    <Alert severity="info" sx={{ mb: 2, maxWidth: 640 }}>
+      {record?.system === 'promo'
+        ? 'Etykieta stała: strona nadaje ją sama produktom z trwającą promocją (włączaną w formularzu produktu). Możesz zmienić jej nazwę, kolor i kolejność – nie można jej usunąć ani przypisać ręcznie.'
+        : 'Etykiety pojawiają się na zdjęciu produktu i jako filtry w ofercie (gdy mają przypisany co najmniej jeden produkt). Przypisujesz je w formularzu produktu. Etykietę promocji strona nadaje sama w czasie promocji, a „Teraz dostępne” – produktom sezonowym.'}
+    </Alert>
+  );
+};
 
 const LabelFields = () => (
   <>
@@ -72,7 +77,7 @@ const LabelFields = () => (
       source="name"
       label="Nazwa"
       validate={[required(), minLength(2), maxLength(30)]}
-      helperText="Krótko, np. „Wegańskie”, „Bez glutenu”, „Na święta”"
+      helperText="Krótko, np. „Wegańskie”, „Bez glutenu”, „Na święta”, „Okazja”"
     />
     <SelectInput
       source="color"
@@ -100,7 +105,16 @@ export const LabelList = () => (
       <FunctionField
         label="Etykieta"
         sortBy="name"
-        render={(r: LabelRecord) => <LabelChip name={r.name} color={r.color} />}
+        render={(r: LabelRecord) => (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <LabelChip name={r.name} color={r.color} />
+            {r.system === 'promo' && (
+              <Typography variant="caption" color="text.secondary">
+                stała – nadawana przy promocji
+              </Typography>
+            )}
+          </Box>
+        )}
       />
       <FunctionField
         label="Kolor"
@@ -122,21 +136,23 @@ export const LabelCreate = () => (
   </Create>
 );
 
-/** Usuwanie z potwierdzeniem – z informacją, z ilu produktów zniknie etykieta */
+/** Usuwanie z potwierdzeniem – z informacją, z ilu produktów zniknie etykieta; etykiet stałych nie można usunąć */
 const LabelEditToolbar = () => {
   const record = useRecordContext<LabelRecord>();
   const count = record?._count?.products ?? 0;
   return (
     <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
       <SaveButton />
-      <DeleteWithConfirmButton
-        confirmTitle={`Usunąć etykietę „${record?.name ?? ''}”?`}
-        confirmContent={
-          count > 0
-            ? `Etykieta zniknie z ${count} ${count === 1 ? 'produktu' : 'produktów'}. Same produkty zostaną.`
-            : 'Etykieta nie jest przypisana do żadnego produktu.'
-        }
-      />
+      {!record?.system && (
+        <DeleteWithConfirmButton
+          confirmTitle={`Usunąć etykietę „${record?.name ?? ''}”?`}
+          confirmContent={
+            count > 0
+              ? `Etykieta zniknie z ${count} ${count === 1 ? 'produktu' : 'produktów'}. Same produkty zostaną.`
+              : 'Etykieta nie jest przypisana do żadnego produktu.'
+          }
+        />
+      )}
     </Toolbar>
   );
 };

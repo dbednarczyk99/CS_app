@@ -45,11 +45,12 @@ export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
   // LABELS
-  findAllLabels() {
-    return this.prisma.productLabel.findMany({
+  async findAllLabels() {
+    const labels = await this.prisma.productLabel.findMany({
       orderBy: [{ order: 'asc' }, { name: 'asc' }],
       include: { _count: { select: { products: true } } },
     });
+    return Promise.all(labels.map((l) => this.withPromoCount(l)));
   }
 
   async findLabel(id: string) {
@@ -58,7 +59,35 @@ export class ProductsService {
       include: { _count: { select: { products: true } } },
     });
     if (!label) throw new NotFoundException('Nie ma takiej etykiety');
-    return label;
+    return this.withPromoCount(label);
+  }
+
+  /** Etykieta „Promocja” nie ma przypisań – liczba produktów to produkty z włączoną promocją */
+  private async withPromoCount<
+    T extends { system: string | null; _count: { products: number } },
+  >(label: T): Promise<T> {
+    if (label.system !== 'promo') return label;
+    const products = await this.prisma.product.count({
+      where: { isPromo: true },
+    });
+    return { ...label, _count: { products } };
+  }
+
+  /** Wygląd etykiety „Promocja” (nazwa, kolor, kolejność, adres filtra) – dołączany do produktów */
+  private promoLabel() {
+    return this.prisma.productLabel.findUnique({
+      where: { system: 'promo' },
+      select: { id: true, name: true, slug: true, color: true, order: true },
+    });
+  }
+
+  /** Etykiety, które można przypisać ręcznie (bez stałych, np. „Promocja”) */
+  private async assignableLabelIds(ids: string[]) {
+    const labels = await this.prisma.productLabel.findMany({
+      where: { id: { in: ids }, system: null },
+      select: { id: true },
+    });
+    return labels.map((l) => ({ id: l.id }));
   }
 
   async createLabel(dto: CreateLabelDto) {
@@ -97,8 +126,13 @@ export class ProductsService {
     });
   }
 
-  /** Usunięcie etykiety zdejmuje ją ze wszystkich produktów (same produkty zostają) */
-  deleteLabel(id: string) {
+  /** Usunięcie etykiety zdejmuje ją ze wszystkich produktów (same produkty zostają); stałych nie można usunąć */
+  async deleteLabel(id: string) {
+    const label = await this.findLabel(id);
+    if (label.system)
+      throw new BadRequestException(
+        `Etykiety „${label.name}” nie można usunąć – strona nadaje ją sama. Możesz zmienić jej nazwę i kolor.`,
+      );
     return this.prisma.productLabel.delete({ where: { id } });
   }
 
@@ -106,8 +140,8 @@ export class ProductsService {
     const same = await this.prisma.productLabel.findFirst({
       where: { name, ...(exceptId ? { NOT: { id: exceptId } } : {}) },
     });
-    // „Promocja” i „Teraz dostępne” nadaje strona sama (promocja z datami, produkty sezonowe)
-    const reserved = ['promocja', 'promocje', 'teraz dostępne', 'poza sezonem'];
+    // „Teraz dostępne” i „Poza sezonem” nadaje strona produktom sezonowym
+    const reserved = ['teraz dostępne', 'poza sezonem'];
     if (same || reserved.includes(name.toLowerCase()))
       throw new ConflictException(`Etykieta „${name}” już istnieje`);
   }
@@ -176,7 +210,8 @@ export class ProductsService {
       ],
       include: PRODUCT_INCLUDE,
     });
-    return products.map(withPromo);
+    const promoLabel = await this.promoLabel();
+    return products.map((p) => ({ ...withPromo(p), promoLabel }));
   }
 
   async findProduct(id: string) {
@@ -184,7 +219,9 @@ export class ProductsService {
       where: { id },
       include: PRODUCT_INCLUDE,
     });
-    return product && withPromo(product);
+    return (
+      product && { ...withPromo(product), promoLabel: await this.promoLabel() }
+    );
   }
 
   async createProduct(dto: CreateProductDto) {
@@ -206,14 +243,12 @@ export class ProductsService {
           create: imagesData,
         },
         labels: {
-          connect: ((labelIds as string[]) ?? []).map((labelId) => ({
-            id: labelId,
-          })),
+          connect: await this.assignableLabelIds((labelIds as string[]) ?? []),
         },
       },
       include: PRODUCT_INCLUDE,
     });
-    return withPromo(created);
+    return { ...withPromo(created), promoLabel: await this.promoLabel() };
   }
 
   async updateProduct(id: string, dto: UpdateProductDto) {
@@ -246,9 +281,7 @@ export class ProductsService {
       ...(Array.isArray(rest.labelIds)
         ? {
             labels: {
-              set: (rest.labelIds as string[]).map((labelId) => ({
-                id: labelId,
-              })),
+              set: await this.assignableLabelIds(rest.labelIds as string[]),
             },
           }
         : {}),
@@ -295,7 +328,7 @@ export class ProductsService {
       await deleteImageFiles(urlsToDelete);
     }
 
-    return withPromo(updated);
+    return { ...withPromo(updated), promoLabel: await this.promoLabel() };
   }
 
   async deleteProduct(id: string): Promise<Product> {
