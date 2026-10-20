@@ -10,6 +10,7 @@ import { PickupType, Prisma, ReservationStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MailService, type MailMessage } from '../mail/mail.service';
 import { SettingsService } from '../settings/settings.service';
+import { NewsletterService } from '../newsletter/newsletter.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { currentPrice } from '../products/promo';
 import {
@@ -76,6 +77,7 @@ export class ReservationsService {
     private readonly mail: MailService,
     private readonly config: ConfigService,
     private readonly settings: SettingsService,
+    private readonly newsletter: NewsletterService,
   ) {}
 
   /* ---------- strona: dostępne terminy i punkty odbioru ---------- */
@@ -131,7 +133,7 @@ export class ReservationsService {
 
   /* ---------- strona: utworzenie rezerwacji ---------- */
 
-  async create(dto: CreateReservationDto) {
+  async create(dto: CreateReservationDto, ip = '') {
     if (dto.website)
       throw new BadRequestException('Nie udało się złożyć rezerwacji');
 
@@ -243,6 +245,21 @@ export class ReservationsService {
       cancelToken: randomBytes(24).toString('hex'),
       items: { create: items },
     });
+
+    // zaznaczony zapis do newslettera – jak w okienku zapisu (podwójna zgoda: e-mail z linkiem potwierdzającym);
+    // błąd zapisu (np. limit prób) nie może zablokować rezerwacji
+    if (dto.newsletter)
+      this.newsletter
+        .subscribe(
+          { email: dto.customerEmail.trim().toLowerCase(), consent: true },
+          ip,
+        )
+        .catch((error) =>
+          console.error(
+            'Nie udało się zapisać do newslettera z rezerwacji',
+            error,
+          ),
+        );
 
     void this.sendEmail(
       (ctx) => reservationConfirmationEmail(reservation, ctx),

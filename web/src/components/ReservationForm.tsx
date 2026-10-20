@@ -197,6 +197,8 @@ export function ReservationForm({
   const [email, setEmail] = useState('');
   const [notes, setNotes] = useState('');
   const [consent, setConsent] = useState(false);
+  // nieobowiązkowy zapis do newslettera na adres z rezerwacji (z potwierdzeniem linkiem z e-maila)
+  const [newsletter, setNewsletter] = useState(false);
   const [website, setWebsite] = useState(''); // pułapka na boty
 
   const [submitting, setSubmitting] = useState(false);
@@ -291,6 +293,7 @@ export function ReservationForm({
           customerEmail: email,
           notes: notes || undefined,
           consent,
+          newsletter,
           website: website || undefined,
           items: cart.items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
         }),
@@ -312,7 +315,7 @@ export function ReservationForm({
     }
   }
 
-  if (result) return <ReservationSuccess reservation={result} title={texts.successTitle} />;
+  if (result) return <ReservationSuccess reservation={result} title={texts.successTitle} newsletter={newsletter} />;
 
   if (cart.ready && cart.items.length === 0) {
     return (
@@ -563,6 +566,20 @@ export function ReservationForm({
               .
             </span>
           </label>
+
+          <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-stone">
+            <input
+              type="checkbox"
+              checked={newsletter}
+              onChange={(e) => setNewsletter(e.target.checked)}
+              className="mt-1 size-4 shrink-0 accent-gold"
+            />
+            <span>
+              <span className="text-cream/90">Chcę też zapisać się do newslettera</span> (nieobowiązkowe) – nowości,
+              wypieki sezonowe, promocje i ważne informacje na podany adres e-mail. Wyślemy link do potwierdzenia
+              zapisu; zgodę możesz wycofać w każdej chwili linkiem w każdej wiadomości.
+            </span>
+          </label>
         </Step>
       </div>
 
@@ -716,7 +733,16 @@ function Label({
   );
 }
 
-function ReservationSuccess({ reservation: r, title }: { reservation: PublicReservation; title: string }) {
+function ReservationSuccess({
+  reservation: r,
+  title,
+  newsletter,
+}: {
+  reservation: PublicReservation;
+  title: string;
+  /** zaznaczono zapis do newslettera – przypomnienie o potwierdzeniu */
+  newsletter: boolean;
+}) {
   return (
     <div className="mx-auto max-w-2xl border border-line bg-coal p-8 text-center sm:p-12">
       <span className="mx-auto grid size-14 place-items-center rounded-full bg-gold text-ink">
@@ -755,6 +781,12 @@ function ReservationSuccess({ reservation: r, title }: { reservation: PublicRese
         </p>
       </div>
 
+      {newsletter && (
+        <p className="mt-6 border border-gold/40 bg-gold/10 px-4 py-3 text-sm leading-relaxed text-cream/90">
+          Zapis do newslettera: wysłaliśmy osobny e-mail z linkiem potwierdzającym – kliknij go, a zaczniemy wysyłać
+          wiadomości. Bez potwierdzenia nie wyślemy nic więcej.
+        </p>
+      )}
       <p className="mt-6 text-sm leading-relaxed text-stone">
         Rezerwację możesz anulować do {formatDay(r.cancelDeadline.date)}, {r.cancelDeadline.hour} –
         link znajdziesz w e-mailu.
