@@ -157,7 +157,7 @@ export const MarketingOverview = ({
       <Panel
         title="Zaplanowane wpisy i newslettery"
         icon={<EventIcon />}
-        action={{ label: 'Nowy wpis', onClick: () => navigate('/blog/create') }}
+        action={{ label: 'Szczegóły', onClick: () => navigate('/marketing/zaplanowane') }}
       >
         {data.scheduledArticles.length === 0 ? (
           <Empty>Brak zaplanowanych wpisów. Wpis możesz zaplanować polem „Zaplanuj publikację”.</Empty>

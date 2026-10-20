@@ -30,6 +30,7 @@ import HomeContentPage from './admin/content/HomeContentPage';
 import PagesContentPage from './admin/content/PagesContentPage';
 import ReservationRulesPage from './admin/pages/ReservationRulesPage';
 import LegalDocumentsPage from './admin/pages/LegalDocumentsPage';
+import ScheduledPage from './admin/pages/ScheduledPage';
 import { HeroSlideCreate, HeroSlideEdit, HeroSlideList } from './admin/content/heroSlides';
 import { UserCreate, UserEdit, UserList } from './admin/components/users';
 import { ReservationList, ReservationShow } from './admin/components/reservations';
@@ -66,6 +67,7 @@ function App() {
               {isOwner && <Route path="/ustawienia/rezerwacje" element={<ReservationRulesPage />} />}
               {isOwner && <Route path="/ustawienia/dokumenty/:doc?" element={<LegalDocumentsPage />} />}
               <Route path="/statystyki" element={<StatsPage />} />
+              <Route path="/marketing/zaplanowane" element={<ScheduledPage />} />
               <Route path="/strona/glowna" element={<HomeContentPage />} />
               <Route path="/strona/podstrony/:tab?" element={<PagesContentPage />} />
               <Route path="/strona/wspolne" element={<Navigate to="/strona/podstrony/wspolne" replace />} />

@@ -9,6 +9,7 @@ import StorefrontIcon from '@mui/icons-material/Storefront';
 import PhoneIcon from '@mui/icons-material/Phone';
 import DirectionsBusFilledIcon from '@mui/icons-material/DirectionsBusFilled';
 import ArticleIcon from '@mui/icons-material/Article';
+import EventIcon from '@mui/icons-material/Event';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import HelpIcon from '@mui/icons-material/Help';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
@@ -83,6 +84,7 @@ export const CustomMenu = () => {
 
       <Section title="Marketing" />
       <Menu.Item to="/blog" primaryText="Aktualności i newsletter" leftIcon={<ArticleIcon />} />
+      <Menu.Item to="/marketing/zaplanowane" primaryText="Zaplanowane" leftIcon={<EventIcon />} />
       <Menu.Item to="/announcements" primaryText="Baner informacyjny" leftIcon={<CampaignIcon />} />
       <Menu.Item to="/newsletter" primaryText="Subskrybenci" leftIcon={<MarkEmailReadIcon />} />
 

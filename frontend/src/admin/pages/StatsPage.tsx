@@ -1,8 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Title, usePermissions } from 'react-admin';
+import { Title, useGetList, usePermissions } from 'react-admin';
 import {
   Alert,
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
@@ -24,6 +25,9 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import { HiddenPanelBar, HidePanelButton } from '../common/PanelVisibility';
 import { usePanelHidden } from '../common/panel-visibility';
 import { PanelColumns } from '../common/PanelColumns';
+import { scheduledArticles, type ScheduledArticle } from '../common/scheduled';
+import EventIcon from '@mui/icons-material/Event';
+import { useNavigate } from 'react-router-dom';
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -220,11 +224,14 @@ const Section = ({
   icon,
   children,
   sx,
+  action,
 }: {
   title: string;
   icon: ReactNode;
   children: ReactNode;
   sx?: object;
+  /** link w nagłówku, np. „Szczegóły” */
+  action?: { label: string; onClick: () => void };
 }) => {
   const [hidden, toggle] = usePanelHidden(`statystyki:${title}`);
   if (hidden)
@@ -241,6 +248,11 @@ const Section = ({
           <Typography variant="h6" sx={{ flex: 1 }}>
             {title}
           </Typography>
+          {action && (
+            <Button size="small" onClick={action.onClick}>
+              {action.label}
+            </Button>
+          )}
           <HidePanelButton onClick={toggle} />
         </Stack>
         {children}
@@ -404,53 +416,10 @@ export default function StatsPage() {
 
       {stats && (
         <>
-          {/* panele w dwóch kolumnach (zwinięty panel – kolejny w kolumnie podjeżdża w górę) */}
+          {/* dwie kolumny: po lewej ruch na stronie i rezerwacje, po prawej e-maile, newslettery, wpisy i promocje
+              (zwinięty panel – kolejny w kolumnie podjeżdża w górę) */}
           <PanelColumns
-            sx={{ mt: 4 }}
             left={[
-              isOwner && (
-              <Section title="Wysyłka e-maili" icon={<MailIcon />}>
-                <LimitBar
-                  label="Dziś"
-                  value={stats.todayTotals.mails}
-                  limit={stats.limits.emailDaily}
-                  hint="Limit dzienny planu dostawcy"
-                />
-                {/* dzień wysyłki newslettera = najwięcej e-maili naraz – to on decyduje o dziennym limicie planu */}
-                <LimitBar
-                  label={`Najwięcej w jednym dniu (${days} dni)`}
-                  value={peak.mails}
-                  limit={stats.limits.emailDaily}
-                  hint={
-                    peak.mails > stats.limits.emailDaily
-                      ? `${shortDate(peak.date)} wysłano więcej, niż pozwala dzienny limit planu – część e-maili mogła nie dojść. Zwykle to dzień wysyłki newslettera.`
-                      : peak.mails > 0
-                        ? `${shortDate(peak.date)} – zwykle dzień wysyłki newslettera`
-                        : 'Brak wysłanych e-maili w tym okresie'
-                  }
-                />
-                <LimitBar
-                  label="W tym miesiącu"
-                  value={stats.month.mails}
-                  limit={stats.limits.emailMonthly}
-                  forecast={stats.month.forecast.mails}
-                  hint={
-                    <>
-                      Prognoza na koniec miesiąca: ok. {fmt(stats.month.forecast.mails)}
-                      {stats.month.forecast.mails > stats.limits.emailMonthly &&
-                        ' – przekracza limit planu (porównanie planów: dokument 05-Koszty)'}
-                    </>
-                  }
-                />
-                {stats.month.mailsFailed > 0 && (
-                  <Alert severity="warning" variant="outlined" sx={{ mt: 2 }}>
-                    Nieudane wysyłki w tym miesiącu: {stats.month.mailsFailed}
-                    {stats.todayTotals.mailsFailed > 0 && ` (dziś: ${stats.todayTotals.mailsFailed})`} – możliwe
-                    przekroczenie limitu albo problem z kontem dostawcy.
-                  </Alert>
-                )}
-              </Section>
-              ),
               visitsHidden ? (
             <Box>
               <HiddenPanelBar title="Odwiedziny strony" icon={<VisibilityIcon />} onShow={toggleVisits} />
@@ -508,6 +477,18 @@ export default function StatsPage() {
             </CardContent>
           </Card>
           ),
+              <Section title="Skąd przychodzą odwiedzający" icon={<TravelExploreIcon />}>
+              <Typography variant="caption" color="text.secondary">
+                Wejścia na stronę w ostatnich {days} dniach: {fmt(stats.sources.reduce((s, i) => s + i.count, 0))}
+              </Typography>
+              <RankList items={stats.sources} labels={SOURCE_LABELS} empty="Brak wejść w tym okresie." />
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
+                Aplikacja Instagrama często nie przekazuje, skąd ktoś przyszedł – takie wejścia trafiają do
+                „Bezpośrednio”. Link w bio z dopiskiem <strong>?utm_source=instagram</strong> (np.
+                chlebasmak.pl/?utm_source=instagram) pozwala je policzyć dokładnie. Linki w newsletterze mają taki
+                dopisek automatycznie.
+              </Typography>
+            </Section>,
               <Section title="Najczęściej odwiedzane" icon={<VisibilityIcon />}>
               <Typography variant="caption" color="text.secondary">
                 Ostatnie {days} dni
@@ -567,9 +548,6 @@ export default function StatsPage() {
                   )}
                 </Section>
               ),
-              <NewslettersSection items={stats.newsletters ?? []} />,
-            ]}
-            right={[
               isOwner && (
               <Section title="Mapa Google" icon={<MapIcon />}>
                 <LimitBar
@@ -607,18 +585,65 @@ export default function StatsPage() {
                 </Stack>
               </Section>
               ),
-              <Section title="Skąd przychodzą odwiedzający" icon={<TravelExploreIcon />}>
-              <Typography variant="caption" color="text.secondary">
-                Wejścia na stronę w ostatnich {days} dniach: {fmt(stats.sources.reduce((s, i) => s + i.count, 0))}
-              </Typography>
-              <RankList items={stats.sources} labels={SOURCE_LABELS} empty="Brak wejść w tym okresie." />
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
-                Aplikacja Instagrama często nie przekazuje, skąd ktoś przyszedł – takie wejścia trafiają do
-                „Bezpośrednio”. Link w bio z dopiskiem <strong>?utm_source=instagram</strong> (np.
-                chlebasmak.pl/?utm_source=instagram) pozwala je policzyć dokładnie. Linki w newsletterze mają taki
-                dopisek automatycznie.
-              </Typography>
-            </Section>,
+            ]}
+            right={[
+              isOwner && (
+              <Section title="Wysyłka e-maili" icon={<MailIcon />}>
+                <LimitBar
+                  label="Dziś"
+                  value={stats.todayTotals.mails}
+                  limit={stats.limits.emailDaily}
+                  hint="Limit dzienny planu dostawcy"
+                />
+                {/* dzień wysyłki newslettera = najwięcej e-maili naraz – to on decyduje o dziennym limicie planu */}
+                <LimitBar
+                  label={`Najwięcej w jednym dniu (${days} dni)`}
+                  value={peak.mails}
+                  limit={stats.limits.emailDaily}
+                  hint={
+                    peak.mails > stats.limits.emailDaily
+                      ? `${shortDate(peak.date)} wysłano więcej, niż pozwala dzienny limit planu – część e-maili mogła nie dojść. Zwykle to dzień wysyłki newslettera.`
+                      : peak.mails > 0
+                        ? `${shortDate(peak.date)} – zwykle dzień wysyłki newslettera`
+                        : 'Brak wysłanych e-maili w tym okresie'
+                  }
+                />
+                <LimitBar
+                  label="W tym miesiącu"
+                  value={stats.month.mails}
+                  limit={stats.limits.emailMonthly}
+                  forecast={stats.month.forecast.mails}
+                  hint={
+                    <>
+                      Prognoza na koniec miesiąca: ok. {fmt(stats.month.forecast.mails)}
+                      {stats.month.forecast.mails > stats.limits.emailMonthly &&
+                        ' – przekracza limit planu (porównanie planów: dokument 05-Koszty)'}
+                    </>
+                  }
+                />
+                {stats.month.mailsFailed > 0 && (
+                  <Alert severity="warning" variant="outlined" sx={{ mt: 2 }}>
+                    Nieudane wysyłki w tym miesiącu: {stats.month.mailsFailed}
+                    {stats.todayTotals.mailsFailed > 0 && ` (dziś: ${stats.todayTotals.mailsFailed})`} – możliwe
+                    przekroczenie limitu albo problem z kontem dostawcy.
+                  </Alert>
+                )}
+              </Section>
+              ),
+              isOwner && (
+              <Section title="E-maile według rodzaju" icon={<MailIcon />}>
+                  <Typography variant="caption" color="text.secondary">
+                    Wysłane w tym miesiącu
+                  </Typography>
+                  <RankList
+                    items={stats.mailsByCategory}
+                    labels={MAIL_LABELS}
+                    empty="W tym miesiącu nie wysłano jeszcze e-maili."
+                  />
+                </Section>
+              ),
+              <ScheduledSection />,
+              <NewslettersSection items={stats.newsletters ?? []} />,
               <Section title="Najczęściej oglądane produkty" icon={<BakeryDiningIcon />}>
               <Typography variant="caption" color="text.secondary">
                 Wejścia na stronę produktu w ostatnich {days} dniach
@@ -635,18 +660,6 @@ export default function StatsPage() {
                 produktami. Liczone bez danych osobowych.
               </Typography>
             </Section>,
-              isOwner && (
-              <Section title="E-maile według rodzaju" icon={<MailIcon />}>
-                  <Typography variant="caption" color="text.secondary">
-                    Wysłane w tym miesiącu
-                  </Typography>
-                  <RankList
-                    items={stats.mailsByCategory}
-                    labels={MAIL_LABELS}
-                    empty="W tym miesiącu nie wysłano jeszcze e-maili."
-                  />
-                </Section>
-              ),
               <PromotionsSection items={stats.promotions ?? []} />,
             ]}
           />
@@ -722,6 +735,51 @@ function NewslettersSection({ items }: { items: NonNullable<Stats['newsletters']
               )}
             </Box>
           ))}
+        </Box>
+      )}
+    </Section>
+  );
+}
+
+/** Zaplanowane wpisy i newslettery – najbliższe; „Szczegóły” otwiera ekran Marketing → Zaplanowane */
+function ScheduledSection() {
+  const navigate = useNavigate();
+  const [now] = useState(() => Date.now());
+  const { data, isPending } = useGetList<ScheduledArticle>('blog', { pagination: { page: 1, perPage: 1000 } });
+  const items = scheduledArticles(data ?? [], now);
+  const open = () => navigate('/marketing/zaplanowane');
+  return (
+    <Section
+      title="Zaplanowane wpisy i newslettery"
+      icon={<EventIcon />}
+      sx={{ height: 'auto' }}
+      action={{ label: 'Szczegóły', onClick: open }}
+    >
+      {isPending ? (
+        <CircularProgress size={22} sx={{ mt: 2 }} />
+      ) : items.length === 0 ? (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          Nic nie jest zaplanowane.
+        </Typography>
+      ) : (
+        <Box sx={{ mt: 1, cursor: 'pointer' }} onClick={open}>
+          {items.slice(0, 5).map((a) => (
+            <Box key={a.id} sx={{ py: 1, borderTop: 1, borderColor: 'divider', '&:first-of-type': { borderTop: 0 } }}>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {a.title}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {new Date(a.publishAt).toLocaleString('pl-PL', { weekday: 'short', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                {' · '}
+                {[a.isPublished && 'na stronie', a.sendAsNewsletter && !a.newsletterSentAt && 'newsletter'].filter(Boolean).join(' i ')}
+              </Typography>
+            </Box>
+          ))}
+          {items.length > 5 && (
+            <Typography variant="caption" color="text.secondary">
+              i jeszcze {items.length - 5} – zobacz szczegóły
+            </Typography>
+          )}
         </Box>
       )}
     </Section>
