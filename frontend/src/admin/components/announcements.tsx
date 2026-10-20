@@ -1,3 +1,4 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
 import { MobileList } from '../common/MobileList';
 import { DevicePreview } from '../common/DevicePreview';
 import {
@@ -263,6 +264,7 @@ const SystemInfo = () => {
 
 const AnnouncementForm = () => (
   <SimpleForm toolbar={<FormToolbar />}>
+    <FormUnsavedChanges />
     <SystemInfo />
     <Preview />
     <TextInput

@@ -1,3 +1,4 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
 import { MobileList } from '../common/MobileList';
 import {
   Create,
@@ -93,6 +94,7 @@ export const UserList = () => {
 export const UserCreate = () => (
   <Create title="Nowe konto" redirect="list">
     <SimpleForm>
+      <FormUnsavedChanges />
       <RolesInfo />
       <TextInput
         source="login"
@@ -157,6 +159,7 @@ const RoleInput = () => {
 export const UserEdit = () => (
   <Edit redirect="list" mutationMode="pessimistic">
     <SimpleForm toolbar={<EditToolbar />}>
+      <FormUnsavedChanges />
       <TextInput source="login" label="Login" disabled helperText="Loginu nie można zmienić" />
       <TextInput source="name" label="Nazwa wyświetlana" validate={maxLength(60)} />
       <RoleInput />

@@ -1,3 +1,4 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
 import { MobileList } from '../common/MobileList';
 import { ScreenTabs } from '../common/ScreenTabs';
 import { HOME_TABS } from '../common/screen-tabs';
@@ -407,6 +408,7 @@ const FormToolbar = () => {
 
 const SlideForm = () => (
   <SimpleForm toolbar={<FormToolbar />}>
+    <FormUnsavedChanges />
     <KindInfo />
     <SlideVersions />
     <Preview />

@@ -1,3 +1,4 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
 import { MobileList } from '../common/MobileList';
 import {
   List,
@@ -298,6 +299,7 @@ export const ProductList = () => (
 export const ProductCreate = () => (
   <Create title="Nowy produkt">
     <SimpleForm>
+      <FormUnsavedChanges />
       <TextInput source="name" validate={[required()]} />
       <NumberInput source="price" validate={[required()]} />
       <TextInput source="description" validate={[required()]} multiline />
@@ -342,6 +344,7 @@ export const ProductCreate = () => (
 export const ProductEdit = () => (
   <Edit>
     <SimpleForm>
+      <FormUnsavedChanges />
       <TextInput source="name" validate={[required()]} />
       <SiteAddress section="oferta" />
       <NumberInput source="price" validate={[required()]} />

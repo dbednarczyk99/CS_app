@@ -1,3 +1,4 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
 import { MobileList } from '../common/MobileList';
 import {
   List,
@@ -121,6 +122,7 @@ const GoogleRatingInfo = () => {
 // wspólny formularz dla tworzenia i edycji
 const LocationForm = () => (
   <SimpleForm>
+    <FormUnsavedChanges />
     <TextInput source="name" label="Nazwa (opcjonalnie)" />
     <TextInput source="address" label="Adres" validate={[required()]} helperText="np. „ul. Wileńska 4, 31-413 Kraków”" />
     <TextInput source="phone" label="Telefon" />

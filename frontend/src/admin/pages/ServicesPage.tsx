@@ -1,3 +1,4 @@
+import { UnsavedChangesDialog } from '../common/UnsavedChanges';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Title, useNotify } from 'react-admin';
 import {
@@ -145,6 +146,7 @@ export default function ServicesPage() {
   return (
     <Box sx={{ maxWidth: 900, mx: 'auto', py: { xs: 2, md: 4 } }}>
       <Title title="Usługi i koszty" />
+      <UnsavedChangesDialog when={dirty && !saving} />
       <Typography variant="h5">Usługi i koszty</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
         Wyłączniki płatnych usług na wypadek nieoczekiwanych kosztów (np. ataku na formularze albo błędu strony). Każda

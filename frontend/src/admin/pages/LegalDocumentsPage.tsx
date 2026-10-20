@@ -1,3 +1,4 @@
+import { UnsavedChangesDialog } from '../common/UnsavedChanges';
 import { useEffect, useState } from 'react';
 import { Title, useNotify } from 'react-admin';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -112,6 +113,7 @@ function DocumentEditor({ doc, path, rules }: { doc: string; path: string; rules
 
   return (
     <Box>
+      <UnsavedChangesDialog when={dirty && !saving} />
       {missing.length > 0 && (
         <Alert severity="warning" sx={{ mb: 2 }}>
           W dokumencie {missing.length === 1 ? 'jest 1 pole' : `są pola (${missing.length})`} do uzupełnienia w podwójnych

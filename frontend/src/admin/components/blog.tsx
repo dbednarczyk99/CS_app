@@ -1,3 +1,4 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
 import { MobileList } from '../common/MobileList';
 import {
   List,
@@ -174,6 +175,7 @@ export const BlogList = () => (
 export const BlogCreate = () => (
   <Create title="Nowy wpis">
     <SimpleForm toolbar={<NewsletterSaveToolbar />}>
+      <FormUnsavedChanges />
       <TextInput source="title" validate={[required()]} />
       <TextInput source="shortDescription" multiline />
       <TextInput source="content" multiline minRows={6} helperText="Akapity oddziel pustą linią" />
@@ -193,6 +195,7 @@ export const BlogCreate = () => (
 export const BlogEdit = () => (
   <Edit>
     <SimpleForm toolbar={<NewsletterSaveToolbar deletable />}>
+      <FormUnsavedChanges />
       <TextInput source="title" validate={[required()]} />
       <SiteAddress section="aktualnosci" />
       <TextInput source="shortDescription" multiline />

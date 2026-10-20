@@ -1,3 +1,4 @@
+import { UnsavedChangesDialog } from '../common/UnsavedChanges';
 import { useEffect, useState } from 'react';
 import { Title, useNotify } from 'react-admin';
 import {
@@ -140,6 +141,7 @@ export default function ReservationRulesPage() {
   return (
     <Box sx={{ maxWidth: 820, mx: 'auto', py: { xs: 2, md: 4 } }}>
       <Title title="Zasady rezerwacji" />
+      <UnsavedChangesDialog when={dirty && !saving} />
       <Typography variant="h5">Zasady rezerwacji</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
         Zmiana działa od razu: w formularzu rezerwacji, komunikatach, e-mailach do klientów, na stronach produktów i w

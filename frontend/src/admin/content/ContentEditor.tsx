@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { UnsavedChangesDialog } from '../common/UnsavedChanges';
+import { useCallback, useEffect, useState } from 'react';
 import { Title, useNotify } from 'react-admin';
 import {
   Accordion,
@@ -260,9 +261,12 @@ function SectionEditor({
   section,
   onSaved,
   defaultShareImage,
+  onDirtyChange,
 }: {
   section: Section;
   onSaved: (s: Section) => void;
+  /** zgłoszenie niezapisanych zmian do ekranu (jedno ostrzeżenie przy wyjściu) */
+  onDirtyChange: (key: string, dirty: boolean) => void;
   /** domyślne zdjęcie podglądu linku (Elementy wspólne) – dla sekcji SEO bez własnego */
   defaultShareImage?: string;
 }) {
@@ -274,6 +278,9 @@ function SectionEditor({
   const [loaded, setLoaded] = useState<string | null>(null);
   const dirty = JSON.stringify(value) !== JSON.stringify(section.value);
   const isDefault = JSON.stringify(value) === JSON.stringify(section.defaults);
+  useEffect(() => {
+    onDirtyChange(section.key, dirty);
+  }, [dirty, section.key, onDirtyChange]);
 
   const load = (data: Values, label: string) => {
     setValue(data);
@@ -411,6 +418,13 @@ export function ContentEditor({
   embedded?: boolean;
 }) {
   const [sections, setSections] = useState<Section[] | null | undefined>(undefined);
+  // sekcje z niezapisanymi zmianami – ostrzeżenie przy opuszczeniu ekranu
+  const [dirtyKeys, setDirtyKeys] = useState<string[]>([]);
+  const onDirtyChange = useCallback(
+    (key: string, isDirty: boolean) =>
+      setDirtyKeys((keys) => (isDirty ? (keys.includes(key) ? keys : [...keys, key]) : keys.filter((k) => k !== key))),
+    [],
+  );
   // domyślne zdjęcie podglądu linku – do podglądu sekcji SEO bez własnego zdjęcia
   const [defaultShareImage, setDefaultShareImage] = useState<string>();
 
@@ -434,6 +448,7 @@ export function ContentEditor({
     // minWidth 0: w kolumnie flex (np. pod zakładkami) edytor nie rośnie do szerokości najdłuższego tekstu
     <Box sx={{ width: '100%', maxWidth: 1000, minWidth: 0, mx: 'auto', py: embedded ? 2 : { xs: 2, md: 4 } }}>
       {!embedded && <Title title={title} />}
+      <UnsavedChangesDialog when={dirtyKeys.length > 0} />
       <Stack direction="row" alignItems="flex-end" justifyContent="space-between" flexWrap="wrap" gap={2} sx={{ mb: 1 }}>
         <Typography variant="h5">{title}</Typography>
         <Link href={`${webUrl}${path}`} target="_blank" rel="noreferrer" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
@@ -451,6 +466,7 @@ export function ContentEditor({
             <SectionEditor
               key={section.key}
               section={section}
+              onDirtyChange={onDirtyChange}
               defaultShareImage={section.key === 'seo.default' ? undefined : defaultShareImage}
               onSaved={(next) => {
                 setSections((all) => all?.map((s) => (s.key === next.key ? next : s)) ?? null);

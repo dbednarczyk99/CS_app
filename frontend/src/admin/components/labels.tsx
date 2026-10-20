@@ -1,3 +1,4 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
 import { MobileList } from '../common/MobileList';
 import { ScreenTabs } from '../common/ScreenTabs';
 import { OFFER_TABS } from '../common/screen-tabs';
@@ -193,6 +194,7 @@ export const LabelList = () => (
 export const LabelCreate = () => (
   <Create title="Nowa etykieta" redirect="list">
     <SimpleForm>
+      <FormUnsavedChanges />
       <LabelFields />
     </SimpleForm>
   </Create>
@@ -222,6 +224,7 @@ const LabelEditToolbar = () => {
 export const LabelEdit = () => (
   <Edit title="Etykieta" mutationMode="pessimistic" redirect="list">
     <SimpleForm toolbar={<LabelEditToolbar />}>
+      <FormUnsavedChanges />
       <LabelFields />
     </SimpleForm>
   </Edit>

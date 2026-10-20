@@ -1,3 +1,4 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
 import { ScreenTabs } from '../common/ScreenTabs';
 import { CONTACT_TABS } from '../common/screen-tabs';
 import {
@@ -57,6 +58,7 @@ export const ContactInfoList = () => (
 export const ContactInfoEdit = () => (
   <Edit>
     <SimpleForm>
+      <FormUnsavedChanges />
       <TextInput source="value" label="Wartość (numer, adres e-mail…)" validate={[required()]} />
       <TextInput source="label" label="Opis (np. „Biuro”, „Zamówienia”)" validate={[required()]} />
 
@@ -84,6 +86,7 @@ export const ContactInfoEdit = () => (
 export const ContactInfoCreate = () => (
   <Create title="Nowe dane kontaktowe">
     <SimpleForm>
+      <FormUnsavedChanges />
       <TextInput source="value" label="Wartość (numer, adres e-mail…)" validate={[required()]} />
       <TextInput source="label" label="Opis (np. „Biuro”, „Zamówienia”)" validate={[required()]} />
       <SelectInput

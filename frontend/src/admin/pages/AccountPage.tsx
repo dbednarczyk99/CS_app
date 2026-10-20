@@ -1,3 +1,4 @@
+import { UnsavedChangesDialog } from '../common/UnsavedChanges';
 import { useState } from 'react';
 import { Title, useGetIdentity, useNotify, usePermissions } from 'react-admin';
 import { Alert, Box, Button, Card, CardContent, Stack, TextField, Typography } from '@mui/material';
@@ -53,6 +54,7 @@ export default function AccountPage() {
   return (
     <Box sx={{ maxWidth: 560, mx: 'auto', py: { xs: 2, md: 4 } }}>
       <Title title="Moje konto" />
+      <UnsavedChangesDialog when={!busy && !!(current || next || repeat)} />
       <Typography variant="overline" color="primary">
         Moje konto
       </Typography>

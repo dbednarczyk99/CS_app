@@ -1,3 +1,4 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
 import { ScreenTabs } from '../common/ScreenTabs';
 import { CONTACT_TABS } from '../common/screen-tabs';
 import {
@@ -74,6 +75,7 @@ export const MediaCreate = () => {
   return (
     <Create title="Nowy profil">
       <SimpleForm>
+        <FormUnsavedChanges />
         <SelectInput
           source="name"
           label="Serwis"
@@ -95,6 +97,7 @@ export const MediaCreate = () => {
 export const MediaEdit = () => (
   <Edit>
     <SimpleForm>
+      <FormUnsavedChanges />
       <SelectInput
         source="name"
         label="Serwis"

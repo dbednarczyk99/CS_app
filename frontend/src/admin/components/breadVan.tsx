@@ -1,3 +1,4 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
 import { MobileList } from '../common/MobileList';
 // admin/components/breadVan.tsx
 
@@ -67,6 +68,7 @@ export const BreadVanDescriptionShow = () => (
 export const BreadVanDescriptionEdit = () => (
   <Edit resource="bread-van/description" id="singleton" title="Chlebowóz – edycja opisu">
     <SimpleForm>
+      <FormUnsavedChanges />
       <TextInput
         source="shortDescription"
         fullWidth
@@ -121,6 +123,7 @@ export const BreadVanScheduleList = () => (
 
 const ScheduleForm = () => (
   <SimpleForm>
+    <FormUnsavedChanges />
     <SelectInput
       source="dayOfTheWeek"
       choices={weekdayOption}
