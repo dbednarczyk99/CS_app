@@ -33,6 +33,7 @@ import { apiUrl, httpClient } from '../../dataProvider';
 import { ImageUploadField } from '../common/ImageUploadField';
 import { DevicePreview } from '../common/DevicePreview';
 import { previewImageUrl } from '../common/preview-url';
+import { usePreviewTokens } from '../common/preview-tokens';
 import { VersionHistory } from './VersionHistory';
 import type { Revision } from './revisions';
 
@@ -314,6 +315,7 @@ const Preview = () => {
       'mobileImagePosition',
     ],
   }) as (string | undefined)[];
+  const fill = usePreviewTokens();
   const button = { px: 3, py: 1.5, fontSize: 12, letterSpacing: '0.25em', textTransform: 'uppercase', fontFamily: 'Oswald, sans-serif' };
   return (
     <DevicePreview>
@@ -364,17 +366,17 @@ const Preview = () => {
                     mt: 2.5,
                   }}
                 >
-                  {line1 || 'Tytuł'}
+                  {fill(line1 || 'Tytuł')}
                   {line2 && (
                     <>
                       <br />
-                      <span style={{ color: '#c9a36a' }}>{line2}</span>
+                      <span style={{ color: '#c9a36a' }}>{fill(line2)}</span>
                     </>
                   )}
                 </Typography>
                 {text && (
                   <Typography sx={{ color: 'rgba(244,239,230,0.85)', mt: 3, fontSize: 18, lineHeight: 1.6, maxWidth: 448 }}>
-                    {text}
+                    {fill(text)}
                   </Typography>
                 )}
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 4 }}>

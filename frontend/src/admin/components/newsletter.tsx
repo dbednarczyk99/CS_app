@@ -50,7 +50,14 @@ export const NewsletterList = () => (
     <MobileList
       primaryText={(r) => r.email}
       secondaryText={(r) => STATUS[r.status as Subscriber['status']].label}
-      tertiaryText={(r) => (r.confirmedAt ? new Date(r.confirmedAt).toLocaleDateString('pl-PL') : '')}
+      // telefon: „Usuń” przy każdym adresie (jak w tabeli na komputerze)
+      tertiaryText={
+        <DeleteButton
+          mutationMode="pessimistic"
+          confirmTitle="Usunąć zapis?"
+          confirmContent="Adres zostanie trwale usunięty z listy."
+        />
+      }
       rowClick={false}
     >
     <Datagrid bulkActionButtons={false} rowClick={false}>
