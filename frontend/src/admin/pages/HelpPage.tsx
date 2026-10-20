@@ -124,6 +124,14 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
         a: 'Strzałka w lewo w górnym pasku z nazwą listy, np. w edycji produktu „← Produkty”, w szczegółach rezerwacji „← Rezerwacje”. Na ekranach otwieranych z menu strzałki nie ma – przejdź wtedy przez menu po lewej.',
       },
       {
+        q: 'Skąd się biorą „Szybkie akcje” na pulpicie?',
+        a: 'Panel zapamiętuje (w przeglądarce, osobno dla każdego konta), które ekrany otwierasz najczęściej – z pulpitu albo z menu – i pokazuje 5 z nich jako szybkie akcje, plus link do strony piekarni. Na początku to zestaw domyślny; z czasem dopasowuje się sam.',
+      },
+      {
+        q: 'Czy panel działa na telefonie?',
+        a: 'Tak – listy (produkty, rezerwacje, wpisy, baner, karuzela i inne) na telefonie wyświetlają się jako karty z najważniejszymi informacjami, a formularze mają pola na całą szerokość. Najwygodniej pracuje się jednak na komputerze, zwłaszcza przy dłuższych tekstach i dokumentach prawnych.',
+      },
+      {
         q: 'Jak przełączyć tryb jasny i ciemny?',
         a: 'Ikona w prawym górnym rogu: słońce (w trybie ciemnym) włącza tryb jasny, księżyc (w trybie jasnym) – ciemny. Wybór jest zapamiętywany.',
       },

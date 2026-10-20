@@ -54,9 +54,14 @@ const AdminAppBar = () => (
       sx={{
         fontFamily: '"Oswald", sans-serif',
         textTransform: 'uppercase',
-        letterSpacing: '0.12em',
-        fontSize: '0.95rem',
+        letterSpacing: { xs: '0.06em', sm: '0.12em' },
+        fontSize: { xs: '0.8rem', sm: '0.95rem' },
         fontWeight: 400,
+        // telefon: długi tytuł (np. nazwa produktu) kończy się wielokropkiem zamiast wchodzić pod przyciski
+        minWidth: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
       }}
     />
   </AppBar>
