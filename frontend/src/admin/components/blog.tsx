@@ -1,3 +1,5 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
+import { MobileList } from '../common/MobileList';
 import {
   List,
   Datagrid,
@@ -18,9 +20,11 @@ import { useWatch } from 'react-hook-form';
 import TagInput from '../common/TagInput';
 import { NewsletterSaveToolbar } from '../common/NewsletterSaveToolbar';
 import { useSubscriberCount } from '../common/useSubscriberCount';
+import { IMAGE_PRESETS } from '../common/image-presets';
 import SortableImageInput from '../common/SortableImageInput';
 import { ArticleProductTools } from '../common/ArticleProductTools';
 import { SiteAddress } from '../common/SiteAddress';
+import { ShareImageInput } from '../common/ShareImageInput';
 
 interface NewsletterInfo {
   sendAsNewsletter?: boolean;
@@ -116,6 +120,13 @@ const PublishToggle = () => {
 
 export const BlogList = () => (
   <List title="Aktualności i newsletter" sort={{ field: 'createdAt', order: 'DESC' }}>
+    <MobileList
+      primaryText={(r) => r.title}
+      secondaryText={(r) => [r.isPublished === false ? 'tylko newsletter' : isFuture(r.publishAt) ? `zaplanowany: ${formatWhen(r.publishAt)}` : 'na stronie', r.newsletterSentAt ? 'newsletter wysłany' : r.sendAsNewsletter ? 'newsletter czeka' : null].filter(Boolean).join(' · ')}
+      tertiaryText={(r) => new Date(r.createdAt).toLocaleDateString('pl-PL')}
+      leftAvatar={(r) => r.images?.[0]?.src}
+      rowClick="edit"
+    >
     <Datagrid rowClick="edit">
       <TextField source="title" label="Tytuł" />
       <TextField source="shortDescription" label="Zajawka" />
@@ -158,12 +169,14 @@ export const BlogList = () => (
         }
       />
     </Datagrid>
+    </MobileList>
   </List>
 );
 
 export const BlogCreate = () => (
   <Create title="Nowy wpis">
     <SimpleForm toolbar={<NewsletterSaveToolbar />}>
+      <FormUnsavedChanges />
       <TextInput source="title" validate={[required()]} />
       <TextInput source="shortDescription" multiline />
       <TextInput source="content" multiline minRows={6} helperText="Akapity oddziel pustą linią" />
@@ -174,7 +187,8 @@ export const BlogCreate = () => (
       <NewsletterToggle />
       <ScheduleInput />
 
-      <SortableImageInput source="images" maxQty={5} />
+      <SortableImageInput source="images" maxQty={5} preset={IMAGE_PRESETS.article} />
+      <ShareImageInput />
     </SimpleForm>
   </Create>
 );
@@ -182,6 +196,7 @@ export const BlogCreate = () => (
 export const BlogEdit = () => (
   <Edit>
     <SimpleForm toolbar={<NewsletterSaveToolbar deletable />}>
+      <FormUnsavedChanges />
       <TextInput source="title" validate={[required()]} />
       <SiteAddress section="aktualnosci" />
       <TextInput source="shortDescription" multiline />
@@ -193,7 +208,8 @@ export const BlogEdit = () => (
       <NewsletterToggle />
       <ScheduleInput />
 
-      <SortableImageInput source="images" maxQty={5} />
+      <SortableImageInput source="images" maxQty={5} preset={IMAGE_PRESETS.article} />
+      <ShareImageInput />
     </SimpleForm>
   </Edit>
 );

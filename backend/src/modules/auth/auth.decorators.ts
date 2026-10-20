@@ -11,7 +11,7 @@ export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
 
 /*
- * Role w panelu: ADMIN = właściciel (wszystko), EDITOR = treści strony (menadżerka social mediów).
+ * Role w panelu: ADMIN = administrator (wszystko), EDITOR = marketing (menadżerka social mediów; bez rezerwacji i ustawień).
  * BLOGGER i VIEWER zostają w bazie dla zgodności, panel ich nie proponuje.
  */
 

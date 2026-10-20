@@ -9,11 +9,23 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
     items: [
       {
         q: 'Gdzie zobaczę, co przygotować na jutro?',
-        a: '„Do przygotowania” pokazuje zestawienie na wybrany dzień (domyślnie jutro): ile czego przygotować w sumie i w każdym punkcie oraz listę rezerwacji. Zestawienie można wydrukować albo wysłać e-mailem.',
+        a: '„Do przygotowania” pokazuje zestawienie na wybrany dzień (domyślnie jutro): ile czego przygotować w sumie i w każdym punkcie oraz listę rezerwacji. Zestawienie można wydrukować albo wysłać e-mailem. Codzienną automatyczną wysyłkę (godzina i adresy) włączasz w „Rezerwacje → Zasady rezerwacji”.',
       },
       {
         q: 'Czy mogę zmienić status rezerwacji?',
-        a: 'Nie – rezerwacje są tylko do podglądu. Status zmienia wyłącznie klient (anulowanie linkiem z e-maila, do 18:00 dnia poprzedniego).',
+        a: 'Nie – rezerwacje są tylko do podglądu. Status zmienia wyłącznie klient (anulowanie linkiem z e-maila, do godziny zamknięcia dnia poprzedniego – domyślnie 18:00).',
+      },
+      {
+        q: 'Jak zmienić godzinę zamykania rezerwacji, liczbę dni albo limit na telefon?',
+        a: '„Rezerwacje” → „Zasady rezerwacji” (tylko administrator): godzina, do której przyjmujemy rezerwacje i anulowania na następny dzień, ile dni do przodu można rezerwować i ile aktywnych rezerwacji może mieć jeden numer telefonu. Przykład pod polami pokazuje, co zobaczy klient. Zmiana działa od razu – w formularzu, komunikatach, e-mailach, na stronach produktów, w karuzeli i w regulaminie (tam liczby wstawiają się same w miejscu znaczników {godzina}, {dni}, {limit}). Zasady są częścią regulaminu: przy istotnej zmianie zaktualizuj datę „Obowiązuje od” i poinformuj klientów. „Wcześniejsze wersje” i „Przywróć stan domyślny” działają jak w treściach strony.',
+      },
+      {
+        q: 'Co zrobić, gdy usługa płatna (e-maile, mapa, oceny Google) zaczyna dużo kosztować?',
+        a: '„Usługi i koszty” (na dole menu, tylko administrator): każdą płatną usługę wyłączysz jednym przełącznikiem, a każda ma też twardy limit dzienny – po jego przekroczeniu wyłącza się sama do północy. Widać tam też dzisiejsze zużycie. Gdy usługa nie działa, strona pokazuje zamiennik: zamiast mapy – listę adresów z linkami do Map Google; bez e-maili rezerwacje dalej działają (klient dostaje numer rezerwacji na ekranie), a zapisy do newslettera i formularz kontaktowy pokazują komunikat; oceny Google zostają z ostatniego odświeżenia. Na pulpicie pojawia się wtedy ostrzeżenie.',
+      },
+      {
+        q: 'Jak zmienić regulamin albo politykę prywatności?',
+        a: '„Strona” → „Dokumenty prawne” (tylko administrator): po lewej treść, po prawej podgląd jak na stronie. Składnia: # tytuł, ## rozdział, **pogrubienie**, „1.” albo „-” na początku linii – lista, pusta linia – nowy akapit. Pola w podwójnych nawiasach [[…]] to miejsca do uzupełnienia (np. nazwa firmy, NIP) – panel ostrzega, ile ich zostało. „Zapisz i opublikuj” od razu zmienia dokument na stronie; poprzednie wersje zostają w historii w całości. Wersja startowa to projekt – przed uruchomieniem strony powinien go sprawdzić prawnik.',
       },
       {
         q: 'Klient prosi o usunięcie swoich danych',
@@ -55,6 +67,35 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
     ],
   },
   {
+    section: 'Treści strony',
+    items: [
+      {
+        q: 'Jak zmienić teksty i zdjęcia na stronie głównej?',
+        a: '„Strona” → „Strona główna”: sekcje w kolejności jak na stronie. Rozwiń sekcję, zmień teksty lub zdjęcia i kliknij „Zapisz sekcję” – zmiana pojawi się na stronie po kilku sekundach. Licznik przy polu pokazuje limit znaków (dopasowany do miejsca na stronie). Sekcje opcjonalne (opinie Google, cytat, galeria) możesz ukryć przełącznikiem. „Wcześniejsze wersje” pokazuje 10 ostatnich wersji sekcji (kiedy i kto zmienił) – wybraną wersję wczytujesz do formularza. „Przywróć stan domyślny” wczytuje teksty i zdjęcia z dnia uruchomienia strony. W obu przypadkach na stronie nic się nie zmienia, dopóki nie klikniesz „Zapisz sekcję” (a „Cofnij zmiany” wraca do obecnej wersji).',
+      },
+      {
+        q: 'Jak zmienić karuzelę na górze strony głównej?',
+        a: '„Strona” → „Strona główna” → zakładka „Karuzela”: slajdy z tytułem, opisem, przyciskami i zdjęciem (osobne zdjęcie na telefon jest opcjonalne). Własne slajdy możesz dodawać, wyłączać, planować („Od” / „Do”) i usuwać. Slajdy Chlebowóz, Piekarnie i Sezonowe pokazują dane z panelu – możesz zmienić ich teksty i wyłączyć je, ale nie usunąć. Kolejność ustalasz liczbą w polu „Kolejność”. Włączonych może być najwyżej 5 slajdów – kolejne trzymaj jako wyłączone w zapasie. W formularzu slajdu są też „Wcześniejsze wersje” i (dla slajdów startowych) „Przywróć stan domyślny”. Każdy slajd musi mieć zdjęcie na komputer – bez niego slajdu nie da się zapisać. Slajd Chlebowóz pokazuje najbliższy przystanek i znika, gdy trasa jest pusta; slajd Piekarnie wstawia liczbę piekarni w miejsce {piekarnie}; slajd Sezonowe pokazuje się tylko wtedy, gdy w ofercie jest dostępny teraz jakiś produkt sezonowy. W tytule i opisie każdego slajdu możesz użyć znaczników {godzina}, {dni} i {limit} – strona wstawi aktualne zasady rezerwacji (np. slajd Rezerwacja: „do {godzina} dnia poprzedniego”).',
+      },
+      {
+        q: 'Jak zmienić teksty na pozostałych stronach, w stopce i w okienku newslettera?',
+        a: '„Strona” → „Podstrony”: zakładka dla każdej strony (O nas, Oferta, Piekarnie, Chlebowóz, Aktualności, Kontakt, Rezerwacja) – sekcje działają tak samo jak na stronie głównej. „Strona” → „Podstrony” → zakładka „Elementy wspólne”: stopka, okienko zapisu do newslettera, strona 404 (pokazuje się po wejściu na nieistniejący adres) i domyślne zdjęcie do udostępniania. Niektóre teksty mają znaczniki w nawiasach klamrowych, np. {miejsca} albo {profil} – strona wstawia w ich miejsce aktualne dane (liczbę piekarni, nazwę profilu na Instagramie); opis znacznika jest pod polem. Dane takie jak adresy, godziny, telefony, opis chlebowozu czy produkty zmieniasz dalej w ich zakładkach.',
+      },
+      {
+        q: 'Jak ustawić, jak strona wygląda w Google i na Facebooku (SEO)?',
+        a: 'Pierwsza sekcja każdej strony to „Wyszukiwarka i udostępnianie (SEO)”: tytuł i opis w wynikach Google oraz zdjęcie w podglądzie linku (Facebook, Messenger, WhatsApp). Podgląd nad polami pokazuje, jak to będzie wyglądać. Google pokazuje ok. 60 znaków tytułu i ok. 155 znaków opisu – licznik ostrzega, gdy tekst jest dłuższy (dłuższy nie szkodzi, tylko zostanie obcięty). Najważniejsze słowa (np. „chleb na zakwasie Kraków”) dawaj na początek, a każda strona powinna mieć inny tytuł i opis. Bez własnego zdjęcia podgląd linku pokazuje domyślne zdjęcie z „Elementy wspólne”; produkty pokazują swoje zdjęcie, a wpis – okładkę albo zdjęcie z pola „Zdjęcie przy udostępnianiu”. Google odświeża wyniki samo, zwykle w ciągu kilku dni.',
+      },
+      {
+        q: 'Zmieniłem zdjęcie, a Facebook pokazuje stary podgląd linku – co zrobić?',
+        a: 'Facebook zapamiętuje podgląd linku na kilka dni. Wejdź na developers.facebook.com/tools/debug (Sharing Debugger, trzeba być zalogowanym na Facebooku), wklej adres strony, np. chlebasmak.pl/o-nas, i kliknij „Scrape Again” (Pobierz ponownie). Po chwili zobaczysz nowy podgląd, a kolejne udostępnienia będą już z nowym zdjęciem. Messenger i WhatsApp korzystają z tej samej pamięci lub odświeżają się same po kilku dniach.',
+      },
+      {
+        q: 'Jakie zdjęcia wgrywać?',
+        a: 'Najlepiej duże (karuzela: ok. 2400 px szerokości) i w proporcjach podanych przy polu (np. pionowe 4:5, poziome 3:2). Przy zdjęciach w karuzeli wybierz „Kadr” – którą część zdjęcia zawsze pokazywać. Opis zdjęcia pomaga osobom niewidomym i Google; zdjęcie czysto ozdobne może zostać bez opisu. Zdjęcie do udostępniania (podgląd linku): poziome 1200 × 630 px, z ważnymi elementami na środku.',
+      },
+    ],
+  },
+  {
     section: 'Piekarnie i chlebowóz',
     items: [
       {
@@ -76,11 +117,36 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
     ],
   },
   {
+    section: 'Korzystanie z panelu',
+    items: [
+      {
+        q: 'Jak ukryć panel, którego nie używam, na pulpicie albo w statystykach?',
+        a: 'Kliknij ikonę oka w nagłówku panelu – zwinie się do paska z samym nagłówkiem i przekreślonym okiem. Kliknięcie paska pokazuje panel z powrotem. Ustawienie zapamiętuje przeglądarka, osobno dla każdego konta (zostaje po wylogowaniu; na innym komputerze lub w innej przeglądarce panele są widoczne).',
+      },
+      {
+        q: 'Jak wrócić z edycji do listy?',
+        a: 'Strzałka w lewo w górnym pasku z nazwą listy, np. w edycji produktu „← Produkty”, w szczegółach rezerwacji „← Rezerwacje”. Na ekranach otwieranych z menu strzałki nie ma – przejdź wtedy przez menu po lewej.',
+      },
+      {
+        q: 'Skąd się biorą „Szybkie akcje” na pulpicie?',
+        a: 'Panel zapamiętuje (w przeglądarce, osobno dla każdego konta), które ekrany otwierasz najczęściej – z pulpitu albo z menu – i pokazuje 5 z nich jako szybkie akcje, plus link do strony piekarni. Na początku to zestaw domyślny; z czasem dopasowuje się sam.',
+      },
+      {
+        q: 'Czy panel działa na telefonie?',
+        a: 'Tak – listy (produkty, rezerwacje, wpisy, baner, karuzela i inne) na telefonie wyświetlają się jako karty z najważniejszymi informacjami, a formularze mają pola na całą szerokość. Najwygodniej pracuje się jednak na komputerze, zwłaszcza przy dłuższych tekstach i dokumentach prawnych. Podglądy (baner, slajd karuzeli, e-mail newslettera) mają przełącznik „Komputer | Telefon” – na każdym urządzeniu zobaczysz, jak treść wygląda u klientów na komputerze i na telefonie.',
+      },
+      {
+        q: 'Jak przełączyć tryb jasny i ciemny?',
+        a: 'Ikona w prawym górnym rogu: słońce (w trybie ciemnym) włącza tryb jasny, księżyc (w trybie jasnym) – ciemny. Wybór jest zapamiętywany.',
+      },
+    ],
+  },
+  {
     section: 'Konta i hasła',
     items: [
       {
         q: 'Kto ma dostęp do czego?',
-        a: 'Właściciel widzi wszystko, w tym rezerwacje z danymi klientów, listę subskrybentów newslettera i konta. Konto „Treści strony” (social media) edytuje produkty, piekarnie, chlebowóz, aktualności, baner i media społecznościowe oraz widzi statystyki odwiedzin (skąd przychodzi ruch, najczęściej odwiedzane strony) – bez dostępu do danych klientów i kosztów.',
+        a: 'Administrator widzi wszystko, w tym rezerwacje z danymi klientów, zasady rezerwacji, dokumenty prawne i konta. Konto „Marketing” edytuje produkty, piekarnie, chlebowóz, treści strony, aktualności i newsletter, subskrybenci, baner i media społecznościowe oraz widzi statystyki odwiedzin (skąd przychodzi ruch, najczęściej odwiedzane strony) – bez dostępu do rezerwacji, kosztów i ustawień.',
       },
       {
         q: 'Jak zmienić swoje hasło?',
@@ -88,7 +154,7 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Ktoś zapomniał hasła',
-        a: 'Właściciel ustawia nowe hasło w „Konta” → wybierz osobę → „Nowe hasło”. Gdy hasła zapomni właściciel, osoba administrująca serwerem może je zresetować poleceniem awaryjnym.',
+        a: 'Administrator ustawia nowe hasło w „Konta” → wybierz osobę → „Nowe hasło”. Gdy hasła zapomni administrator, osoba opiekująca się serwerem może je zresetować poleceniem awaryjnym.',
       },
     ],
   },

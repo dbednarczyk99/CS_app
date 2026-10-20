@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaCheck, FaTrash } from 'react-icons/fa6';
-import type { PublicReservation, ReservationOptions } from '@/lib/api';
+import type { PublicReservation, ReservationOptions, ServiceStatus } from '@/lib/api';
+import type { ReservationFormTexts } from '@/lib/content';
 import { formatDay, formatDayMonth, formatPrice, plural } from '@/lib/format';
 import { inPromoWindow, priceOn, type PromoWindow } from '@/lib/products';
 import { useReservationCart } from '@/lib/reservation-cart';
+import { fill, ruleTokens } from '@/lib/text';
 import { QuantityStepper } from './AddToReservation';
 import { DropdownSelect } from './DropdownSelect';
 import { PickupPointPicker, type PickupPoint } from './PickupPointPicker';
@@ -154,9 +156,15 @@ const shortStreet = (address: string) => address.split(/,\s*(?=\d{2}-\d{3})/)[0]
 export function ReservationForm({
   options,
   reservable,
+  texts,
+  services = { emails: true, maps: true, ratings: true },
 }: {
   options: ReservationOptions;
   reservable: ReservableProduct[];
+  /** wyłączniki z panelu: bez e-maili – bez potwierdzenia i zapisu do newslettera, bez mapy – sama lista */
+  services?: ServiceStatus;
+  /** teksty z panelu (Strona → Podstrony → Rezerwacja → Formularz rezerwacji) */
+  texts: ReservationFormTexts;
 }) {
   const cart = useReservationCart();
   const [removedNames, setRemovedNames] = useState<string[]>([]);
@@ -192,6 +200,8 @@ export function ReservationForm({
   const [email, setEmail] = useState('');
   const [notes, setNotes] = useState('');
   const [consent, setConsent] = useState(false);
+  // nieobowiązkowy zapis do newslettera na adres z rezerwacji (z potwierdzeniem linkiem z e-maila)
+  const [newsletter, setNewsletter] = useState(false);
   const [website, setWebsite] = useState(''); // pułapka na boty
 
   const [submitting, setSubmitting] = useState(false);
@@ -286,6 +296,7 @@ export function ReservationForm({
           customerEmail: email,
           notes: notes || undefined,
           consent,
+          newsletter: services.emails && newsletter,
           website: website || undefined,
           items: cart.items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
         }),
@@ -307,7 +318,7 @@ export function ReservationForm({
     }
   }
 
-  if (result) return <ReservationSuccess reservation={result} />;
+  if (result) return <ReservationSuccess reservation={result} title={texts.successTitle} newsletter={newsletter} />;
 
   if (cart.ready && cart.items.length === 0) {
     return (
@@ -331,7 +342,7 @@ export function ReservationForm({
     <form onSubmit={submit} noValidate className="grid gap-12 lg:grid-cols-[1fr_22rem] lg:gap-16">
       <div className="space-y-14">
         {/* 1. PRODUKTY */}
-        <Step number={1} title="Produkty">
+        <Step number={1} title={texts.stepProducts}>
           {removedNames.length > 0 && (
             <p className="mb-4 border border-gold/40 bg-gold/10 px-4 py-3 text-sm">
               Usunęliśmy produkty niedostępne już do rezerwacji: {removedNames.join(', ')}.
@@ -384,21 +395,20 @@ export function ReservationForm({
             ))}
           </ul>
           <Link href="/oferta" className="link-arrow mt-4 inline-block text-[0.75rem]">
-            + Dodaj kolejne produkty
+            {texts.addMore}
           </Link>
         </Step>
 
         {/* 2. ODBIÓR */}
-        <Step number={2} title="Odbiór">
-          <p className="mb-5 text-sm text-stone">
-            Rezerwacje przyjmujemy do {options.cutoffHour}:00 dnia poprzedzającego odbiór,
-            maksymalnie 5 dni do przodu.
-          </p>
+        <Step number={2} title={texts.stepPickup}>
+          {texts.rulesNote && (
+            <p className="mb-5 text-sm text-stone">{fill(texts.rulesNote, ruleTokens(options.rules))}</p>
+          )}
           {days.length === 0 ? (
-            <p className="text-stone">W najbliższych dniach nie ma terminów dostępnych do rezerwacji.</p>
+            <p className="text-stone">{fill(texts.noDates, ruleTokens(options.rules))}</p>
           ) : (
             <div className="space-y-8">
-              <Fieldset legend="Dzień odbioru">
+              <Fieldset legend="Dzień odbioru" required>
                 {/* telefon: jeden rząd kafelków (dzień tygodnia nad datą – najwyżej 5 dni); od tabletu – przyciski w linii */}
                 <div
                   className="grid gap-1.5 sm:flex sm:flex-wrap sm:gap-2"
@@ -435,13 +445,14 @@ export function ReservationForm({
               </Fieldset>
 
               {date && (
-                <Fieldset legend="Punkt odbioru">
+                <Fieldset legend="Punkt odbioru" required>
                   {pointNotice && (
                     <p role="status" className="mb-3 border border-gold/40 bg-gold/10 px-4 py-3 text-sm">
                       {pointNotice}
                     </p>
                   )}
                   <PickupPointPicker
+                    mapEnabled={services.maps}
                     points={points}
                     value={pointKey}
                     onChange={pickPoint}
@@ -452,7 +463,7 @@ export function ReservationForm({
               )}
 
               {date && point && (
-                <Fieldset legend="Godzina odbioru">
+                <Fieldset legend="Godzina odbioru" required>
                   <PickupTimeSelect
                     slots={point.slots}
                     hint={
@@ -470,9 +481,9 @@ export function ReservationForm({
         </Step>
 
         {/* 3. DANE */}
-        <Step number={3} title="Twoje dane">
+        <Step number={3} title={texts.stepDetails}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Label text="Imię" htmlFor="name">
+            <Label text="Imię" htmlFor="name" required>
               <input
                 id="name"
                 className={field}
@@ -480,11 +491,11 @@ export function ReservationForm({
                 onChange={(e) => setName(e.target.value)}
                 autoComplete="given-name"
                 maxLength={50}
-                placeholder="Zawołamy Cię przy odbiorze"
+                placeholder={texts.namePlaceholder}
                 required
               />
             </Label>
-            <Label text="Telefon" htmlFor="phone">
+            <Label text="Telefon" htmlFor="phone" required>
               <input
                 id="phone"
                 className={field}
@@ -496,7 +507,7 @@ export function ReservationForm({
                 required
               />
             </Label>
-            <Label text="E-mail – wyślemy na niego potwierdzenie" htmlFor="email" wide>
+            <Label text={texts.emailLabel} htmlFor="email" wide required>
               <input
                 id="email"
                 type="email"
@@ -556,16 +567,40 @@ export function ReservationForm({
               >
                 polityką prywatności
               </a>
-              .
+              .<Required />
             </span>
           </label>
+
+          {services.emails && (
+            <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-stone">
+              <input
+                type="checkbox"
+                checked={newsletter}
+                onChange={(e) => setNewsletter(e.target.checked)}
+                className="mt-1 size-4 shrink-0 accent-gold"
+              />
+              <span>
+                {/* ta sama treść zgody co w okienku zapisu do newslettera */}
+                Chcę otrzymywać newsletter Chleba Smak na podany adres e-mail. Zgodę mogę wycofać w każdej chwili – link
+                do wypisania jest w każdej wiadomości. Więcej w{' '}
+                <a href="/polityka-prywatnosci" target="_blank" className="text-gold underline-offset-2 hover:underline">
+                  polityce prywatności
+                </a>
+                .
+              </span>
+            </label>
+          )}
+
+          <p className="mt-4 text-xs text-stone">
+            <span className="text-gold">*</span> – pole obowiązkowe
+          </p>
         </Step>
       </div>
 
       {/* PODSUMOWANIE */}
       <aside className="lg:sticky lg:top-[calc(7rem+var(--banner-h))] lg:self-start">
         <div className="border border-line bg-coal p-6">
-          <h2 className="heading text-xl">Podsumowanie</h2>
+          <h2 className="heading text-xl">{texts.summaryTitle}</h2>
           <ul className="mt-5 space-y-2 text-sm">
             {lines.map((i) => (
               <li key={i.productId} className="flex justify-between gap-4">
@@ -610,11 +645,9 @@ export function ReservationForm({
             disabled={submitting}
             className="btn btn-gold mt-6 w-full disabled:opacity-60"
           >
-            {submitting ? 'Wysyłanie…' : 'Zarezerwuj'}
+            {submitting ? 'Wysyłanie…' : texts.submit}
           </button>
-          <p className="mt-3 text-center text-xs text-stone">
-            Płatność gotówką lub kartą przy odbiorze.
-          </p>
+          {texts.paymentNote && <p className="mt-3 text-center text-xs text-stone">{texts.paymentNote}</p>}
         </div>
       </aside>
     </form>
@@ -679,11 +712,21 @@ function PickupTimeSelect({
   );
 }
 
-function Fieldset({ legend, children }: { legend: string; children: React.ReactNode }) {
+/** Gwiazdka pola obowiązkowego (objaśnienie pod zgodami) */
+function Required() {
+  return (
+    <span aria-hidden className="ml-0.5 text-gold">
+      *
+    </span>
+  );
+}
+
+function Fieldset({ legend, children, required }: { legend: string; children: React.ReactNode; required?: boolean }) {
   return (
     <fieldset>
       <legend className="mb-3 font-display text-[0.7rem] uppercase tracking-[0.25em] text-stone">
         {legend}
+        {required && <Required />}
       </legend>
       {children}
     </fieldset>
@@ -694,11 +737,14 @@ function Label({
   text,
   htmlFor,
   wide,
+  required,
   children,
 }: {
   text: string;
   htmlFor: string;
   wide?: boolean;
+  /** pole obowiązkowe – gwiazdka */
+  required?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -708,22 +754,41 @@ function Label({
         className="mb-2 block font-display text-[0.7rem] uppercase tracking-[0.25em] text-stone"
       >
         {text}
+        {required && <Required />}
       </label>
       {children}
     </div>
   );
 }
 
-function ReservationSuccess({ reservation: r }: { reservation: PublicReservation }) {
+function ReservationSuccess({
+  reservation: r,
+  title,
+  newsletter,
+}: {
+  reservation: PublicReservation;
+  title: string;
+  /** zaznaczono zapis do newslettera – przypomnienie o potwierdzeniu */
+  newsletter: boolean;
+}) {
   return (
     <div className="mx-auto max-w-2xl border border-line bg-coal p-8 text-center sm:p-12">
       <span className="mx-auto grid size-14 place-items-center rounded-full bg-gold text-ink">
         <FaCheck size={24} />
       </span>
-      <h2 className="heading mt-6 text-3xl">Rezerwacja przyjęta</h2>
+      <h2 className="heading mt-6 text-3xl">{title}</h2>
       <p className="mt-3 text-stone">
-        Dziękujemy, {r.customerName.split(' ')[0]}! Potwierdzenie wysłaliśmy na{' '}
-        <strong className="text-cream">{r.customerEmail}</strong>.
+        {r.confirmationEmail === false ? (
+          <>
+            Dziękujemy, {r.customerName.split(' ')[0]}! Potwierdzenie e-mailem jest chwilowo niedostępne – zapisz albo
+            zrób zdjęcie numeru rezerwacji poniżej i podaj go przy odbiorze.
+          </>
+        ) : (
+          <>
+            Dziękujemy, {r.customerName.split(' ')[0]}! Potwierdzenie wysłaliśmy na{' '}
+            <strong className="text-cream">{r.customerEmail}</strong>.
+          </>
+        )}
       </p>
       <p className="mt-8 text-sm text-stone">Numer rezerwacji</p>
       <p className="font-display text-3xl tracking-[0.2em] text-gold">{r.number}</p>
@@ -753,6 +818,12 @@ function ReservationSuccess({ reservation: r }: { reservation: PublicReservation
         </p>
       </div>
 
+      {newsletter && (
+        <p className="mt-6 border border-gold/40 bg-gold/10 px-4 py-3 text-sm leading-relaxed text-cream/90">
+          Zapis do newslettera: wysłaliśmy osobny e-mail z linkiem potwierdzającym – kliknij go, a zaczniemy wysyłać
+          wiadomości. Bez potwierdzenia nie wyślemy nic więcej.
+        </p>
+      )}
       <p className="mt-6 text-sm leading-relaxed text-stone">
         Rezerwację możesz anulować do {formatDay(r.cancelDeadline.date)}, {r.cancelDeadline.hour} –
         link znajdziesz w e-mailu.

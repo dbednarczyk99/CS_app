@@ -15,7 +15,8 @@ export const productPath = (p: Pick<Product, 'id' | 'slug'>) => `/oferta/${p.slu
 /** Adres wpisu na stronie – czytelny (slug), a gdy go nie ma – po id */
 export const articlePath = (a: Pick<Article, 'id' | 'slug'>) => `/aktualnosci/${a.slug ?? a.id}`;
 
-const DEFAULT_OG_IMAGE = {
+/** Domyślne zdjęcie podglądu linku (gdy panel nie odpowiada; w panelu: Strona → Podstrony → Elementy wspólne) */
+export const DEFAULT_OG_IMAGE = {
   url: '/images/og-domyslny.jpg',
   width: 1200,
   height: 630,
@@ -28,6 +29,7 @@ const DEFAULT_OG_IMAGE = {
  */
 export function pageMetadata({
   title,
+  homeTitle,
   description,
   path,
   image,
@@ -37,6 +39,8 @@ export function pageMetadata({
 }: {
   /** tytuł podstrony (bez „· Chleba Smak” – dopisuje szablon); null = strona główna */
   title: string | null;
+  /** pełny tytuł strony głównej (z panelu) – gdy title = null */
+  homeTitle?: string;
   description: string;
   path: string;
   image?: { url: string; alt: string };
@@ -44,9 +48,13 @@ export function pageMetadata({
   publishedTime?: string;
   noindex?: boolean;
 }): Metadata {
-  const ogTitle = title ? `${title} · ${SITE_NAME}` : `${SITE_NAME} – piekarnia rzemieślnicza w Krakowie`;
+  const fullHomeTitle = homeTitle ?? `${SITE_NAME} – piekarnia rzemieślnicza w Krakowie`;
+  const ogTitle = title ? `${title} · ${SITE_NAME}` : fullHomeTitle;
+  // wymiary znamy tylko dla zdjęcia wbudowanego; wgrane w panelu – bez (Facebook sam je odczyta)
+  const ogImage = !image || image.url === DEFAULT_OG_IMAGE.url ? { ...DEFAULT_OG_IMAGE, ...(image ?? {}) } : image;
   return {
-    ...(title ? { title } : {}),
+    // strona główna: tytuł bez szablonu „… · Chleba Smak”
+    ...(title ? { title } : homeTitle ? { title: { absolute: homeTitle } } : {}),
     description,
     alternates: { canonical: path },
     ...(noindex ? { robots: { index: false } } : {}),
@@ -57,7 +65,7 @@ export function pageMetadata({
       title: ogTitle,
       description,
       url: path,
-      images: [image ?? DEFAULT_OG_IMAGE],
+      images: [ogImage],
       ...(publishedTime ? { publishedTime } : {}),
     },
   };

@@ -8,6 +8,7 @@ import { fetchGoogleRating, type RatingResult } from './google-rating';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { ServicesService } from '../../settings/services.service';
 import { Prisma } from '@prisma/client';
 import { CreateLocationDto } from './dto/location.dto';
 import { UpdateLocationDto } from './dto/location.dto';
@@ -31,6 +32,7 @@ export class LocationsService implements OnApplicationBootstrap {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly services: ServicesService,
   ) {}
 
   /**
@@ -41,6 +43,17 @@ export class LocationsService implements OnApplicationBootstrap {
   async refreshRating(id: string): Promise<RatingResult | null> {
     const location = await this.prisma.location.findUnique({ where: { id } });
     if (!location?.googlePlaceId) return null;
+    // płatne zapytanie – tylko gdy usługa włączona i poniżej limitu dziennego (Usługi i koszty)
+    if (
+      this.config.get<string>('GOOGLE_PLACES_API_KEY') &&
+      !(await this.services.consume('ratings'))
+    )
+      return {
+        ok: false,
+        reason: 'blocked',
+        message:
+          'Odświeżanie ocen Google jest wyłączone albo wykorzystano dzienny limit (Ustawienia → Usługi i koszty). Strona pokazuje ostatnią zapisaną ocenę.',
+      };
     const result = await fetchGoogleRating(
       location.googlePlaceId,
       this.config.get<string>('GOOGLE_PLACES_API_KEY'),

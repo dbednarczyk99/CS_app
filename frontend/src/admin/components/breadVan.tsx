@@ -1,3 +1,5 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
+import { MobileList } from '../common/MobileList';
 // admin/components/breadVan.tsx
 
 import {
@@ -66,6 +68,7 @@ export const BreadVanDescriptionShow = () => (
 export const BreadVanDescriptionEdit = () => (
   <Edit resource="bread-van/description" id="singleton" title="Chlebowóz – edycja opisu">
     <SimpleForm>
+      <FormUnsavedChanges />
       <TextInput
         source="shortDescription"
         fullWidth
@@ -101,6 +104,11 @@ export const BreadVanScheduleList = () => (
         pojawi się przy nim informacja „Chlebowóz odpoczywa”.
       </Alert>
     </Box>
+    <MobileList
+      primaryText={(s) => s.address}
+      secondaryText={(s) => `${weekdayName(s.dayOfTheWeek)} · ${s.startTime}–${s.endTime}`}
+      rowClick="edit"
+    >
     <Datagrid rowClick="edit">
       <WeekdayTextField source="dayOfTheWeek" label="Dzień tygodnia" />
       <TextField source="startTime" />
@@ -108,12 +116,14 @@ export const BreadVanScheduleList = () => (
       <TextField source="address" />
       <TextField source="googleMapsUrl" />
     </Datagrid>
+    </MobileList>
   </List>
   </>
 );
 
 const ScheduleForm = () => (
   <SimpleForm>
+    <FormUnsavedChanges />
     <SelectInput
       source="dayOfTheWeek"
       choices={weekdayOption}

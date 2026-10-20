@@ -9,6 +9,8 @@ import { ConfigService } from '@nestjs/config';
 import { PickupType, Prisma, ReservationStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MailService, type MailMessage } from '../mail/mail.service';
+import { SettingsService } from '../settings/settings.service';
+import { NewsletterService } from '../newsletter/newsletter.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { currentPrice } from '../products/promo';
 import {
@@ -18,7 +20,6 @@ import {
 } from './reservation-emails';
 import { dailySummaryEmail } from './summary-email';
 import {
-  MAX_ACTIVE_PER_PHONE,
   allowedPickupDates,
   VAN_CODE,
   canCancel,
@@ -39,7 +40,12 @@ const ACTIVE: ReservationStatus[] = [ReservationStatus.NEW];
 const withItems = { items: true } satisfies Prisma.ReservationInclude;
 
 export interface ReservationOptions {
-  cutoffHour: number;
+  /** zasady z panelu: godzina zamknięcia, ile dni do przodu, limit na telefon */
+  rules: {
+    cutoffTime: string;
+    maxDaysAhead: number;
+    maxActivePerPhone: number;
+  };
   dates: string[];
   stores: {
     id: string;
@@ -70,12 +76,15 @@ export class ReservationsService {
     private readonly prisma: PrismaService,
     private readonly mail: MailService,
     private readonly config: ConfigService,
+    private readonly settings: SettingsService,
+    private readonly newsletter: NewsletterService,
   ) {}
 
   /* ---------- strona: dostępne terminy i punkty odbioru ---------- */
 
   async options(): Promise<ReservationOptions> {
-    const dates = allowedPickupDates();
+    const rules = await this.settings.publicRules();
+    const dates = allowedPickupDates(rules);
     const [locations, stops] = await Promise.all([
       this.prisma.location.findMany({ orderBy: { createdAt: 'asc' } }),
       this.prisma.breadVanLocation.findMany(),
@@ -119,12 +128,12 @@ export class ReservationsService {
         })),
     );
 
-    return { cutoffHour: 18, dates, stores, vanStops };
+    return { rules, dates, stores, vanStops };
   }
 
   /* ---------- strona: utworzenie rezerwacji ---------- */
 
-  async create(dto: CreateReservationDto) {
+  async create(dto: CreateReservationDto, ip = '') {
     if (dto.website)
       throw new BadRequestException('Nie udało się złożyć rezerwacji');
 
@@ -138,8 +147,9 @@ export class ReservationsService {
       !isValidDateString(dto.pickupDate) ||
       !options.dates.includes(dto.pickupDate)
     ) {
+      const { cutoffTime, maxDaysAhead } = options.rules;
       throw new BadRequestException(
-        'Ten termin nie jest już dostępny – rezerwacje przyjmujemy do 18:00 dnia poprzedzającego odbiór, maksymalnie 5 dni do przodu',
+        `Ten termin nie jest już dostępny – rezerwacje przyjmujemy do ${cutoffTime} dnia poprzedzającego odbiór, maksymalnie ${maxDaysAhead} ${maxDaysAhead === 1 ? 'dzień' : 'dni'} do przodu`,
       );
     }
 
@@ -202,7 +212,7 @@ export class ReservationsService {
         pickupDate: { gte: warsawNow().date },
       },
     });
-    if (active >= MAX_ACTIVE_PER_PHONE) {
+    if (active >= options.rules.maxActivePerPhone) {
       throw new ConflictException(
         `Na ten numer są już ${active} aktywne rezerwacje. Skontaktuj się z piekarnią, jeśli potrzebujesz więcej.`,
       );
@@ -236,11 +246,29 @@ export class ReservationsService {
       items: { create: items },
     });
 
+    // zaznaczony zapis do newslettera – jak w okienku zapisu (podwójna zgoda: e-mail z linkiem potwierdzającym);
+    // błąd zapisu (np. limit prób) nie może zablokować rezerwacji
+    if (dto.newsletter)
+      this.newsletter
+        .subscribe(
+          { email: dto.customerEmail.trim().toLowerCase(), consent: true },
+          ip,
+        )
+        .catch((error) =>
+          console.error(
+            'Nie udało się zapisać do newslettera z rezerwacji',
+            error,
+          ),
+        );
+
+    // czy potwierdzenie wyjdzie (Usługi i koszty) – strona pokaże wtedy „zapisz numer rezerwacji”
+    const confirmationEmail = await this.mail.available();
+
     void this.sendEmail(
       (ctx) => reservationConfirmationEmail(reservation, ctx),
       reservation,
     );
-    return this.publicView(reservation);
+    return { ...(await this.publicView(reservation)), confirmationEmail };
   }
 
   /**
@@ -309,12 +337,13 @@ export class ReservationsService {
     const reservation = await this.findByToken(token);
     if (reservation.status === ReservationStatus.CANCELLED)
       return this.publicView(reservation);
+    const { cutoffTime } = await this.settings.reservations();
     if (
       !ACTIVE.includes(reservation.status) ||
-      !canCancel(reservation.pickupDate)
+      !canCancel(reservation.pickupDate, cutoffTime)
     ) {
       throw new BadRequestException(
-        'Tej rezerwacji nie można już anulować – termin minął o 18:00 dnia poprzedzającego odbiór. Zadzwoń do piekarni.',
+        `Tej rezerwacji nie można już anulować – termin minął o ${cutoffTime} dnia poprzedzającego odbiór. Zadzwoń do piekarni.`,
       );
     }
     const cancelled = await this.prisma.reservation.update({
@@ -330,9 +359,10 @@ export class ReservationsService {
   }
 
   /** Dane widoczne dla klienta – bez wewnętrznych identyfikatorów i tokenu */
-  private publicView(
+  private async publicView(
     r: Awaited<ReturnType<ReservationsService['findByToken']>>,
   ) {
+    const { cutoffTime } = await this.settings.reservations();
     return {
       number: r.number,
       status: r.status,
@@ -348,8 +378,9 @@ export class ReservationsService {
         unitPrice: i.unitPrice,
         quantity: i.quantity,
       })),
-      canCancel: ACTIVE.includes(r.status) && canCancel(r.pickupDate),
-      cancelDeadline: cancelDeadline(r.pickupDate),
+      canCancel:
+        ACTIVE.includes(r.status) && canCancel(r.pickupDate, cutoffTime),
+      cancelDeadline: cancelDeadline(r.pickupDate, cutoffTime),
     };
   }
 
@@ -463,24 +494,43 @@ export class ReservationsService {
     };
   }
 
-  /** Mail z zestawieniem na dany dzień (domyślnie na adres SUMMARY_EMAIL, potem e-mail kontaktowy) */
+  /**
+   * Mail z zestawieniem na dany dzień – na podany adres albo na adresy z ustawień zasad rezerwacji
+   * (a gdy ich brak – na e-mail z „Dane kontaktowe”)
+   */
   async sendDailySummary(date: string, to?: string) {
-    const recipient =
-      to ||
-      this.config.get<string>('SUMMARY_EMAIL') ||
-      (await this.prisma.contactInfo.findFirst({ where: { type: 'EMAIL' } }))
-        ?.value;
-    if (!recipient)
-      throw new BadRequestException('Brak adresu odbiorcy (SUMMARY_EMAIL)');
+    const settings = await this.settings.reservations();
+    const recipients = to
+      ? [to]
+      : settings.summaryEmails.length
+        ? settings.summaryEmails
+        : [
+            (
+              await this.prisma.contactInfo.findFirst({
+                where: { type: 'EMAIL' },
+              })
+            )?.value,
+          ].filter((e): e is string => !!e);
+    if (!recipients.length)
+      throw new BadRequestException(
+        'Brak adresu odbiorcy – dodaj go w Rezerwacje → Zasady rezerwacji',
+      );
     const summary = await this.summary(date);
     const adminUrl =
       this.config.get<string>('ADMIN_URL') ??
       'http://localhost:5173/#/przygotowanie';
-    this.mail.send(
-      dailySummaryEmail(summary, recipient, adminUrl, this.webUrl()),
-    );
+    for (const recipient of recipients)
+      this.mail.send(
+        dailySummaryEmail(
+          summary,
+          recipient,
+          adminUrl,
+          this.webUrl(),
+          settings.cutoffTime,
+        ),
+      );
     return {
-      sentTo: recipient,
+      sentTo: recipients.join(', '),
       date,
       reservationsCount: summary.reservationsCount,
     };
@@ -566,6 +616,7 @@ export class ReservationsService {
     ];
     return {
       webUrl: this.webUrl(),
+      cutoffTime: (await this.settings.reservations()).cutoffTime,
       pointPhone: location?.phone ?? null,
       vanHours: stop ? `${stop.startTime}–${stop.endTime}` : null,
       navigateUrl,

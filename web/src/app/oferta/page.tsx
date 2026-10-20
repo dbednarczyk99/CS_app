@@ -1,18 +1,14 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import { FaCheck, FaChevronDown, FaXmark } from 'react-icons/fa6';
 import { DropdownPanel } from '@/components/DropdownPanel';
+import { FitOrCollapse } from '@/components/FitOrCollapse';
 import { PageHeader } from '@/components/PageHeader';
 import { ProductCard } from '@/components/ProductCard';
 import { api, orFallback, type Product } from '@/lib/api';
 import { isAvailable, isOutOfSeason, labelFilters } from '@/lib/products';
-import { pageMetadata } from '@/lib/site';
+import { getContent, seoMetadata } from '@/lib/content';
 
-export const metadata: Metadata = pageMetadata({
-  title: 'Oferta',
-  description: 'Chleby na zakwasie, słodkie wypieki, kanapki i lody rzemieślnicze z piekarni Chleba Smak w Krakowie.',
-  path: '/oferta',
-});
+export const generateMetadata = () => seoMetadata('seo.offer', { path: '/oferta' });
 
 /** Adres oferty z filtrami (kategorie + wyróżnione), oba z wielokrotnym wyborem */
 function offerHref(kategorie: string[], etykiety: string[]) {
@@ -32,7 +28,10 @@ export default async function OfferPage({
   searchParams: Promise<{ kategorie?: string; kategoria?: string; etykiety?: string; sezonowe?: string }>;
 }) {
   const params = await searchParams;
-  const all = (await orFallback(api.products(), [])).filter((p) => p.isActive);
+  const [allProducts, content] = await Promise.all([orFallback(api.products(), []), getContent()]);
+  const all = allProducts.filter((p) => p.isActive);
+  // nagłówek – z panelu (Strona → Podstrony → Oferta)
+  const header = content['offer.header'];
   const products = all.filter(isAvailable);
 
   // kategorie z produktów (kolejność pierwszego wystąpienia) – nowa kategoria z panelu pojawia się sama,
@@ -94,7 +93,7 @@ export default async function OfferPage({
     })),
   ];
 
-  // wspólny wygląd przycisku i panelu rozwijanych filtrów (telefon/tablet)
+  // wspólny wygląd przycisku i panelu rozwijanych filtrów
   const dropdownButton = (on: boolean) =>
     `flex h-10 items-center gap-2 border px-3.5 font-display text-[0.7rem] uppercase tracking-[0.2em] ${
       on ? 'border-gold bg-gold/10 text-gold' : 'border-line text-cream/85'
@@ -126,6 +125,31 @@ export default async function OfferPage({
     </Link>
   );
 
+  // rozwijana lista kategorii – telefon/tablet zawsze, komputer gdy zakładki się nie mieszczą
+  const categoryDropdown = (className: string) => (
+    <DropdownPanel
+      className={className}
+      summaryClassName={dropdownButton(activeIds.length > 0)}
+      summary={
+        <>
+          <span className="truncate">{activeCategories.length === 1 ? activeCategories[0].name : 'Kategorie'}</span>
+          {activeCategories.length > 1 && countBadge(activeCategories.length)}
+          {chevron}
+        </>
+      }
+    >
+      <div className={`${dropdownPanel} left-0`}>
+        <ul className="scrollbar-subtle max-h-[60svh] overflow-y-auto">
+          {categoryOptions.map((option) => (
+            <li key={option.id || 'wszystkie'}>
+              {checkboxRow({ ...option, label: option.name, dimmed: option.count === 0 })}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </DropdownPanel>
+  );
+
   const categoryChip = (selected: boolean) =>
     `block shrink-0 whitespace-nowrap border px-4 py-2 font-display text-[0.75rem] uppercase tracking-[0.2em] transition-colors ${
       selected ? 'border-gold bg-gold text-ink' : 'border-line text-cream/85 hover:border-gold hover:text-gold'
@@ -133,9 +157,8 @@ export default async function OfferPage({
 
   return (
     <>
-      <PageHeader eyebrow="Oferta" title="Nasze wypieki" image="/images/chleb-deska.jpg">
-        Pieczywo i wypieki dostępne w naszych piekarniach. Asortyment zmienia się z porami roku –
-        wypieki sezonowe dostępne teraz mają znaczek „Teraz dostępne”.
+      <PageHeader eyebrow={header.eyebrow} title={header.title} image={header.image.url}>
+        {header.text || null}
       </PageHeader>
 
       {/* Filtry – przyklejone pod nagłówkiem strony: kategoria + wyróżnione (etykiety) */}
@@ -144,30 +167,29 @@ export default async function OfferPage({
         className="sticky top-[calc(4.5rem+var(--banner-h))] z-30 border-y border-line bg-ink/90 backdrop-blur-md sm:top-[calc(5rem+var(--banner-h))]"
       >
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-5 py-3 sm:px-8">
-          {/* telefon/tablet: dwa rozwijane panele z kwadratowymi polami – kategorie i wyróżnione (wiele naraz) */}
-          <div className="flex min-w-0 flex-1 items-center gap-2 lg:hidden">
-            <DropdownPanel
-              className="min-w-0 flex-1"
-              summaryClassName={dropdownButton(activeIds.length > 0)}
-              summary={
-                <>
-                  <span className="truncate">{activeCategories.length === 1 ? activeCategories[0].name : 'Kategorie'}</span>
-                  {activeCategories.length > 1 && countBadge(activeCategories.length)}
-                  {chevron}
-                </>
-              }
-            >
-              <div className={`${dropdownPanel} left-0`}>
-                <ul className="scrollbar-subtle max-h-[60svh] overflow-y-auto">
-                  {categoryOptions.map((option) => (
-                    <li key={option.id || 'wszystkie'}>
-                      {checkboxRow({ ...option, label: option.name, dimmed: option.count === 0 })}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </DropdownPanel>
-            {labelOptions.length > 0 && (
+          {/* kategorie – telefon/tablet: rozwijana lista; komputer: zakładki, a gdy przestają się mieścić – też lista */}
+          <div className="flex min-w-0 flex-1 lg:hidden">{categoryDropdown('min-w-0 flex-1')}</div>
+          <FitOrCollapse className="hidden flex-1 lg:block" collapsed={categoryDropdown('w-72 max-w-full')}>
+            <ul aria-label="Kategorie" className="flex gap-2">
+              {categoryOptions.map((option) => (
+                <li key={option.id || 'wszystko'}>
+                  <Link
+                    href={option.href}
+                    scroll={false}
+                    aria-pressed={option.selected}
+                    className={categoryChip(option.selected)}
+                  >
+                    {option.id ? option.name : 'Wszystko'}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </FitOrCollapse>
+
+          {/* wyróżnione (etykiety) – na każdym ekranie rozwijana lista z kwadratowymi polami (wiele naraz) */}
+          {labelOptions.length > 0 && (
+            <>
+              <div aria-hidden className="hidden h-7 w-px shrink-0 bg-line lg:block" />
               <DropdownPanel
                 className="shrink-0"
                 summaryClassName={dropdownButton(labels.length > 0)}
@@ -196,54 +218,6 @@ export default async function OfferPage({
                   )}
                 </div>
               </DropdownPanel>
-            )}
-          </div>
-
-          {/* komputer: przewijany rząd zakładek, krawędzie wygaszone */}
-          <ul
-            aria-label="Kategorie"
-            className="hidden min-w-0 flex-1 gap-2 overflow-x-auto [mask-image:linear-gradient(to_right,black_calc(100%-3rem),transparent)] [scrollbar-width:none] lg:flex"
-          >
-            {categoryOptions.map((option) => (
-              <li key={option.id || 'wszystko'}>
-                <Link
-                  href={option.href}
-                  scroll={false}
-                  aria-pressed={option.selected}
-                  className={categoryChip(option.selected)}
-                >
-                  {option.id ? option.name : 'Wszystko'}
-                </Link>
-              </li>
-            ))}
-            {/* miejsce na wygaszenie krawędzi */}
-            <li aria-hidden className="w-10 shrink-0" />
-          </ul>
-
-          {/* komputer: przełączniki wyróżnionych (etykiet) obok kategorii */}
-          {labelOptions.length > 0 && (
-            <>
-              <div aria-hidden className="hidden h-7 w-px shrink-0 bg-line lg:block" />
-              <ul aria-label="Wyróżnione" className="hidden shrink-0 gap-2 lg:flex">
-                {labelOptions.map((option) => (
-                  <li key={option.key}>
-                    <Link
-                      href={option.href}
-                      scroll={false}
-                      aria-pressed={option.selected}
-                      className={`flex h-10 items-center gap-2 whitespace-nowrap border px-3.5 font-display text-[0.7rem] uppercase tracking-[0.2em] transition-colors ${
-                        option.selected
-                          ? 'border-gold bg-gold/10 text-gold'
-                          : 'border-line text-cream/80 hover:border-gold/60 hover:text-gold'
-                      }`}
-                    >
-                      {option.selected && <FaCheck size={10} aria-hidden />}
-                      {option.label}
-                      <span className={option.selected ? 'text-gold/70' : 'text-stone'}>{option.count}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
             </>
           )}
 

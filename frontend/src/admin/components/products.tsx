@@ -1,3 +1,5 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
+import { MobileList } from '../common/MobileList';
 import {
   List,
   Datagrid,
@@ -21,6 +23,7 @@ import {
 import { useState } from 'react';
 import { Alert, Box, Typography } from '@mui/material';
 import { useWatch } from 'react-hook-form';
+import { IMAGE_PRESETS } from '../common/image-presets';
 import SortableImageInput from '../common/SortableImageInput';
 import { LabelChip } from './labels';
 import { SiteAddress } from '../common/SiteAddress';
@@ -187,7 +190,7 @@ const LabelInputs = () => (
       <CheckboxGroupInput
         label={false}
         optionText={(l: { name: string; color: string }) => <LabelChip name={l.name} color={l.color} />}
-        helperText="Produkty z etykietą są pokazywane w pierwszej kolejności na stronie głównej. Nową etykietę dodasz w zakładce Oferta → Etykiety."
+        helperText="Produkty z etykietą są pokazywane w pierwszej kolejności na stronie głównej. Nową etykietę dodasz w zakładce Oferta → Kategorie i etykiety."
       />
     </ReferenceArrayInput>
   </>
@@ -211,7 +214,7 @@ const PromoInputs = () => {
         source="isPromo"
         label="Promocja"
         defaultValue={false}
-        helperText="Etykieta promocji na stronie i filtr w ofercie – w wybranym okresie (nazwę i kolor etykiety zmienisz w Oferta → Etykiety)"
+        helperText="Etykieta promocji na stronie i filtr w ofercie – w wybranym okresie (nazwę i kolor etykiety zmienisz w Oferta → Kategorie i etykiety)"
       />
       {values.isPromo && (
         <>
@@ -239,6 +242,13 @@ const PromoInputs = () => {
 
 export const ProductList = () => (
   <List title="Produkty">
+    <MobileList
+      primaryText={(p) => p.name}
+      secondaryText={(p) => [formatPrice(p.price), p.category?.name, promoState(p)?.text && `promocja: ${promoState(p)?.text}`, p.isActive === false && 'ukryty na stronie'].filter(Boolean).join(' · ')}
+      leftAvatar={(p) => p.images?.[0]?.src}
+      rowSx={(p) => (p.isActive === false ? { opacity: 0.55 } : {})}
+      rowClick="edit"
+    >
     <Datagrid rowClick="edit">
       <TextField source="name" />
       <NumberField source="price" locales="pl-PL" options={{ style: "currency", currency: "PLN" }} />
@@ -283,12 +293,14 @@ export const ProductList = () => (
         render={(p: ProductRecord) => <ScheduleCell product={p} />}
       />
     </Datagrid>
+    </MobileList>
   </List>
 );
 
 export const ProductCreate = () => (
   <Create title="Nowy produkt">
     <SimpleForm>
+      <FormUnsavedChanges />
       <TextInput source="name" validate={[required()]} />
       <NumberInput source="price" validate={[required()]} />
       <TextInput source="description" validate={[required()]} multiline />
@@ -325,7 +337,7 @@ export const ProductCreate = () => (
         <SelectInput optionText="name" validate={[required()]} />
       </ReferenceInput>
 
-      <SortableImageInput source="images" validate={true} maxQty={3} />
+      <SortableImageInput source="images" validate={true} maxQty={3} preset={IMAGE_PRESETS.product} />
     </SimpleForm>
   </Create>
 );
@@ -333,6 +345,7 @@ export const ProductCreate = () => (
 export const ProductEdit = () => (
   <Edit>
     <SimpleForm>
+      <FormUnsavedChanges />
       <TextInput source="name" validate={[required()]} />
       <SiteAddress section="oferta" />
       <NumberInput source="price" validate={[required()]} />
@@ -353,7 +366,7 @@ export const ProductEdit = () => (
         <SelectInput optionText="name" validate={[required()]} />
       </ReferenceInput>
 
-      <SortableImageInput source="images" validate={true} maxQty={3} />
+      <SortableImageInput source="images" validate={true} maxQty={3} preset={IMAGE_PRESETS.product} />
     </SimpleForm>
   </Edit>
 );

@@ -5,6 +5,7 @@ import { NewsletterDialog } from '@/components/Newsletter';
 import { PageViewTracker } from '@/components/PageViewTracker';
 import { Header } from '@/components/Header';
 import { api, orFallback } from '@/lib/api';
+import { getContent } from '@/lib/content';
 import { ReservationCartProvider } from '@/lib/reservation-cart';
 import { JsonLd } from '@/components/JsonLd';
 import { SITE_NAME, SITE_URL } from '@/lib/site';
@@ -53,9 +54,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [announcements, media] = await Promise.all([
+  const [announcements, media, content] = await Promise.all([
     orFallback(api.announcements(), []),
     orFallback(api.media(), []),
+    getContent(),
   ]);
 
   return (
@@ -75,7 +77,7 @@ export default async function RootLayout({
           <main id="tresc">{children}</main>
           <Footer />
           {/* okienko zapisu do newslettera – jedno dla całej strony */}
-          <NewsletterDialog />
+          <NewsletterDialog texts={content['common.newsletter']} />
           <PageViewTracker />
         </ReservationCartProvider>
       </body>

@@ -1,5 +1,5 @@
 import { Admin, Resource, CustomRoutes } from 'react-admin';
-import { Route } from 'react-router-dom';
+import { Route, Navigate } from 'react-router-dom';
 
 import { dataProvider } from './dataProvider';
 import { authProvider } from './authProvider';
@@ -26,6 +26,13 @@ import HelpPage from './admin/pages/HelpPage';
 import PreparationPage from './admin/pages/PreparationPage';
 import AccountPage from './admin/pages/AccountPage';
 import StatsPage from './admin/pages/StatsPage';
+import HomeContentPage from './admin/content/HomeContentPage';
+import PagesContentPage from './admin/content/PagesContentPage';
+import ReservationRulesPage from './admin/pages/ReservationRulesPage';
+import LegalDocumentsPage from './admin/pages/LegalDocumentsPage';
+import ScheduledPage from './admin/pages/ScheduledPage';
+import ServicesPage from './admin/pages/ServicesPage';
+import { HeroSlideCreate, HeroSlideEdit, HeroSlideList } from './admin/content/heroSlides';
 import { UserCreate, UserEdit, UserList } from './admin/components/users';
 import { ReservationList, ReservationShow } from './admin/components/reservations';
 import { AdminLayout } from './admin/common/AdminLayout';
@@ -35,7 +42,7 @@ import { AnnouncementCreate, AnnouncementEdit, AnnouncementList } from './admin/
 import { NewsletterList } from './admin/components/newsletter';
 
 // nazwy sekcji i pól są w i18n.ts; recordRepresentation = jak rekord nazywa się w tytułach („Produkt: Jagodzianka”).
-// Rezerwacje, lista subskrybentów i konta tylko dla właściciela (ADMIN) – serwer pilnuje tego niezależnie.
+// Rezerwacje, zasady rezerwacji, dokumenty prawne i konta tylko dla administratora (ADMIN) – serwer pilnuje tego niezależnie.
 function App() {
   return (
     <Admin
@@ -58,7 +65,14 @@ function App() {
               <Route path="/help" element={<HelpPage />} />
               <Route path="/konto" element={<AccountPage />} />
               {isOwner && <Route path="/przygotowanie" element={<PreparationPage />} />}
+              {isOwner && <Route path="/ustawienia/rezerwacje" element={<ReservationRulesPage />} />}
+              {isOwner && <Route path="/ustawienia/uslugi" element={<ServicesPage />} />}
+              {isOwner && <Route path="/ustawienia/dokumenty/:doc?" element={<LegalDocumentsPage />} />}
               <Route path="/statystyki" element={<StatsPage />} />
+              <Route path="/marketing/zaplanowane" element={<ScheduledPage />} />
+              <Route path="/strona/glowna" element={<HomeContentPage />} />
+              <Route path="/strona/podstrony/:tab?" element={<PagesContentPage />} />
+              <Route path="/strona/wspolne" element={<Navigate to="/strona/podstrony/wspolne" replace />} />
             </CustomRoutes>
             {isOwner && (
               <Resource
@@ -87,6 +101,13 @@ function App() {
               list={LabelList}
               create={LabelCreate}
               edit={LabelEdit}
+              recordRepresentation="name"
+            />
+            <Resource
+              name="content/hero-slides"
+              list={HeroSlideList}
+              create={HeroSlideCreate}
+              edit={HeroSlideEdit}
               recordRepresentation="name"
             />
             <Resource
@@ -126,7 +147,7 @@ function App() {
               edit={AnnouncementEdit}
               recordRepresentation="message"
             />
-            {isOwner && <Resource name="newsletter" list={NewsletterList} recordRepresentation="email" />}
+            <Resource name="newsletter" list={NewsletterList} recordRepresentation="email" />
             {isOwner && (
               <Resource
                 name="users"

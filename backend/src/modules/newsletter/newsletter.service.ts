@@ -6,6 +6,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
@@ -42,6 +43,11 @@ export class NewsletterService {
 
   async subscribe(dto: SubscribeDto, ip: string) {
     if (dto.website) return { ok: true }; // bot – udajemy sukces
+    // bez e-maili nie wyślemy linku potwierdzającego – zapis wstrzymany (Usługi i koszty)
+    if (!(await this.mail.available()))
+      throw new ServiceUnavailableException(
+        'Zapisy do newslettera są chwilowo wstrzymane. Spróbuj ponownie później.',
+      );
 
     const now = Date.now();
     while (this.attempts.length && now - this.attempts[0].at > WINDOW_MS)
@@ -107,6 +113,9 @@ export class NewsletterService {
    * przez newsletterSentAt chroni przed podwójną wysyłką przy szybkich zapisach).
    */
   async sendArticle(articleId: string) {
+    // e-maile wyłączone / limit dzienny – wpis czeka (bez oznaczenia jako wysłany); wysyłka co minutę
+    // sprawdza zaległe zaplanowane wpisy, a pozostałe wyślą się po ponownym zapisaniu wpisu
+    if (!(await this.mail.available())) return;
     const claimed = await this.prisma.article.updateMany({
       // zaplanowany wpis – dopiero po czasie publikacji
       where: {

@@ -28,20 +28,29 @@ export class ContactMessagesService {
     private readonly mail: MailService,
   ) {}
 
-  send(dto: ContactMessageDto, ip: string) {
+  async send(dto: ContactMessageDto, ip: string) {
     // bot wypełnił ukryte pole – udajemy sukces, nic nie wysyłamy
     if (dto.website) return { ok: true };
 
+    // e-maile wyłączone w „Usługi i koszty” albo limit dzienny – formularz nie zadziała
+    if (!(await this.mail.available()))
+      throw new ServiceUnavailableException(
+        'Formularz jest chwilowo niedostępny. Zadzwoń do nas albo napisz bezpośrednio na adres e-mail podany obok.',
+      );
+
     const to = this.config.get<string>('CONTACT_EMAIL');
     if (!to) {
-      this.logger.warn('CONTACT_EMAIL nie jest ustawiony – wiadomość z formularza nie została wysłana');
+      this.logger.warn(
+        'CONTACT_EMAIL nie jest ustawiony – wiadomość z formularza nie została wysłana',
+      );
       throw new ServiceUnavailableException(
         'Formularz jest chwilowo niedostępny. Napisz do nas e-mailem lub zadzwoń.',
       );
     }
 
     const now = Date.now();
-    while (this.sent.length && now - this.sent[0].at > WINDOW_MS) this.sent.shift();
+    while (this.sent.length && now - this.sent[0].at > WINDOW_MS)
+      this.sent.shift();
     if (
       this.sent.length >= GLOBAL_LIMIT ||
       this.sent.filter((s) => s.ip === ip).length >= PER_IP_LIMIT
@@ -53,7 +62,8 @@ export class ContactMessagesService {
     }
     this.sent.push({ ip, at: now });
 
-    const webUrl = this.config.get<string>('WEB_URL') ?? 'http://localhost:3001';
+    const webUrl =
+      this.config.get<string>('WEB_URL') ?? 'http://localhost:3001';
     this.mail.send(contactMessageEmail(dto, to, webUrl));
     return { ok: true };
   }

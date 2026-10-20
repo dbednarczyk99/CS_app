@@ -26,7 +26,7 @@ Obowiązuje od: [[DATA WEJŚCIA W ŻYCIE]]
 5. **Chlebowóz** – pojazd Usługodawcy sprzedający pieczywo w stałych miejscach i godzinach, zgodnie z harmonogramem publikowanym w zakładce „Chlebowóz”.
 6. **Formularz** – formularz rezerwacji dostępny w Serwisie w zakładce „Rezerwacja”.
 7. **Numer Rezerwacji** – indywidualny numer nadawany Rezerwacji, przekazywany Klientowi na ekranie i w wiadomości e-mail.
-8. **Termin Graniczny** – godzina 18:00 dnia poprzedzającego dzień odbioru Rezerwacji (czas polski).
+8. **Termin Graniczny** – godzina {godzina} dnia poprzedzającego dzień odbioru Rezerwacji (czas polski).
 9. **Dzień** – dzień kalendarzowy.
 
 ## § 3. Rodzaje i zakres usług świadczonych drogą elektroniczną
@@ -60,10 +60,10 @@ Obowiązuje od: [[DATA WEJŚCIA W ŻYCIE]]
    5. opcjonalnie – uwag do Rezerwacji,
 
    oraz zaakceptowaniu Regulaminu i potwierdzeniu zapoznania się z Polityką prywatności.
-2. Rezerwację na dany dzień można złożyć najpóźniej do Terminu Granicznego, tj. do godziny 18:00 dnia poprzedzającego dzień odbioru. Rezerwację można złożyć z wyprzedzeniem nie większym niż 5 Dni.
+2. Rezerwację na dany dzień można złożyć najpóźniej do Terminu Granicznego, tj. do godziny {godzina} dnia poprzedzającego dzień odbioru. Rezerwację można złożyć z wyprzedzeniem nie większym niż {dni}.
 3. Odbiór w piekarni jest możliwy wyłącznie w dniach i godzinach jej otwarcia. Odbiór z Chlebowozu jest możliwy wyłącznie w dniu i przedziale godzin postoju na wybranym przystanku, zgodnie z harmonogramem.
 4. Do rezerwacji dostępne są wyłącznie Produkty oznaczone w Serwisie jako dostępne do rezerwacji. Niektóre Produkty (np. lody, napoje) dostępne są wyłącznie do zakupu na miejscu.
-5. Liczba sztuk jednego Produktu w Rezerwacji nie może przekroczyć 50. Na jeden numer telefonu mogą jednocześnie przypadać najwyżej 3 aktywne (nieodebrane i nieanulowane) Rezerwacje. W przypadku potrzeby złożenia większego zamówienia Klient proszony jest o kontakt telefoniczny z piekarnią.
+5. Liczba sztuk jednego Produktu w Rezerwacji nie może przekroczyć 50. Na jeden numer telefonu mogą jednocześnie przypadać najwyżej {limit} aktywne (nieodebrane i nieanulowane) Rezerwacje. W przypadku potrzeby złożenia większego zamówienia Klient proszony jest o kontakt telefoniczny z piekarnią.
 6. Po prawidłowym wypełnieniu Formularza i kliknięciu przycisku „Zarezerwuj” Rezerwacja zostaje przyjęta, o czym Klient jest informowany na ekranie oraz w wiadomości e-mail zawierającej Numer Rezerwacji, Punkt Odbioru, termin odbioru, wykaz Produktów, kwotę do zapłaty oraz link umożliwiający anulowanie Rezerwacji.
 7. Złożenie Rezerwacji jest nieodpłatne i nie wymaga zakładania konta.
 8. [[DO WERYFIKACJI PRZEZ PRAWNIKA – charakter prawny Rezerwacji:]] Rezerwacja stanowi zobowiązanie Usługodawcy do przygotowania i przechowania Produktów do odbioru w wybranym Punkcie Odbioru i terminie. Umowa sprzedaży Produktów zostaje zawarta w Punkcie Odbioru, w chwili ich wydania i zapłaty ceny. Rezerwacja nie zobowiązuje Klienta do zapłaty, a jej nieodebranie nie rodzi po stronie Klienta obowiązku zapłaty ani odszkodowania, z zastrzeżeniem § 7 ust. 3.
@@ -84,7 +84,7 @@ Obowiązuje od: [[DATA WEJŚCIA W ŻYCIE]]
 
 ## § 8. Anulowanie i zmiana Rezerwacji przez Klienta
 
-1. Klient może bezpłatnie anulować Rezerwację do Terminu Granicznego (godz. 18:00 dnia poprzedzającego odbiór) za pomocą linku przesłanego w wiadomości e-mail potwierdzającej Rezerwację. Anulowanie zostaje potwierdzone wiadomością e-mail.
+1. Klient może bezpłatnie anulować Rezerwację do Terminu Granicznego (godz. {godzina} dnia poprzedzającego odbiór) za pomocą linku przesłanego w wiadomości e-mail potwierdzającej Rezerwację. Anulowanie zostaje potwierdzone wiadomością e-mail.
 2. Po upływie Terminu Granicznego anulowanie Rezerwacji przez Serwis nie jest możliwe. Klient, który nie może odebrać Rezerwacji, proszony jest o kontakt telefoniczny z Punktem Odbioru.
 3. Zmiana Rezerwacji (Produktów, ilości, Punktu Odbioru lub terminu) odbywa się poprzez anulowanie dotychczasowej Rezerwacji i złożenie nowej, z zachowaniem terminów określonych w § 5 ust. 2.
 

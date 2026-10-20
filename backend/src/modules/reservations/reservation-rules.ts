@@ -1,12 +1,12 @@
 import { Weekday } from '@prisma/client';
+import { toMinutes } from '../settings/reservation-settings';
 
-/** Zasady rezerwacji (docs/ZALOZENIA.md) */
-export const CUTOFF_HOUR = 18; // rezerwacja i anulowanie do 18:00 dnia poprzedzającego odbiór
-export const MAX_DAYS_AHEAD = 5; // najdalej 5 dni do przodu
-export const MAX_ACTIVE_PER_PHONE = 3;
+/**
+ * Zasady rezerwacji (docs/ZALOZENIA.md). Godzina zamknięcia, liczba dni i limit na telefon – z panelu
+ * (Rezerwacje → Zasady rezerwacji, SettingsService); tu tylko obliczenia.
+ */
 export const DEFAULT_STORE_HOURS: [string, string] = ['07:00', '18:00'];
 const SLOT_MINUTES = 30;
-
 
 const TIME_ZONE = 'Europe/Warsaw';
 const WEEKDAYS: Weekday[] = [
@@ -62,28 +62,47 @@ export function isValidDateString(value: string): boolean {
   );
 }
 
-/** Daty odbioru, na które można teraz rezerwować */
-export function allowedPickupDates(now = new Date()): string[] {
-  const { date: today, hour } = warsawNow(now);
-  const first = hour < CUTOFF_HOUR ? 1 : 2;
+/** Czy teraz (czas polski) jest przed godziną zamknięcia „HH:MM” */
+function beforeCutoff(cutoffTime: string, now: Date): boolean {
+  const { hour, minute } = warsawNow(now);
+  return hour * 60 + minute < toMinutes(cutoffTime);
+}
+
+/** Daty odbioru, na które można teraz rezerwować (od jutra – albo pojutrza po zamknięciu – do maxDaysAhead) */
+export function allowedPickupDates(
+  rules: { cutoffTime: string; maxDaysAhead: number },
+  now = new Date(),
+): string[] {
+  const { date: today } = warsawNow(now);
+  const first = beforeCutoff(rules.cutoffTime, now) ? 1 : 2;
   const dates: string[] = [];
-  for (let i = first; i <= MAX_DAYS_AHEAD; i++) dates.push(addDays(today, i));
+  for (let i = first; i <= rules.maxDaysAhead; i++)
+    dates.push(addDays(today, i));
   return dates;
 }
 
-/** Czy rezerwację na dany dzień można jeszcze anulować (do 18:00 dnia poprzedniego) */
-export function canCancel(pickupDate: string, now = new Date()): boolean {
-  const { date: today, hour } = warsawNow(now);
+/** Czy rezerwację na dany dzień można jeszcze anulować (do godziny zamknięcia dnia poprzedniego) */
+export function canCancel(
+  pickupDate: string,
+  cutoffTime: string,
+  now = new Date(),
+): boolean {
+  const { date: today } = warsawNow(now);
   const dayBefore = addDays(pickupDate, -1);
-  return today < dayBefore || (today === dayBefore && hour < CUTOFF_HOUR);
+  return (
+    today < dayBefore || (today === dayBefore && beforeCutoff(cutoffTime, now))
+  );
 }
 
 /** Termin anulowania, np. „środa 21.10, 18:00” – do treści maili i strony */
-export function cancelDeadline(pickupDate: string): {
+export function cancelDeadline(
+  pickupDate: string,
+  cutoffTime: string,
+): {
   date: string;
   hour: string;
 } {
-  return { date: addDays(pickupDate, -1), hour: `${CUTOFF_HOUR}:00` };
+  return { date: addDays(pickupDate, -1), hour: cutoffTime };
 }
 
 type OpeningHours = Record<
@@ -108,10 +127,6 @@ export function storeHoursOn(
   return from && to ? [from, to] : null;
 }
 
-const toMinutes = (hhmm: string) => {
-  const [h, m] = hhmm.split(':').map(Number);
-  return h * 60 + (m || 0);
-};
 const toHHMM = (minutes: number) =>
   `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 

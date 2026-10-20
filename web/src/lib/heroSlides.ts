@@ -1,89 +1,78 @@
+import { fill as fillTokens, ruleTokens } from './text';
 import type { HeroSlide } from '@/components/HeroCarousel';
-import type { BreadVanStop, Location, Product } from './api';
+import type { BreadVanStop, HeroSlideData, Location, Product, ReservationRules } from './api';
 import { plural } from './format';
 import { isAvailable } from './products';
 
+// awaryjnie (API nie odpowiada / wszystkie slajdy wyłączone) – jeden slajd marki, jak dotąd pierwszy
+const FALLBACK: HeroSlide = {
+  key: 'marka',
+  name: 'Piekarnia',
+  eyebrow: 'Piekarnia rzemieślnicza · Kraków',
+  title: ['Chleb,', 'który ma czas'],
+  text: 'Naturalny zakwas, długa fermentacja i ręczna praca. Codziennie od świtu w naszych krakowskich piekarniach.',
+  ctas: [
+    { href: '/oferta', label: 'Zobacz ofertę', primary: true },
+    { href: '/piekarnie', label: 'Znajdź piekarnię' },
+  ],
+  image: { src: '/images/hero-desktop.jpg', alt: 'Przekrojony chleb na zakwasie w lnianej ściereczce' },
+  mobileImage: { src: '/images/hero-mobile.jpg', position: '70% center' },
+};
+
 /**
- * Slajdy karuzeli na stronie głównej. Teksty na stałe w kodzie, liczby i nazwy z API;
- * slajd bez danych (np. brak przystanków chlebowozu albo produktów sezonowych) jest pomijany.
+ * Slajdy karuzeli z panelu (Strona → Strona główna → Karuzela), w kolejności z panelu. Slajdy automatyczne biorą dane z panelu
+ * i są pomijane, gdy danych brak: chlebowóz (najbliższy przystanek – bez trasy slajdu nie ma), piekarnie
+ * ({piekarnie} w tytule → „4 piekarnie”), sezonowe (tylko gdy jakiś produkt sezonowy jest teraz dostępny).
+ * W każdym slajdzie działają znaczniki zasad rezerwacji z panelu: {godzina}, {dni}, {limit}.
+ * Każdy slajd ma własne zdjęcie (wymagane w panelu).
  */
 export function buildHeroSlides({
+  slides,
   locations,
   stops,
   products,
+  rules,
 }: {
+  slides: HeroSlideData[];
   locations: Location[];
   stops: BreadVanStop[];
   products: Product[];
+  /** zasady rezerwacji (Rezerwacje → Zasady rezerwacji) – do znaczników w tekstach */
+  rules: ReservationRules;
 }): HeroSlide[] {
-  // tylko sezonowe dostępne teraz (poza sezonem nie reklamujemy)
-  const seasonal = products.filter((p) => isAvailable(p) && p.isSeasonal);
-  const seasonalWithImage = seasonal.find((p) => p.images?.length);
+  const ruleValues = ruleTokens(rules);
+  // slajd sezonowy tylko wtedy, gdy jakiś produkt sezonowy jest teraz dostępny (poza sezonem nie reklamujemy)
+  const hasSeasonal = products.some((p) => isAvailable(p) && p.isSeasonal);
+  const bakeries =
+    locations.length === 1
+      ? '1 piekarnia'
+      : `${locations.length} ${plural(locations.length, ['piekarnia', 'piekarnie', 'piekarni'])}`;
 
-  const slides: (HeroSlide | null)[] = [
-    {
-      key: 'marka',
-      name: 'Piekarnia',
-      eyebrow: 'Piekarnia rzemieślnicza · Kraków',
-      title: ['Chleb,', 'który ma czas'],
-      text: 'Naturalny zakwas, długa fermentacja i ręczna praca. Codziennie od świtu w naszych krakowskich piekarniach.',
-      ctas: [
-        { href: '/oferta', label: 'Zobacz ofertę', primary: true },
-        { href: '/piekarnie', label: 'Znajdź piekarnię' },
-      ],
-      // zdjęcie pierwszego slajdu przekazywane osobno (<picture> renderowany na serwerze)
-      image: { src: '/images/hero-desktop.jpg', alt: '' },
-    },
-    {
-      key: 'rezerwacja',
-      name: 'Rezerwacja',
-      eyebrow: 'Rezerwacja online',
-      title: ['Twój chleb', 'już czeka'],
-      text: 'Zarezerwuj wypieki do 18:00 dnia poprzedniego i odbierz je w piekarni albo w chlebowozie. Płacisz przy odbiorze, bez zakładania konta.',
-      ctas: [{ href: '/oferta', label: 'Wybierz wypieki', primary: true }],
-      image: { src: '/images/piekarz.jpg', alt: '', position: '60% center' },
-      mobileImage: { src: '/images/chleb-deska.jpg', position: 'center 70%' },
-    },
-    stops.length > 0
-      ? {
-          key: 'chlebowoz',
-          name: 'Chlebowóz',
-          eyebrow: 'Chlebowóz',
-          title: ['Piekarnia', 'na kółkach'],
-          vanStops: stops,
-          text: 'Stałe dni i stałe miejsca w całym Krakowie – pieczywo prosto z pieca, bliżej Ciebie.',
-          ctas: [{ href: '/chlebowoz', label: 'Sprawdź trasę', primary: true }],
-          image: { src: '/images/chlebowoz.jpg', alt: '', position: '65% center' },
-          mobileImage: { src: '/images/chlebowoz.jpg', position: '60% center' },
-        }
-      : null,
-    locations.length > 0
-      ? {
-          key: 'piekarnie',
-          name: 'Piekarnie',
-          eyebrow: 'Nasze piekarnie',
-          title:
-            locations.length === 1
-              ? ['Piekarnia', 'w Krakowie']
-              : [`${locations.length} ${plural(locations.length, ['piekarnia', 'piekarnie', 'piekarni'])}`, 'w Krakowie'],
-          text: 'Świeże pieczywo od rana, kawa, kanapki przygotowywane na miejscu i chwila przy stoliku.',
-          ctas: [{ href: '/piekarnie', label: 'Znajdź najbliższą', primary: true }],
-          image: { src: '/images/lokal.jpg', alt: '', position: '70% center' },
-          mobileImage: { src: '/images/wnetrze.jpg', position: 'center' },
-        }
-      : null,
-    seasonalWithImage
-      ? {
-          key: 'sezonowe',
-          name: 'Sezonowo',
-          eyebrow: 'Sezonowo',
-          title: ['Tylko', 'przez chwilę'],
-          text: 'Wypieki, które pojawiają się w naszych piekarniach tylko w swoim sezonie. Sprawdź, co pieczemy teraz – póki sezon trwa.',
-          ctas: [{ href: '/oferta?etykiety=sezonowe', label: 'Zobacz sezonowe', primary: true }],
-          image: { src: seasonalWithImage.images![0].imgUrl, alt: '', position: 'center' },
-        }
-      : null,
-  ];
+  const built = slides.map((s): HeroSlide | null => {
+    if (s.kind === 'VAN' && stops.length === 0) return null;
+    if (s.kind === 'BAKERIES' && locations.length === 0) return null;
+    if (s.kind === 'SEASONAL' && !hasSeasonal) return null;
 
-  return slides.filter((s): s is HeroSlide => s !== null);
+    const fill = (text: string) =>
+      fillTokens(s.kind === 'BAKERIES' ? text.replace(/\{piekarnie\}/gi, bakeries) : text, ruleValues);
+    const ctas = [
+      s.cta1Label && s.cta1Href ? { href: s.cta1Href, label: s.cta1Label, primary: true } : null,
+      s.cta2Label && s.cta2Href ? { href: s.cta2Href, label: s.cta2Label } : null,
+    ].filter((c): c is { href: string; label: string; primary?: boolean } => c !== null);
+
+    return {
+      key: s.id,
+      name: s.name,
+      eyebrow: s.eyebrow,
+      title: [fill(s.titleLine1), fill(s.titleLine2)].filter(Boolean),
+      text: fill(s.text),
+      ...(s.kind === 'VAN' ? { vanStops: stops } : {}),
+      ctas,
+      image: { src: s.imageUrl, alt: s.imageAlt, position: s.imagePosition },
+      ...(s.mobileImageUrl ? { mobileImage: { src: s.mobileImageUrl, position: s.mobileImagePosition } } : {}),
+    };
+  });
+
+  const result = built.filter((s): s is HeroSlide => s !== null);
+  return result.length > 0 ? result : [FALLBACK];
 }

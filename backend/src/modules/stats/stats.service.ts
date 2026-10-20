@@ -13,7 +13,11 @@ export type Metric =
   | 'product'
   | 'newsletter'
   | 'mail'
-  | 'mail_failed';
+  | 'mail_failed'
+  // e-mail zablokowany wyłącznikiem / limitem (Usługi i koszty)
+  | 'mail_blocked'
+  // zapytanie o ocenę Google (Places API)
+  | 'places';
 
 // podstrony strony (dynamiczne ścieżki sprowadzone do wzorca) – inne adresy liczą się jako „(inne)”
 export const VIEW_KEYS = [

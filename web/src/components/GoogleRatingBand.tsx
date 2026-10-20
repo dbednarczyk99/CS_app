@@ -1,6 +1,7 @@
 import { FaArrowRight, FaStar } from 'react-icons/fa6';
 import type { Location } from '@/lib/api';
 import { plural } from '@/lib/format';
+import { LoopCarousel } from './LoopCarousel';
 import { ratingFormat, ratingSummary, reviewUrl } from '@/lib/google';
 
 /** Pięć gwiazdek z częściowym wypełnieniem (np. 4,5 = cztery i pół) */
@@ -34,12 +35,64 @@ const shortStreet = (address: string) => {
 /** Nazwa na karcie: skrócona ulica (pole „Nazwa” w panelu bywa wspólne dla wszystkich piekarni – nie odróżnia ich) */
 const bakeryLabel = (location: Location) => shortStreet(location.address);
 
+/** Tyle kafelków mieści się w rzędzie na komputerze – więcej: karuzela */
+const MAX_TILES = 4;
+
+/** Kolumny przy 1–4 kafelkach – rząd zawsze wypełniony (klasy dosłownie – dla Tailwinda) */
+const TILE_COLUMNS: Record<number, string> = {
+  1: 'grid-cols-1 sm:max-w-xs',
+  2: 'grid-cols-2',
+  3: 'grid-cols-2 sm:grid-cols-3',
+  4: 'grid-cols-2 xl:grid-cols-4',
+};
+
+/** Kafelek piekarni: ocena, liczba opinii, nazwa, link do wystawienia opinii */
+function RatingTile({ location }: { location: Location }) {
+  const count = location.googleRatingCount ?? 0;
+  return (
+    <a
+      href={reviewUrl(location.googlePlaceId!)}
+      target="_blank"
+      rel="noreferrer"
+      className="group flex h-full flex-col border border-line bg-coal p-3.5 transition-colors hover:border-gold/60 sm:p-4"
+    >
+      {/* ocena na górze (stała wysokość), nazwa pod nią – długa nazwa nie rozjeżdża kart */}
+      {location.googleRating != null && count > 0 ? (
+        <span className="flex items-baseline gap-2">
+          <FaStar aria-hidden className="self-center text-gold" />
+          <span className="font-display text-2xl leading-none text-cream">
+            {ratingFormat.format(location.googleRating)}
+          </span>
+          <span className="text-xs text-stone">
+            {count} {plural(count, ['opinia', 'opinie', 'opinii'])}
+          </span>
+        </span>
+      ) : (
+        <span className="text-sm text-stone">Bądź pierwszy</span>
+      )}
+      <span className="mt-2 text-sm leading-snug text-cream/90">{bakeryLabel(location)}</span>
+      <span className="link-arrow mt-auto inline-flex items-center gap-2 pt-3 text-[0.7rem]">
+        Oceń <FaArrowRight aria-hidden />
+      </span>
+    </a>
+  );
+}
+
 /**
  * Pasek z oceną w Google na stronie głównej: ocena zbiorcza (średnia ważona liczbą opinii) i kafelki piekarni –
  * każdy prowadzi do wystawienia opinii o tej piekarni. Same oceny, bez treści opinii (cytaty – po przejściu
  * na Google Business Profile API). Bez żadnej oceny – sekcji nie ma.
  */
-export function GoogleRatingBand({ locations }: { locations: Location[] }) {
+export function GoogleRatingBand({
+  locations,
+  eyebrow = 'Opinie naszych gości',
+  cta = 'Byłeś u nas? Oceń swoją piekarnię w Google',
+}: {
+  locations: Location[];
+  /** teksty z panelu (Strona → Strona główna → Opinie w Google) */
+  eyebrow?: string;
+  cta?: string;
+}) {
   const summary = ratingSummary(locations);
   const bakeries = locations.filter((l) => l.googlePlaceId);
   if (!summary || bakeries.length === 0) return null;
@@ -48,7 +101,7 @@ export function GoogleRatingBand({ locations }: { locations: Location[] }) {
     <section aria-labelledby="opinie-google" className="border-y border-line">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 md:py-20 lg:grid-cols-[minmax(0,22rem)_1fr] lg:items-center lg:gap-16">
         <div>
-          <p className="eyebrow">Opinie naszych gości</p>
+          <p className="eyebrow">{eyebrow}</p>
           <h2 id="opinie-google" className="sr-only">
             Ocena w Google
           </h2>
@@ -66,44 +119,30 @@ export function GoogleRatingBand({ locations }: { locations: Location[] }) {
           </p>
         </div>
 
-        <div>
+        {/* min-w-0: karuzela (powielone kafelki) nie rozpycha kolumny siatki */}
+        <div className="min-w-0">
           <p className="font-display text-sm uppercase tracking-[0.2em] text-cream/85">
-            Byłeś u nas? Oceń swoją piekarnię w Google
+            {cta}
           </p>
-          <ul className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
-            {bakeries.map((location) => {
-              const count = location.googleRatingCount ?? 0;
-              return (
-                <li key={location.id}>
-                  <a
-                    href={reviewUrl(location.googlePlaceId!)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group flex h-full flex-col border border-line bg-coal p-3.5 transition-colors hover:border-gold/60 sm:p-4"
-                  >
-                    {/* ocena na górze (stała wysokość), nazwa pod nią – długa nazwa nie rozjeżdża kart */}
-                    {location.googleRating != null && count > 0 ? (
-                      <span className="flex items-baseline gap-2">
-                        <FaStar aria-hidden className="self-center text-gold" />
-                        <span className="font-display text-2xl leading-none text-cream">
-                          {ratingFormat.format(location.googleRating)}
-                        </span>
-                        <span className="text-xs text-stone">
-                          {count} {plural(count, ['opinia', 'opinie', 'opinii'])}
-                        </span>
-                      </span>
-                    ) : (
-                      <span className="text-sm text-stone">Bądź pierwszy</span>
-                    )}
-                    <span className="mt-2 text-sm leading-snug text-cream/90">{bakeryLabel(location)}</span>
-                    <span className="link-arrow mt-auto inline-flex items-center gap-2 pt-3 text-[0.7rem]">
-                      Oceń <FaArrowRight aria-hidden />
-                    </span>
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
+          <div className="mt-5">
+            {bakeries.length > MAX_TILES ? (
+              // więcej piekarni niż mieści się w rzędzie – zapętlona karuzela jak na reszcie strony
+              <LoopCarousel
+                label="Oceny piekarni w Google"
+                perView="[--n:2] xl:[--n:4]"
+                gap="[--gap:0.75rem]"
+                items={bakeries.map((location) => ({ key: location.id, node: <RatingTile location={location} /> }))}
+              />
+            ) : (
+              <ul className={`grid gap-3 ${TILE_COLUMNS[bakeries.length] ?? TILE_COLUMNS[4]}`}>
+                {bakeries.map((location) => (
+                  <li key={location.id}>
+                    <RatingTile location={location} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
     </section>

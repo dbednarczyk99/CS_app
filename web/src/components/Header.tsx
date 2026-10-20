@@ -68,13 +68,13 @@ export function Header({ announcements = [] }: { announcements?: Announcement[] 
         </Link>
 
         <nav aria-label="Główna nawigacja" className="hidden lg:block">
-          <ul className="flex items-center gap-7">
+          <ul className="flex items-center gap-4 xl:gap-7">
             {NAV.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
                   aria-current={isActive(item.href) ? 'page' : undefined}
-                  className={`font-display text-[0.8rem] uppercase tracking-[0.2em] transition-colors hover:text-gold ${
+                  className={`whitespace-nowrap font-display text-[0.8rem] uppercase tracking-[0.2em] transition-colors hover:text-gold ${
                     isActive(item.href) ? 'text-gold' : 'text-cream/85'
                   }`}
                 >

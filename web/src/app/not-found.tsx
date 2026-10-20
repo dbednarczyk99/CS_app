@@ -1,17 +1,20 @@
 import Link from 'next/link';
+import { getContent } from '@/lib/content';
 
-export default function NotFound() {
+/** Teksty – z panelu (Strona → Podstrony → Elementy wspólne → Strona 404) */
+export default async function NotFound() {
+  const texts = (await getContent())['common.notFound'];
   return (
     <section className="mx-auto flex min-h-[80svh] max-w-3xl flex-col items-center justify-center px-5 pt-24 text-center">
-      <p className="eyebrow">Błąd 404</p>
-      <h1 className="heading mt-4 text-4xl sm:text-5xl">Tego bochenka nie znaleźliśmy</h1>
-      <p className="mt-6 text-lg text-stone">Strona mogła zostać przeniesiona albo już nie istnieje.</p>
+      <p className="eyebrow">{texts.eyebrow}</p>
+      <h1 className="heading mt-4 text-4xl sm:text-5xl">{texts.title}</h1>
+      <p className="mt-6 text-lg text-stone">{texts.text}</p>
       <div className="mt-10 flex flex-col gap-3 sm:flex-row">
         <Link href="/" className="btn btn-gold">
-          Strona główna
+          {texts.homeButton}
         </Link>
         <Link href="/oferta" className="btn btn-outline">
-          Zobacz ofertę
+          {texts.offerButton}
         </Link>
       </div>
     </section>

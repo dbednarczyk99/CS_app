@@ -1,12 +1,14 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, Card, CardContent, CircularProgress, Link, Stack, Typography } from '@mui/material';
+import { Box, CircularProgress, Link, Typography } from '@mui/material';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import EventIcon from '@mui/icons-material/Event';
 import BakeryDiningIcon from '@mui/icons-material/BakeryDining';
 import LabelIcon from '@mui/icons-material/Label';
 import InsightsIcon from '@mui/icons-material/Insights';
 import { apiUrl, httpClient } from '../../dataProvider';
+import { DashboardPanel } from '../common/PanelVisibility';
+import { PanelColumns } from '../common/PanelColumns';
 import { LabelChip } from '../components/labels';
 
 interface Overview {
@@ -41,35 +43,8 @@ const day = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString('pl-PL',
 const when = (iso: string) =>
   new Date(iso).toLocaleString('pl-PL', { weekday: 'short', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
 
-/** Karta pulpitu z nagłówkiem, ikoną i linkiem „Przejdź” */
-const Panel = ({
-  title,
-  icon,
-  action,
-  children,
-}: {
-  title: string;
-  icon: ReactNode;
-  action?: { label: string; onClick: () => void };
-  children: ReactNode;
-}) => (
-  <Card variant="outlined" sx={{ height: '100%' }}>
-    <CardContent sx={{ p: 2.5 }}>
-      <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.5 }}>
-        <Box sx={{ color: 'primary.main', display: 'flex' }}>{icon}</Box>
-        <Typography variant="h6" sx={{ flex: 1, fontSize: '1.05rem' }}>
-          {title}
-        </Typography>
-        {action && (
-          <Button size="small" onClick={action.onClick}>
-            {action.label}
-          </Button>
-        )}
-      </Stack>
-      {children}
-    </CardContent>
-  </Card>
-);
+/** Karta pulpitu (wspólna z „Rezerwacje i newsletter” i „Szybkie akcje”) */
+const Panel = DashboardPanel;
 
 const Empty = ({ children }: { children: ReactNode }) => (
   <Typography variant="body2" color="text.secondary">
@@ -115,7 +90,14 @@ const productChange = (p: Overview['scheduledProducts'][number]) =>
  * Pulpit „Marketing”: co teraz trwa i co jest zaplanowane – promocje, wpisy i newslettery, zmiany w ofercie,
  * etykiety z datami (14 dni) – oraz skrót wyników. Dane z GET /stats/marketing.
  */
-export const MarketingOverview = () => {
+export const MarketingOverview = ({
+  left = [],
+  right = [],
+}: {
+  /** panele pulpitu nad panelami marketingu – lewa i prawa kolumna (np. rezerwacje, szybkie akcje) */
+  left?: ReactNode[];
+  right?: ReactNode[];
+}) => {
   const navigate = useNavigate();
   const [data, setData] = useState<Overview | null | undefined>(undefined);
 
@@ -129,14 +111,25 @@ export const MarketingOverview = () => {
     };
   }, []);
 
-  if (data === undefined) return <CircularProgress size={28} sx={{ mt: 2 }} />;
-  if (data === null)
-    return <Empty>Nie udało się wczytać podsumowania marketingu – odśwież stronę.</Empty>;
+  // wczytywanie / błąd – panele z zewnątrz od razu, marketing w miejscu pod nimi
+  if (!data)
+    return (
+      <PanelColumns
+        left={[
+          ...left,
+          data === undefined ? (
+            <CircularProgress key="loading" size={28} />
+          ) : (
+            <Empty key="error">Nie udało się wczytać podsumowania marketingu – odśwież stronę.</Empty>
+          ),
+        ]}
+        right={right}
+      />
+    );
 
   const promos = [...data.activePromotions.map((p) => ({ p, scheduled: false })), ...data.scheduledPromotions.map((p) => ({ p, scheduled: true }))];
 
-  return (
-    <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
+  const promoPanel = (
       <Panel title="Promocje" icon={<LocalOfferIcon />} action={{ label: 'Produkty', onClick: () => navigate('/products') }}>
         {promos.length === 0 ? (
           <Empty>Nie trwa ani nie jest zaplanowana żadna promocja.</Empty>
@@ -158,11 +151,13 @@ export const MarketingOverview = () => {
           ))
         )}
       </Panel>
+  );
 
+  const articlesPanel = (
       <Panel
         title="Zaplanowane wpisy i newslettery"
         icon={<EventIcon />}
-        action={{ label: 'Nowy wpis', onClick: () => navigate('/blog/create') }}
+        action={{ label: 'Szczegóły', onClick: () => navigate('/marketing/zaplanowane') }}
       >
         {data.scheduledArticles.length === 0 ? (
           <Empty>Brak zaplanowanych wpisów. Wpis możesz zaplanować polem „Zaplanuj publikację”.</Empty>
@@ -182,7 +177,9 @@ export const MarketingOverview = () => {
           ))
         )}
       </Panel>
+  );
 
+  const offerPanel = (
       <Panel title="Zmiany w ofercie" icon={<BakeryDiningIcon />}>
         {data.scheduledProducts.length === 0 ? (
           <Empty>Brak zaplanowanych zmian. Ustawisz je w produkcie: „Dostępny od” / „Niedostępny od”.</Empty>
@@ -197,7 +194,9 @@ export const MarketingOverview = () => {
           ))
         )}
       </Panel>
+  );
 
+  const labelsPanel = (
       <Panel title="Etykiety z datami (14 dni)" icon={<LabelIcon />} action={{ label: 'Etykiety', onClick: () => navigate('/products/labels') }}>
         {data.labels.length === 0 ? (
           <Empty>W ciągu 14 dni żadna etykieta z datami się nie zaczyna ani nie kończy.</Empty>
@@ -212,10 +211,11 @@ export const MarketingOverview = () => {
           ))
         )}
       </Panel>
+  );
 
-      <Box sx={{ gridColumn: { md: '1 / -1' } }}>
+  const resultsPanel = (
         <Panel title="Wyniki" icon={<InsightsIcon />} action={{ label: 'Statystyki', onClick: () => navigate('/statystyki') }}>
-          <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
+          <Box sx={{ display: 'grid', gap: 2 }}>
             <Box>
               <Typography variant="overline" color="text.secondary">
                 Ostatni newsletter
@@ -248,7 +248,13 @@ export const MarketingOverview = () => {
             </Box>
           </Box>
         </Panel>
-      </Box>
-    </Box>
+  );
+
+  // dwie kolumny o równej szerokości; zwinięty panel – kolejny w tej samej kolumnie podjeżdża w górę
+  return (
+    <PanelColumns
+      left={[...left, promoPanel, offerPanel, resultsPanel]}
+      right={[...right, articlesPanel, labelsPanel]}
+    />
   );
 };

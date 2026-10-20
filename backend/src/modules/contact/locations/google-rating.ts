@@ -7,7 +7,7 @@ export type GoogleRating = { rating: number | null; count: number | null };
 
 export type RatingResult =
   | { ok: true; value: GoogleRating }
-  | { ok: false; reason: 'no-key' | 'error'; message: string };
+  | { ok: false; reason: 'no-key' | 'error' | 'blocked'; message: string };
 
 /**
  * Komunikat dla panelu z odpowiedzi Google. Ten sam kod (400) Google zwraca i przy złym kluczu, i przy złym

@@ -1,3 +1,6 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
+import { ScreenTabs } from '../common/ScreenTabs';
+import { OFFER_TABS } from '../common/screen-tabs';
 import {
     List,
     Datagrid,
@@ -22,16 +25,20 @@ type CategoryRecord = {
 };
 
 export const CategoryList = () => (
+  <>
+  <ScreenTabs tabs={OFFER_TABS} />
   <List title="Kategorie">
     <Datagrid rowClick="edit">
       <TextField source="name" />
     </Datagrid>
   </List>
+  </>
 );
 
 export const CategoryCreate = () => (
   <Create title="Nowa kategoria">
     <SimpleForm>
+      <FormUnsavedChanges />
       <TextInput source="name" validate={[required()]} />
     </SimpleForm>
   </Create>
@@ -74,6 +81,7 @@ const AddProductButton = () => {
 export const CategoryEdit = () => (
   <Edit>
     <SimpleForm toolbar={<CategoryEditToolbar />}>
+      <FormUnsavedChanges />
       <TextInput source="name" validate={[required()]} />
     </SimpleForm>
 

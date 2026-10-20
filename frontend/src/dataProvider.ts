@@ -31,7 +31,7 @@ interface ImageFormValue {
   order?: number;
 }
 
-const uploadFile = async (file: File): Promise<string> => {
+export const uploadFile = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append('file', file);
 

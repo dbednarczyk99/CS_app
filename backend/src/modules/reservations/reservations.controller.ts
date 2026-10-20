@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Ip } from '@nestjs/common';
 import { Public, Roles, RESERVATION_ROLES } from '../auth/auth.decorators';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { SendSummaryDto } from './dto/send-summary.dto';
@@ -19,8 +19,8 @@ export class ReservationsController {
 
   @Public()
   @Post()
-  create(@Body() dto: CreateReservationDto) {
-    return this.service.create(dto);
+  create(@Body() dto: CreateReservationDto, @Ip() ip: string) {
+    return this.service.create(dto, ip);
   }
 
   @Public()

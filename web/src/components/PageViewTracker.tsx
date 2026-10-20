@@ -11,6 +11,8 @@ let sourceCounted = false;
 export function PageViewTracker() {
   const pathname = usePathname();
   useEffect(() => {
+    // podgląd wpisu z panelu – to nie odwiedziny strony
+    if (pathname.startsWith('/podglad')) return;
     trackEvent('view', pageKey(pathname));
     if (!sourceCounted) {
       sourceCounted = true;

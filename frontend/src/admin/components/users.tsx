@@ -1,3 +1,5 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
+import { MobileList } from '../common/MobileList';
 import {
   Create,
   Datagrid,
@@ -22,14 +24,14 @@ import {
 } from 'react-admin';
 import { Alert, Box, Chip } from '@mui/material';
 
-/* Konta panelu – tylko właściciel. Dwie role: właściciel (wszystko) i treści strony (bez danych klientów). */
+/* Konta panelu – tylko administrator. Dwie role: administrator (wszystko) i marketing (bez rezerwacji i ustawień). */
 
 const ROLE_CHOICES = [
-  { id: 'ADMIN', name: 'Właściciel – pełny dostęp' },
-  { id: 'EDITOR', name: 'Treści strony (social media)' },
+  { id: 'ADMIN', name: 'Administrator – pełny dostęp' },
+  { id: 'EDITOR', name: 'Marketing' },
 ];
 
-const roleLabel = (role: string) => ({ ADMIN: 'Właściciel', EDITOR: 'Treści strony' })[role] ?? role;
+const roleLabel = (role: string) => ({ ADMIN: 'Administrator', EDITOR: 'Marketing' })[role] ?? role;
 
 interface UserRecord {
   id: string;
@@ -43,9 +45,8 @@ const passwordRules = [minLength(10, 'Co najmniej 10 znaków')];
 
 const RolesInfo = () => (
   <Alert severity="info" variant="outlined" sx={{ mb: 2, width: '100%' }}>
-    <strong>Właściciel</strong> ma dostęp do wszystkiego, w tym rezerwacji z danymi klientów, listy subskrybentów
-    newslettera i kont. <strong>Treści strony</strong> – produkty, piekarnie, chlebowóz, aktualności, baner i media
-    społecznościowe, bez danych klientów.
+    <strong>Administrator</strong> ma dostęp do wszystkiego, w tym rezerwacji z danymi klientów, zasad rezerwacji,
+    dokumentów prawnych i kont. <strong>Marketing</strong> – produkty, piekarnie, chlebowóz, treści strony, aktualności i newsletter, subskrybenci, baner i media społecznościowe; bez rezerwacji, kosztów i ustawień.
   </Alert>
 );
 
@@ -56,6 +57,11 @@ export const UserList = () => {
       <Box sx={{ px: 2, pt: 2 }}>
         <RolesInfo />
       </Box>
+      <MobileList
+        primaryText={(u) => u.name || u.login}
+        secondaryText={(u) => `${u.login} · ${roleLabel(u.role)}`}
+        rowClick="edit"
+      >
       <Datagrid rowClick="edit" bulkActionButtons={false}>
         <FunctionField
           label="Osoba"
@@ -80,6 +86,7 @@ export const UserList = () => {
         />
         <DateField source="createdAt" label="Utworzone" locales="pl-PL" />
       </Datagrid>
+      </MobileList>
     </List>
   );
 };
@@ -87,6 +94,7 @@ export const UserList = () => {
 export const UserCreate = () => (
   <Create title="Nowe konto" redirect="list">
     <SimpleForm>
+      <FormUnsavedChanges />
       <RolesInfo />
       <TextInput
         source="login"
@@ -151,6 +159,7 @@ const RoleInput = () => {
 export const UserEdit = () => (
   <Edit redirect="list" mutationMode="pessimistic">
     <SimpleForm toolbar={<EditToolbar />}>
+      <FormUnsavedChanges />
       <TextInput source="login" label="Login" disabled helperText="Loginu nie można zmienić" />
       <TextInput source="name" label="Nazwa wyświetlana" validate={maxLength(60)} />
       <RoleInput />

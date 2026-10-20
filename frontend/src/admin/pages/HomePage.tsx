@@ -1,8 +1,18 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Title, useGetIdentity, usePermissions } from 'react-admin';
 import { useSubscriberCount } from '../common/useSubscriberCount';
+import { DashboardPanel } from '../common/PanelVisibility';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, Card, CardActionArea, CardContent, CircularProgress, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, CardActionArea, CircularProgress, Paper, Typography } from '@mui/material';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import BoltIcon from '@mui/icons-material/Bolt';
+import ChecklistIcon from '@mui/icons-material/Checklist';
+import BakeryDiningIcon from '@mui/icons-material/BakeryDining';
+import EventIcon from '@mui/icons-material/Event';
+import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
+import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
+import HomeIcon from '@mui/icons-material/Home';
+import { topQuickActions, type QuickActionId } from '../common/quick-actions';
 import AddIcon from '@mui/icons-material/Add';
 import ArticleIcon from '@mui/icons-material/Article';
 import CampaignIcon from '@mui/icons-material/Campaign';
@@ -41,7 +51,8 @@ function useReservationCount(date: string, enabled: boolean) {
   return count;
 }
 
-const StatCard = ({
+/** Licznik w panelu „Rezerwacje i newsletter” – kliknięcie prowadzi do szczegółów */
+const StatTile = ({
   label,
   value,
   hint,
@@ -52,25 +63,72 @@ const StatCard = ({
   hint: string;
   onClick: () => void;
 }) => (
-  <Card variant="outlined" sx={{ flex: 1, minWidth: 220, borderTop: (t) => `2px solid ${t.palette.primary.main}` }}>
-    <CardActionArea onClick={onClick} sx={{ height: '100%', display: 'flex', alignItems: 'flex-start' }}>
-      <CardContent sx={{ p: 3, width: '100%' }}>
-        <Typography variant="overline" color="primary">
-          {label}
-        </Typography>
-        <Typography variant="h3" sx={{ my: 1, fontWeight: 400 }}>
-          {value === undefined ? <CircularProgress size={28} /> : value === null ? '—' : value}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {hint}
-        </Typography>
-      </CardContent>
+  <Paper variant="outlined" sx={{ borderTop: (t) => `2px solid ${t.palette.primary.main}` }}>
+    <CardActionArea onClick={onClick} sx={{ p: 1.5, height: '100%' }}>
+      <Typography variant="overline" color="primary" sx={{ lineHeight: 1.6 }}>
+        {label}
+      </Typography>
+      <Typography variant="h4" sx={{ my: 0.5, fontWeight: 400 }}>
+        {value === undefined ? <CircularProgress size={22} /> : value === null ? '—' : value}
+      </Typography>
+      <Typography variant="caption" color="text.secondary">
+        {hint}
+      </Typography>
     </CardActionArea>
-  </Card>
+  </Paper>
 );
 
+/** Administrator: ostrzeżenie, gdy płatna usługa jest wyłączona albo wykorzystała limit dzienny */
+function ServicesAlert() {
+  const navigate = useNavigate();
+  const [blocked, setBlocked] = useState<string[]>([]);
+  useEffect(() => {
+    const names = { emails: 'e-maile', maps: 'Mapa Google', ratings: 'oceny Google' } as const;
+    fetch(`${apiUrl}/settings/services`, { headers: { Authorization: `Bearer ${localStorage.getItem('token') ?? ''}` } })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((d: { state: Record<keyof typeof names, { available: boolean; reason: string | null }> }) =>
+        setBlocked(
+          (Object.keys(names) as (keyof typeof names)[])
+            .filter((k) => !d.state[k].available)
+            .map((k) => `${names[k]} (${d.state[k].reason === 'off' ? 'wyłączone' : 'limit dzienny'})`),
+        ),
+      )
+      .catch(() => undefined);
+  }, []);
+  if (!blocked.length) return null;
+  return (
+    <Alert
+      severity="warning"
+      sx={{ mt: 3 }}
+      action={
+        <Button color="inherit" size="small" onClick={() => navigate('/ustawienia/uslugi')}>
+          Usługi i koszty
+        </Button>
+      }
+    >
+      Nie działa: {blocked.join(', ')}. Strona pokazuje zamienniki.
+    </Alert>
+  );
+}
+
+/** Napis i ikona każdej szybkiej akcji (kolejność i dobór – quick-actions.ts) */
+const ACTION_VIEW: Record<QuickActionId, { label: string; icon: ReactNode }> = {
+  'product-new': { label: 'Dodaj produkt', icon: <AddIcon /> },
+  'article-new': { label: 'Nowy wpis', icon: <ArticleIcon /> },
+  banner: { label: 'Baner', icon: <CampaignIcon /> },
+  van: { label: 'Trasa chlebowozu', icon: <EditCalendarIcon /> },
+  stats: { label: 'Statystyki', icon: <InsightsIcon /> },
+  reservations: { label: 'Rezerwacje', icon: <ReceiptLongIcon /> },
+  preparation: { label: 'Do przygotowania', icon: <ChecklistIcon /> },
+  products: { label: 'Produkty', icon: <BakeryDiningIcon /> },
+  scheduled: { label: 'Zaplanowane', icon: <EventIcon /> },
+  carousel: { label: 'Karuzela', icon: <ViewCarouselIcon /> },
+  subscribers: { label: 'Subskrybenci', icon: <MarkEmailReadIcon /> },
+  'home-content': { label: 'Strona główna', icon: <HomeIcon /> },
+};
+
 const Action = ({ icon, label, onClick }: { icon: ReactNode; label: string; onClick: () => void }) => (
-  <Button variant="outlined" startIcon={icon} onClick={onClick} sx={{ justifyContent: 'flex-start' }}>
+  <Button variant="outlined" size="small" startIcon={icon} onClick={onClick} sx={{ justifyContent: 'flex-start' }}>
     {label}
   </Button>
 );
@@ -85,13 +143,15 @@ const greeting = () => {
 const HomePage = () => {
   const navigate = useNavigate();
   const today = warsawDate(0);
-  // rezerwacje (dane klientów) widzi tylko właściciel
+  // rezerwacje (dane klientów) widzi tylko administrator
   const { permissions } = usePermissions();
   const isOwner = permissions === 'ADMIN';
   const { identity } = useGetIdentity();
   const todayCount = useReservationCount(today, isOwner);
   const tomorrowCount = useReservationCount(warsawDate(1), isOwner);
   const confirmed = useSubscriberCount();
+  // kolejność ustalana przy wejściu na pulpit, gdy znane jest konto (liczniki rosną dopiero po przejściu dalej)
+  const quickActions = useMemo(() => topQuickActions(identity?.id, isOwner, 5), [identity?.id, isOwner]);
   const todayLabel = new Intl.DateTimeFormat('pl-PL', {
     weekday: 'long',
     day: 'numeric',
@@ -106,69 +166,74 @@ const HomePage = () => {
         Panel Chleba Smak
       </Typography>
       <Typography variant="h4" sx={{ mt: 0.5 }}>
-        {greeting()}
-        {identity?.fullName ? `, ${identity.fullName}` : ''}!
+        {greeting()}!
       </Typography>
       <Typography color="text.secondary" sx={{ mt: 1, '&::first-letter': { textTransform: 'uppercase' } }}>
         {todayLabel}
       </Typography>
+      {isOwner && <ServicesAlert />}
 
-      {/* właściciel: najpierw rezerwacje (dziś, jutro) i newsletter; konto treści – od razu marketing */}
-      {isOwner && (
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 4 }}>
-          <>
-            <StatCard
-              label="Rezerwacje na dziś"
-              value={todayCount}
-              hint="Zobacz listę rezerwacji na dziś"
-              onClick={() =>
-                navigate(`/reservations?filter=${encodeURIComponent(JSON.stringify({ pickupDate: today }))}`)
-              }
-            />
-            <StatCard
-              label="Rezerwacje na jutro"
-              value={tomorrowCount}
-              hint="Do przygotowania – zestawienie, wydruk, e-mail"
-              onClick={() => navigate('/przygotowanie')}
-            />
-          </>
-          <StatCard
-            label="Newsletter"
-            value={confirmed}
-            hint="Potwierdzeni subskrybenci"
-            onClick={() => navigate('/newsletter')}
-          />
-        </Stack>
-      )}
-
-      <Typography variant="h6" sx={{ mt: isOwner ? 5 : 4, mb: 2 }}>
-        Marketing – co trwa i co jest zaplanowane
-      </Typography>
-      <MarketingOverview />
-
-      <Typography variant="h6" sx={{ mt: 5, mb: 2 }}>
-        Szybkie akcje
-      </Typography>
-      <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' } }}>
-        <Action icon={<AddIcon />} label="Dodaj produkt" onClick={() => navigate('/products/create')} />
-        <Action icon={<ArticleIcon />} label="Nowy wpis / newsletter" onClick={() => navigate('/blog/create')} />
-        <Action icon={<CampaignIcon />} label="Baner informacyjny" onClick={() => navigate('/announcements')} />
-        <Action icon={<EditCalendarIcon />} label="Trasa chlebowozu" onClick={() => navigate('/bread-van/locations')} />
-        <Action
-          icon={<InsightsIcon />}
-          label={isOwner ? 'Statystyki i koszty' : 'Statystyki odwiedzin'}
-          onClick={() => navigate('/statystyki')}
+      {/* panele w dwóch kolumnach: na górze liczniki (rezerwacje widzi tylko administrator) i szybkie akcje,
+          pod nimi marketing – co trwa i co jest zaplanowane */}
+      <Box sx={{ mt: 4 }}>
+        <MarketingOverview
+          left={[
+            <DashboardPanel key="counts" title={isOwner ? 'Rezerwacje i newsletter' : 'Newsletter'} icon={<ReceiptLongIcon />}>
+              <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', sm: isOwner ? 'repeat(3, 1fr)' : '1fr' } }}>
+                {isOwner && (
+                  <StatTile
+                    label="Na dziś"
+                    value={todayCount}
+                    hint="Lista rezerwacji"
+                    onClick={() =>
+                      navigate(`/reservations?filter=${encodeURIComponent(JSON.stringify({ pickupDate: today }))}`)
+                    }
+                  />
+                )}
+                {isOwner && (
+                  <StatTile
+                    label="Na jutro"
+                    value={tomorrowCount}
+                    hint="Do przygotowania"
+                    onClick={() => navigate('/przygotowanie')}
+                  />
+                )}
+                <StatTile
+                  label="Subskrybenci"
+                  value={confirmed}
+                  hint="Potwierdzeni"
+                  onClick={() => navigate('/newsletter')}
+                />
+              </Box>
+            </DashboardPanel>,
+          ]}
+          right={[
+            <DashboardPanel key="actions" title="Szybkie akcje" icon={<BoltIcon />}>
+              {/* 5 najczęściej otwieranych ekranów tego konta (uczy się samo) + stały link do strony */}
+              <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' } }}>
+                {quickActions.map((a) => (
+                  <Action
+                    key={a.id}
+                    icon={ACTION_VIEW[a.id].icon}
+                    label={a.id === 'stats' && isOwner ? 'Statystyki i koszty' : ACTION_VIEW[a.id].label}
+                    onClick={() => navigate(a.to)}
+                  />
+                ))}
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<OpenInNewIcon />}
+                  href={webUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  sx={{ justifyContent: 'flex-start' }}
+                >
+                  Strona piekarni
+                </Button>
+              </Box>
+            </DashboardPanel>,
+          ]}
         />
-        <Button
-          variant="outlined"
-          startIcon={<OpenInNewIcon />}
-          href={webUrl}
-          target="_blank"
-          rel="noreferrer"
-          sx={{ justifyContent: 'flex-start' }}
-        >
-          Otwórz stronę piekarni
-        </Button>
       </Box>
 
       <Typography variant="body2" color="text.secondary" sx={{ mt: 5 }}>

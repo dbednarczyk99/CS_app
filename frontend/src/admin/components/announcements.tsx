@@ -1,3 +1,6 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
+import { MobileList } from '../common/MobileList';
+import { DevicePreview } from '../common/DevicePreview';
 import {
   BooleanInput,
   Create,
@@ -47,6 +50,12 @@ function status(a: AnnouncementRecord) {
 
 export const AnnouncementList = () => (
   <List title="Baner informacyjny" sort={{ field: 'order', order: 'ASC' }}>
+    <MobileList
+      primaryText={(a) => a.message}
+      secondaryText={(a) => status(a).label}
+      rowSx={(a) => (status(a).color === 'default' ? { opacity: 0.6 } : {})}
+      rowClick="edit"
+    >
     <Datagrid rowClick="edit" bulkActionButtons={false}>
       <FunctionField
         label="Komunikat"
@@ -82,6 +91,7 @@ export const AnnouncementList = () => (
       />
       <NumberField source="order" label="Kolejność" />
     </Datagrid>
+    </MobileList>
   </List>
 );
 
@@ -96,44 +106,71 @@ const validateEnd = (value: string | null, all: AnnouncementRecord) =>
     : undefined;
 
 /** Podgląd paska w kolorach strony */
+/**
+ * Podgląd paska jak na stronie (AnnouncementBar): na komputerze tekst w jednej linii i przycisk z napisem,
+ * na telefonie mniejszy tekst (do 3 linii) i sam przycisk ze strzałką.
+ */
 const Preview = () => {
   const [message, linkUrl, linkLabel] = useWatch({ name: ['message', 'linkUrl', 'linkLabel'] }) as string[];
   return (
-    <Box sx={{ width: '100%', mb: 3 }}>
-      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-        Podgląd na stronie
-      </Typography>
-      <Box
-        sx={{
-          bgcolor: '#c9a36a',
-          color: '#141618',
-          px: 3,
-          minHeight: 40,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 2,
-          fontSize: 14,
-        }}
-      >
-        <span>{message || 'Treść komunikatu…'}</span>
-        {linkUrl && (
-          <span
-            style={{
-              fontSize: 11,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              border: '1px solid #141618',
-              padding: '4px 12px',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {linkLabel || 'Dowiedz się więcej'} →
-          </span>
-        )}
-        <span style={{ marginLeft: 'auto', opacity: 0.7 }}>✕</span>
-      </Box>
-    </Box>
+    <DevicePreview>
+      {(device) => {
+        const phone = device === 'phone';
+        return (
+          <Box sx={{ bgcolor: '#c9a36a', color: '#141618', minHeight: 40, py: phone ? 1 : 0.5 }}>
+            <Box
+              sx={{
+                maxWidth: 1280,
+                mx: 'auto',
+                px: phone ? 2.5 : 4,
+                minHeight: phone ? 40 : 32,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+              }}
+            >
+              {!phone && <span style={{ opacity: 0.8, width: 28, textAlign: 'center' }}>‹</span>}
+              <Box sx={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                <Box
+                  component="span"
+                  sx={{
+                    fontSize: phone ? 12.8 : 14,
+                    lineHeight: 1.35,
+                    display: '-webkit-box',
+                    WebkitLineClamp: phone ? 3 : 1,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {message || 'Treść komunikatu…'}
+                </Box>
+                {linkUrl &&
+                  (phone ? (
+                    <span style={{ border: '1px solid #141618', width: 32, height: 32, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                      →
+                    </span>
+                  ) : (
+                    <span
+                      style={{
+                        fontSize: 11,
+                        letterSpacing: '0.2em',
+                        textTransform: 'uppercase',
+                        border: '1px solid #141618',
+                        padding: '4px 12px',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {linkLabel || 'Dowiedz się więcej'} →
+                    </span>
+                  ))}
+              </Box>
+              {!phone && <span style={{ opacity: 0.8, width: 28, textAlign: 'center' }}>›</span>}
+              <span style={{ opacity: 0.7 }}>✕</span>
+            </Box>
+          </Box>
+        );
+      }}
+    </DevicePreview>
   );
 };
 
@@ -227,6 +264,7 @@ const SystemInfo = () => {
 
 const AnnouncementForm = () => (
   <SimpleForm toolbar={<FormToolbar />}>
+    <FormUnsavedChanges />
     <SystemInfo />
     <Preview />
     <TextInput

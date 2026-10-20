@@ -189,6 +189,9 @@ export class BlogService implements OnApplicationBootstrap {
         ? { shortDescription: rest.shortDescription }
         : {}),
       ...(rest.content !== undefined ? { content: rest.content } : {}),
+      ...(rest.shareImageUrl !== undefined
+        ? { shareImageUrl: rest.shareImageUrl }
+        : {}),
       ...(rest.sendAsNewsletter !== undefined
         ? { sendAsNewsletter: rest.sendAsNewsletter }
         : {}),
@@ -250,6 +253,15 @@ export class BlogService implements OnApplicationBootstrap {
       };
     }
 
+    // zmienione / usunięte zdjęcie do udostępniania – stary plik do usunięcia
+    if (
+      rest.shareImageUrl !== undefined &&
+      existing.shareImageUrl &&
+      existing.shareImageUrl !== rest.shareImageUrl &&
+      existing.shareImageUrl.includes('/uploads/')
+    )
+      urlsToDelete.push(existing.shareImageUrl);
+
     const updated = await this.prisma.article.update({
       where: { id },
       data,
@@ -287,6 +299,8 @@ export class BlogService implements OnApplicationBootstrap {
     }
 
     const imgUrls = article.images.map((img) => img.imgUrl);
+    if (article.shareImageUrl?.includes('/uploads/'))
+      imgUrls.push(article.shareImageUrl);
 
     // powiązania (tagi, zdjęcia) muszą zniknąć przed artykułem – inaczej błąd FK
     await this.prisma.$transaction([

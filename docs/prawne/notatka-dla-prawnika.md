@@ -3,8 +3,10 @@
 Przygotowano: [[DATA]] · Autor (wykonawca serwisu): [[IMIĘ I NAZWISKO / FIRMA WYKONAWCY]]
 
 Notatka opisuje, jak technicznie działa serwis i jakie dane przetwarza, aby ułatwić weryfikację projektów dwóch dokumentów:
-- **Regulamin rezerwacji**: `web/content/prawne/regulamin-rezerwacji.md` (na stronie `/regulamin`),
-- **Polityka prywatności**: `web/content/prawne/polityka-prywatnosci.md` (na stronie `/polityka-prywatnosci`).
+- **Regulamin rezerwacji**: wersja startowa `backend/content/prawne/regulamin-rezerwacji.md` (na stronie `/regulamin`),
+- **Polityka prywatności**: wersja startowa `backend/content/prawne/polityka-prywatnosci.md` (na stronie `/polityka-prywatnosci`).
+
+Właściciel może zmieniać oba dokumenty w panelu (Ustawienia → Dokumenty prawne; pełna historia wersji). Liczby z zasad rezerwacji (godzina zamknięcia, liczba dni, limit na telefon) są w dokumentach znacznikami `{godzina}`, `{dni}`, `{limit}` – strona wstawia aktualne wartości ustawione w panelu.
 
 Miejsca wymagające uzupełnienia lub decyzji oznaczono w dokumentach jako `[[…]]`.
 

@@ -25,6 +25,8 @@ export interface ReservationForEmail {
 /** Dane spoza rezerwacji: kontakt, linki – z bazy (punkt odbioru, dane kontaktowe, social media) */
 export interface EmailContext {
   webUrl: string;
+  /** godzina zamknięcia rezerwacji i anulowania, „HH:MM” (Rezerwacje → Zasady rezerwacji) – w e-mailach rezerwacji */
+  cutoffTime?: string;
   /** telefon punktu odbioru (piekarni); dla chlebowozu zwykle brak */
   pointPhone?: string | null;
   /** godziny postoju chlebowozu, np. 07:00–09:00 (klient podaje szacowaną godzinę w tym przedziale) */
@@ -96,7 +98,11 @@ export const heading = (text: string, size = 30) =>
 export const paragraph = (html: string, color = C.stone) =>
   `<p style="margin:14px 0 0;font-family:${BODY};font-size:15px;line-height:1.65;color:${color}">${html}</p>`;
 
-export function button(href: string, label: string, variant: 'gold' | 'outline') {
+export function button(
+  href: string,
+  label: string,
+  variant: 'gold' | 'outline',
+) {
   const gold = variant === 'gold';
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="display:inline-table;margin:6px 8px 0 0"><tr>
 <td bgcolor="${gold ? C.gold : C.coal}" style="background:${gold ? C.gold : C.coal};border:1px solid ${gold ? C.gold : C.stone}">
@@ -208,7 +214,7 @@ export function reservationConfirmationEmail(
   ctx: EmailContext,
 ): MailMessage {
   const cancelUrl = `${ctx.webUrl}/rezerwacja/anuluj/${r.cancelToken}`;
-  const deadline = cancelDeadline(r.pickupDate);
+  const deadline = cancelDeadline(r.pickupDate, ctx.cutoffTime ?? '18:00');
   const deadlineText = `${formatPickupDate(deadline.date)}, ${deadline.hour}`;
   const firstName = r.customerName.trim().split(/\s+/)[0];
 

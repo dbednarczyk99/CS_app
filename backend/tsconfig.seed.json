@@ -9,5 +9,5 @@
     "types": ["node"],
     "outDir": "dist-seed"
   },
-  "include": ["prisma/seed.ts", "prisma/seed-stats.ts", "prisma/reset-password.ts", "src/scripts/slug.ts"]
+  "include": ["prisma/seed.ts", "prisma/seed-stats.ts", "prisma/reset-password.ts", "src/scripts/slug.ts", "prisma/content-defaults.ts"]
 }

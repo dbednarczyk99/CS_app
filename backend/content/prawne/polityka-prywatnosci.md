@@ -30,7 +30,7 @@ Zapisujemy także: wybrane produkty i ich ilości, punkt i termin odbioru, numer
 | Cel | Podstawa prawna |
 |---|---|
 | Przyjęcie i realizacja rezerwacji, wysłanie potwierdzenia, umożliwienie anulowania, kontakt w sprawie rezerwacji | art. 6 ust. 1 lit. b RODO – podjęcie działań na Twoje żądanie przed zawarciem umowy i wykonanie umowy |
-| Przeciwdziałanie nadużyciom (limit 3 aktywnych rezerwacji na numer telefonu) | art. 6 ust. 1 lit. f RODO – nasz prawnie uzasadniony interes, polegający na ochronie przed fałszywymi rezerwacjami i marnowaniem żywności |
+| Przeciwdziałanie nadużyciom (limit {limit} aktywnych rezerwacji na numer telefonu) | art. 6 ust. 1 lit. f RODO – nasz prawnie uzasadniony interes, polegający na ochronie przed fałszywymi rezerwacjami i marnowaniem żywności |
 | Rozpatrywanie reklamacji, ustalenie, dochodzenie lub obrona przed roszczeniami | art. 6 ust. 1 lit. f RODO – nasz prawnie uzasadniony interes |
 
 Podanie danych jest dobrowolne, ale niezbędne do złożenia rezerwacji.
@@ -117,7 +117,7 @@ Aby skorzystać z praw, skontaktuj się z nami (pkt 1). Odpowiemy bez zbędnej z
 
 ## 8. Zautomatyzowane podejmowanie decyzji
 
-Nie podejmujemy wobec Ciebie decyzji opartych wyłącznie na zautomatyzowanym przetwarzaniu, w tym profilowaniu, które wywoływałyby skutki prawne lub w podobny sposób istotnie na Ciebie wpływały. Serwis automatycznie stosuje jedynie techniczne zasady rezerwacji opisane w Regulaminie (terminy, limit 3 aktywnych rezerwacji na numer telefonu). [[DO WERYFIKACJI PRZEZ PRAWNIKA]]
+Nie podejmujemy wobec Ciebie decyzji opartych wyłącznie na zautomatyzowanym przetwarzaniu, w tym profilowaniu, które wywoływałyby skutki prawne lub w podobny sposób istotnie na Ciebie wpływały. Serwis automatycznie stosuje jedynie techniczne zasady rezerwacji opisane w Regulaminie (terminy, limit {limit} aktywnych rezerwacji na numer telefonu). [[DO WERYFIKACJI PRZEZ PRAWNIKA]]
 
 ## 9. Bezpieczeństwo danych
 

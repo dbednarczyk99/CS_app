@@ -15,6 +15,7 @@ import {
   Min,
   MinLength,
   ValidateNested,
+  IsBoolean,
 } from 'class-validator';
 import { PickupType } from '@prisma/client';
 
@@ -67,6 +68,11 @@ export class CreateReservationDto {
     message: 'Wymagana akceptacja regulaminu rezerwacji',
   })
   consent: boolean;
+
+  /** opcjonalnie: zapis do newslettera na adres z rezerwacji (z potwierdzeniem linkiem z e-maila) */
+  @IsOptional()
+  @IsBoolean()
+  newsletter?: boolean;
 
   /** pole-pułapka na boty – ukryte na stronie, musi zostać puste */
   @IsOptional()

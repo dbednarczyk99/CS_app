@@ -8,6 +8,8 @@ import {
   MinLength,
   ValidateNested,
   IsDateString,
+  Matches,
+  ValidateIf,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
@@ -40,6 +42,19 @@ export class CreateArticleDto {
   @ValidateNested({ each: true })
   @Type(() => ArticleImageInlineDto)
   images?: ArticleImageInlineDto[];
+
+  /** zdjęcie w podglądzie linku przy udostępnianiu; puste = okładka wpisu */
+  @IsOptional()
+  @Transform(({ value }) =>
+    typeof value === 'string' && !value.trim() ? null : value,
+  )
+  @ValidateIf((_, value) => value !== null)
+  @IsString()
+  @MaxLength(500)
+  @Matches(/^(\/[^\s]*|https?:\/\/[^\s]+)$/, {
+    message: 'Niepoprawny adres zdjęcia do udostępniania',
+  })
+  shareImageUrl?: string | null;
 
   /** widoczny na stronie (false = tylko newsletter) */
   @IsOptional()

@@ -1,3 +1,7 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
+import { MobileList } from '../common/MobileList';
+import { ScreenTabs } from '../common/ScreenTabs';
+import { OFFER_TABS } from '../common/screen-tabs';
 import {
   List,
   Datagrid,
@@ -138,7 +142,14 @@ const LabelFields = () => (
 );
 
 export const LabelList = () => (
+  <>
+  <ScreenTabs tabs={OFFER_TABS} />
   <List title="Etykiety produktów" sort={{ field: 'order', order: 'ASC' }} pagination={false}>
+    <MobileList
+      primaryText={(r) => <LabelChip name={r.name} color={r.color} />}
+      secondaryText={(r) => (r.system === 'promo' ? 'stała – nadawana przy promocji' : '')}
+      rowClick="edit"
+    >
     <Datagrid rowClick="edit" bulkActionButtons={false}>
       <FunctionField
         label="Etykieta"
@@ -175,12 +186,15 @@ export const LabelList = () => (
       <NumberField source="order" label="Kolejność" />
       <TextField source="slug" label="Adres filtra" sortable={false} />
     </Datagrid>
+    </MobileList>
   </List>
+  </>
 );
 
 export const LabelCreate = () => (
   <Create title="Nowa etykieta" redirect="list">
     <SimpleForm>
+      <FormUnsavedChanges />
       <LabelFields />
     </SimpleForm>
   </Create>
@@ -210,6 +224,7 @@ const LabelEditToolbar = () => {
 export const LabelEdit = () => (
   <Edit title="Etykieta" mutationMode="pessimistic" redirect="list">
     <SimpleForm toolbar={<LabelEditToolbar />}>
+      <FormUnsavedChanges />
       <LabelFields />
     </SimpleForm>
   </Edit>

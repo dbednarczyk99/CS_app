@@ -1,9 +1,11 @@
 import { forwardRef } from 'react';
-import { AppBar, Layout, Logout, TitlePortal, UserMenu, useUserMenu, type LayoutProps } from 'react-admin';
+import { AppBar, Layout, LoadingIndicator, Logout, TitlePortal, UserMenu, useUserMenu, type LayoutProps } from 'react-admin';
 import { Link } from 'react-router-dom';
 import { Box, ListItemIcon, ListItemText, MenuItem } from '@mui/material';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import { CustomMenu } from './CustomMenu';
+import { ParentLink, ThemeToggle } from './AppBarControls';
+import { useTrackQuickActions } from './quick-actions';
 import { COLORS } from '../../theme';
 
 /** „Moje konto” w menu konta (prawy górny róg) – dla każdego zalogowanego */
@@ -19,10 +21,20 @@ const AccountMenuItem = forwardRef<HTMLAnchorElement>((props, ref) => {
   );
 });
 
-/** Górny pasek: logo piekarni (w obu trybach pasek jest ciemny), tytuł bieżącej strony, menu konta */
+/**
+ * Górny pasek (zawsze widoczny, nie chowa się przy przewijaniu): logo piekarni (w obu trybach pasek jest ciemny),
+ * strzałka do ekranu nadrzędnego (np. z edycji produktu do listy), tytuł bieżącej strony, przełącznik trybu, menu konta
+ */
 const AdminAppBar = () => (
   <AppBar
+    alwaysOn
     color="inherit"
+    toolbar={
+      <>
+        <ThemeToggle />
+        <LoadingIndicator />
+      </>
+    }
     userMenu={
       <UserMenu>
         <AccountMenuItem />
@@ -37,16 +49,36 @@ const AdminAppBar = () => (
       sx={{ height: 22, mr: 2.5, display: { xs: 'none', sm: 'block' } }}
     />
     <Box sx={{ width: '1px', height: 22, bgcolor: COLORS.line, mr: 2.5, display: { xs: 'none', sm: 'block' } }} />
+    <ParentLink />
     <TitlePortal
       sx={{
         fontFamily: '"Oswald", sans-serif',
         textTransform: 'uppercase',
-        letterSpacing: '0.12em',
-        fontSize: '0.95rem',
+        letterSpacing: { xs: '0.06em', sm: '0.12em' },
+        fontSize: { xs: '0.8rem', sm: '0.95rem' },
         fontWeight: 400,
+        // telefon: długi tytuł (np. nazwa produktu) kończy się wielokropkiem zamiast wchodzić pod przyciski
+        minWidth: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
       }}
     />
   </AppBar>
 );
 
-export const AdminLayout = (props: LayoutProps) => <Layout {...props} appBar={AdminAppBar} menu={CustomMenu} />;
+export const AdminLayout = (props: LayoutProps) => {
+  // szybkie akcje na pulpicie uczą się z tego, które ekrany otwierasz najczęściej
+  useTrackQuickActions();
+  return (
+    <Layout
+      {...props}
+      appBar={AdminAppBar}
+      menu={CustomMenu}
+      // treść nie rośnie ponad szerokość ekranu przez długi niełamany tekst (podgląd linku, pasek zakładek) –
+      // na telefonie ekrany „Strona główna” i „Podstrony” wychodziły poza wyświetlacz
+      // (react-admin domyślnie: min-width: fit-content na całym układzie)
+      sx={{ minWidth: 0, '& .RaLayout-appFrame, & .RaLayout-contentWithSidebar, & .RaLayout-content': { minWidth: 0 } }}
+    />
+  );
+};

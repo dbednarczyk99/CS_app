@@ -1,4 +1,3 @@
-import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaArrowRight } from 'react-icons/fa6';
@@ -6,25 +5,23 @@ import { PageHeader } from '@/components/PageHeader';
 import { api, orFallback } from '@/lib/api';
 import { formatDate } from '@/lib/format';
 import { articlePath } from '@/lib/site';
-import { pageMetadata } from '@/lib/site';
+import { getContent, seoMetadata } from '@/lib/content';
 
-export const metadata: Metadata = pageMetadata({
-  title: 'Aktualności',
-  description: 'Nowości, sezonowe wypieki i wiadomości z piekarni Chleba Smak.',
-  path: '/aktualnosci',
-});
+export const generateMetadata = () => seoMetadata('seo.news', { path: '/aktualnosci' });
 
+/** Nagłówek i napisy – z panelu (Strona → Podstrony → Aktualności) */
 export default async function NewsPage() {
-  const articles = [...(await orFallback(api.articles(), []))].sort((a, b) =>
-    b.publishedAt.localeCompare(a.publishedAt),
-  );
+  const [list, content] = await Promise.all([orFallback(api.articles(), []), getContent()]);
+  const articles = [...list].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+  const header = content['news.header'];
+  const texts = content['news.list'];
 
   return (
     <>
-      <PageHeader eyebrow="Aktualności" title="Co słychać w piekarni" image="/images/galeria/06.jpg" />
+      <PageHeader eyebrow={header.eyebrow} title={header.title} image={header.image.url} />
 
       <div className="mx-auto max-w-5xl px-5 py-16 sm:px-8 md:py-24">
-        {articles.length === 0 && <p className="text-center text-stone">Wkrótce pojawią się tu pierwsze wpisy.</p>}
+        {articles.length === 0 && <p className="text-center text-stone">{texts.empty}</p>}
         <ul className="divide-y divide-line border-y border-line">
           {articles.map((article) => {
             const image = article.images?.[0];
@@ -63,7 +60,7 @@ export default async function NewsPage() {
                       </ul>
                     )}
                     <span className="link-arrow mt-5 inline-flex items-center gap-2 text-[0.75rem]">
-                      Czytaj <FaArrowRight aria-hidden />
+                      {texts.readMore} <FaArrowRight aria-hidden />
                     </span>
                   </div>
                 </Link>

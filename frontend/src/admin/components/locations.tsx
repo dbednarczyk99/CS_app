@@ -1,3 +1,5 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
+import { MobileList } from '../common/MobileList';
 import {
   List,
   Datagrid,
@@ -36,6 +38,11 @@ const weekdayLabel: Record<Weekday, string> = {
 
 export const LocationList = () => (
   <List title="Piekarnie">
+    <MobileList
+      primaryText={(l) => l.address}
+      secondaryText={(l) => [l.name, l.phone].filter(Boolean).join(' · ')}
+      rowClick="edit"
+    >
     <Datagrid rowClick="edit">
       <RATextField source="name" />
       <RATextField source="address" />
@@ -43,6 +50,7 @@ export const LocationList = () => (
       <RATextField source="code" label="Kod" />
       <RATextField source="googleMapsUrl" />
     </Datagrid>
+    </MobileList>
   </List>
 );
 
@@ -114,6 +122,7 @@ const GoogleRatingInfo = () => {
 // wspólny formularz dla tworzenia i edycji
 const LocationForm = () => (
   <SimpleForm>
+    <FormUnsavedChanges />
     <TextInput source="name" label="Nazwa (opcjonalnie)" />
     <TextInput source="address" label="Adres" validate={[required()]} helperText="np. „ul. Wileńska 4, 31-413 Kraków”" />
     <TextInput source="phone" label="Telefon" />

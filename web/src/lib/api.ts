@@ -1,3 +1,4 @@
+import type { SiteContent } from './content';
 // Komunikacja z API (NestJS). Wywoływane po stronie serwera Next.js.
 const API_URL = process.env.API_URL ?? 'http://localhost:3000';
 
@@ -157,6 +158,8 @@ export interface Article {
   createdAt: string;
   /** data publikacji na stronie: zaplanowana albo dodania */
   publishedAt: string;
+  /** zdjęcie w podglądzie linku (Facebook) – null = okładka */
+  shareImageUrl?: string | null;
   images: Image[];
   tags: { tag: { id: string; name: string } }[];
 }
@@ -170,9 +173,32 @@ export interface Announcement {
   updatedAt: string;
 }
 
+/** Które płatne usługi działają teraz (panel: Usługi i koszty) – przy wyłączonej strona pokazuje zamiennik */
+export interface ServiceStatus {
+  emails: boolean;
+  maps: boolean;
+  ratings: boolean;
+}
+
+/** Zasady rezerwacji z panelu (Rezerwacje → Zasady rezerwacji) */
+export interface ReservationRules {
+  /** rezerwacja i anulowanie do tej godziny dnia poprzedzającego odbiór, „HH:MM” */
+  cutoffTime: string;
+  maxDaysAhead: number;
+  maxActivePerPhone: number;
+}
+
+/** Dokument prawny (regulamin, polityka prywatności) – treść z panelu albo domyślna */
+export interface LegalDocumentData {
+  title: string;
+  markdown: string;
+  /** data ostatniej zmiany w panelu; null – wersja domyślna */
+  updatedAt: string | null;
+}
+
 /** Terminy i punkty odbioru dostępne teraz do rezerwacji (liczone przez API w czasie polskim) */
 export interface ReservationOptions {
-  cutoffHour: number;
+  rules: ReservationRules;
   dates: string[];
   stores: {
     id: string;
@@ -199,6 +225,8 @@ export interface ReservationOptions {
 
 /** Rezerwacja widoczna dla klienta (potwierdzenie, anulowanie) */
 export interface PublicReservation {
+  /** tylko po złożeniu: czy wyszło potwierdzenie e-mailem (wyłącznik e-maili w panelu) */
+  confirmationEmail?: boolean;
   number: string;
   status: 'NEW' | 'CANCELLED';
   pickupType: 'STORE' | 'VAN';
@@ -211,6 +239,27 @@ export interface PublicReservation {
   items: { productName: string; unitPrice: string; quantity: number }[];
   canCancel: boolean;
   cancelDeadline: { date: string; hour: string };
+}
+
+/** Slajd karuzeli strony głównej z panelu (Strona → Strona główna → Karuzela) */
+export interface HeroSlideData {
+  id: string;
+  /** CUSTOM – własny; VAN, BAKERIES, SEASONAL – z danymi z panelu (trasa, liczba piekarni, produkty sezonowe) */
+  kind: 'CUSTOM' | 'VAN' | 'BAKERIES' | 'SEASONAL';
+  name: string;
+  eyebrow: string;
+  titleLine1: string;
+  titleLine2: string;
+  text: string;
+  cta1Label: string | null;
+  cta1Href: string | null;
+  cta2Label: string | null;
+  cta2Href: string | null;
+  imageUrl: string;
+  imageAlt: string;
+  imagePosition: string;
+  mobileImageUrl: string | null;
+  mobileImagePosition: string;
 }
 
 export const API_BASE_URL = API_URL;
@@ -231,6 +280,13 @@ export const api = {
   articles: () => get<Article[]>('/blog'),
   article: (id: string) => get<Article | null>(`/blog/${encodeURIComponent(id)}`),
   announcements: () => get<Announcement[]>('/announcements/active'),
+  // treści edytowane w panelu („Strona”) – typy i wartości awaryjne w lib/content.ts
+  content: () => get<Partial<SiteContent>>('/content'),
+  heroSlides: () => get<HeroSlideData[]>('/content/hero'),
+  reservationRules: () => get<ReservationRules>('/settings/reservations/public'),
+  // wyłączniki kosztów z panelu (Usługi i koszty): czy działają e-maile, mapa, odświeżanie ocen
+  serviceStatus: () => get<ServiceStatus>('/settings/services/public'),
+  legal: (doc: string) => get<LegalDocumentData>(`/settings/legal/${encodeURIComponent(doc)}`),
 };
 
 // Strona ma się wyświetlić nawet wtedy, gdy część API nie odpowiada

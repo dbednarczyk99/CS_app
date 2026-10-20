@@ -1,3 +1,6 @@
+import { FormUnsavedChanges } from '../common/UnsavedChanges';
+import { ScreenTabs } from '../common/ScreenTabs';
+import { CONTACT_TABS } from '../common/screen-tabs';
 import {
   List,
   Datagrid,
@@ -37,6 +40,8 @@ const getMediaChoice = (id: string) =>
   mediaChoices.find(choice => choice.id === id);
 
 export const MediaList = () => (
+  <>
+  <ScreenTabs tabs={CONTACT_TABS} />
   <List title="Media społecznościowe">
     <Datagrid rowClick='edit'>
       <FunctionField
@@ -54,6 +59,7 @@ export const MediaList = () => (
       <TextField source='url' />
     </Datagrid>
   </List>
+  </>
 );
 
 export const MediaCreate = () => {
@@ -69,6 +75,7 @@ export const MediaCreate = () => {
   return (
     <Create title="Nowy profil">
       <SimpleForm>
+        <FormUnsavedChanges />
         <SelectInput
           source="name"
           label="Serwis"
@@ -90,6 +97,7 @@ export const MediaCreate = () => {
 export const MediaEdit = () => (
   <Edit>
     <SimpleForm>
+      <FormUnsavedChanges />
       <SelectInput
         source="name"
         label="Serwis"

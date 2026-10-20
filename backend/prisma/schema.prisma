@@ -278,6 +278,8 @@ model Article {
   shortDescription     String          @db.VarChar(500)
   content              String          @db.Text
   images               ArticleImages[]
+  // zdjęcie w podglądzie linku (Facebook, Messenger); null = okładka wpisu
+  shareImageUrl        String?         @db.VarChar(500)
   tags                 TagOnArticle[]
   // false = wpis tylko dla subskrybentów newslettera (niewidoczny na stronie)
   isPublished          Boolean         @default(true)
@@ -423,4 +425,67 @@ model DailyStat {
 
   @@unique([date, metric, key])
   @@index([metric, date])
+}
+
+// TREŚCI STRONY („domowy WordPress”) – teksty i zdjęcia sekcji edytowane w panelu.
+// Klucz sekcji, np. "home.values"; data – pola sekcji (opis pól i wartości domyślne: modules/content/sections.ts).
+// Brak wiersza = wartości domyślne (obecne teksty strony).
+model SiteContent {
+  key       String   @id @db.VarChar(60)
+  data      Json
+  updatedAt DateTime @updatedAt
+}
+
+// Rodzaj slajdu karuzeli: własny albo automatyczny (dane z panelu: trasa chlebowozu, liczba piekarni, produkty sezonowe)
+enum HeroSlideKind {
+  CUSTOM
+  VAN
+  BAKERIES
+  SEASONAL
+}
+
+// Slajd karuzeli na górze strony głównej
+model HeroSlide {
+  id                  String        @id @default(uuid())
+  kind                HeroSlideKind @default(CUSTOM)
+  // slajd startowy (marka, rezerwacja, chlebowoz, piekarnie, sezonowe) – można przywrócić jego stan domyślny
+  defaultKey          String?       @unique @db.VarChar(20)
+  // krótka nazwa pod paskiem postępu karuzeli
+  name                String        @db.VarChar(20)
+  eyebrow             String        @db.VarChar(50)
+  // tytuł w dwóch liniach (druga – złota); BAKERIES: {piekarnie} → „4 piekarnie”
+  titleLine1          String        @db.VarChar(30)
+  titleLine2          String        @default("") @db.VarChar(30)
+  text                String        @db.VarChar(220)
+  cta1Label           String?       @db.VarChar(30)
+  cta1Href            String?       @db.VarChar(300)
+  cta2Label           String?       @db.VarChar(30)
+  cta2Href            String?       @db.VarChar(300)
+  // zdjęcie na komputer (SEASONAL bez zdjęcia – zdjęcie produktu sezonowego) i opcjonalnie osobny kadr na telefon
+  imageUrl            String        @db.VarChar(500)
+  imageAlt            String        @default("") @db.VarChar(160)
+  // punkt kadrowania, np. "60% center"
+  imagePosition       String        @default("center") @db.VarChar(30)
+  mobileImageUrl      String?       @db.VarChar(500)
+  mobileImagePosition String        @default("center") @db.VarChar(30)
+  isActive            Boolean       @default(true)
+  startsAt            DateTime?
+  endsAt              DateTime?
+  order               Int           @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Historia zmian treści strony – ostatnie zapisy sekcji (key = klucz sekcji) i slajdów (key = "hero:<id>"),
+// do „Przywróć wcześniejszą wersję”. Trzymamy 10 ostatnich na klucz.
+model ContentRevision {
+  id        Int      @id @default(autoincrement())
+  key       String   @db.VarChar(80)
+  data      Json
+  // kto zapisał wersję, która została zastąpiona (imię albo login)
+  createdBy String?  @db.VarChar(100)
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
 }
