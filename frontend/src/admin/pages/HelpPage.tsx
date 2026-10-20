@@ -129,7 +129,7 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Czy panel działa na telefonie?',
-        a: 'Tak – listy (produkty, rezerwacje, wpisy, baner, karuzela i inne) na telefonie wyświetlają się jako karty z najważniejszymi informacjami, a formularze mają pola na całą szerokość. Najwygodniej pracuje się jednak na komputerze, zwłaszcza przy dłuższych tekstach i dokumentach prawnych.',
+        a: 'Tak – listy (produkty, rezerwacje, wpisy, baner, karuzela i inne) na telefonie wyświetlają się jako karty z najważniejszymi informacjami, a formularze mają pola na całą szerokość. Najwygodniej pracuje się jednak na komputerze, zwłaszcza przy dłuższych tekstach i dokumentach prawnych. Podglądy (baner, slajd karuzeli, e-mail newslettera) mają przełącznik „Komputer | Telefon” – na każdym urządzeniu zobaczysz, jak treść wygląda u klientów na komputerze i na telefonie.',
       },
       {
         q: 'Jak przełączyć tryb jasny i ciemny?',
