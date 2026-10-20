@@ -431,7 +431,8 @@ export function ContentEditor({
   }, [page]);
 
   return (
-    <Box sx={{ maxWidth: 1000, mx: 'auto', py: embedded ? 2 : { xs: 2, md: 4 } }}>
+    // minWidth 0: w kolumnie flex (np. pod zakładkami) edytor nie rośnie do szerokości najdłuższego tekstu
+    <Box sx={{ width: '100%', maxWidth: 1000, minWidth: 0, mx: 'auto', py: embedded ? 2 : { xs: 2, md: 4 } }}>
       {!embedded && <Title title={title} />}
       <Stack direction="row" alignItems="flex-end" justifyContent="space-between" flexWrap="wrap" gap={2} sx={{ mb: 1 }}>
         <Typography variant="h5">{title}</Typography>

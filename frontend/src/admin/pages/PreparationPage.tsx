@@ -96,7 +96,8 @@ export default function PreparationPage() {
   return (
     <Box sx={{ py: 2 }}>
       <Title title="Do przygotowania" />
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3, '@media print': { display: 'none' } }}>
+      {/* flexWrap + useFlexGap: na telefonie przyciski zawijają się pod pole daty zamiast na siebie nachodzić */}
+      <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mb: 3, '@media print': { display: 'none' } }}>
         <TextField
           type="date"
           label="Dzień odbioru"

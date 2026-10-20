@@ -70,5 +70,15 @@ const AdminAppBar = () => (
 export const AdminLayout = (props: LayoutProps) => {
   // szybkie akcje na pulpicie uczą się z tego, które ekrany otwierasz najczęściej
   useTrackQuickActions();
-  return <Layout {...props} appBar={AdminAppBar} menu={CustomMenu} />;
+  return (
+    <Layout
+      {...props}
+      appBar={AdminAppBar}
+      menu={CustomMenu}
+      // treść nie rośnie ponad szerokość ekranu przez długi niełamany tekst (podgląd linku, pasek zakładek) –
+      // na telefonie ekrany „Strona główna” i „Podstrony” wychodziły poza wyświetlacz
+      // (react-admin domyślnie: min-width: fit-content na całym układzie)
+      sx={{ minWidth: 0, '& .RaLayout-appFrame, & .RaLayout-contentWithSidebar, & .RaLayout-content': { minWidth: 0 } }}
+    />
+  );
 };
