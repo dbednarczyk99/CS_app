@@ -133,8 +133,7 @@ const HomePage = () => {
         Panel Chleba Smak
       </Typography>
       <Typography variant="h4" sx={{ mt: 0.5 }}>
-        {greeting()}
-        {identity?.fullName ? `, ${identity.fullName}` : ''}!
+        {greeting()}!
       </Typography>
       <Typography color="text.secondary" sx={{ mt: 1, '&::first-letter': { textTransform: 'uppercase' } }}>
         {todayLabel}
