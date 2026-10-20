@@ -29,6 +29,8 @@ import StatsPage from './admin/pages/StatsPage';
 import HomeContentPage from './admin/content/HomeContentPage';
 import PagesContentPage from './admin/content/PagesContentPage';
 import CommonContentPage from './admin/content/CommonContentPage';
+import ReservationRulesPage from './admin/pages/ReservationRulesPage';
+import LegalDocumentsPage from './admin/pages/LegalDocumentsPage';
 import { HeroSlideCreate, HeroSlideEdit, HeroSlideList } from './admin/content/heroSlides';
 import { UserCreate, UserEdit, UserList } from './admin/components/users';
 import { ReservationList, ReservationShow } from './admin/components/reservations';
@@ -62,6 +64,8 @@ function App() {
               <Route path="/help" element={<HelpPage />} />
               <Route path="/konto" element={<AccountPage />} />
               {isOwner && <Route path="/przygotowanie" element={<PreparationPage />} />}
+              {isOwner && <Route path="/ustawienia/rezerwacje" element={<ReservationRulesPage />} />}
+              {isOwner && <Route path="/ustawienia/dokumenty/:doc?" element={<LegalDocumentsPage />} />}
               <Route path="/statystyki" element={<StatsPage />} />
               <Route path="/strona/glowna" element={<HomeContentPage />} />
               <Route path="/strona/podstrony/:tab?" element={<PagesContentPage />} />

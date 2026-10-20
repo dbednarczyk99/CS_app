@@ -52,7 +52,7 @@ export default function PreparationPage() {
   const [sending, setSending] = useState(false);
   const notify = useNotify();
 
-  // ten sam mail, który (po włączeniu) wychodzi automatycznie o 18:30
+  // ten sam mail, który (po włączeniu w Ustawienia → Zasady rezerwacji) wychodzi automatycznie codziennie
   const sendEmail = async () => {
     setSending(true);
     try {

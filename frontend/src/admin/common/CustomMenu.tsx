@@ -22,6 +22,8 @@ import HomeIcon from '@mui/icons-material/Home';
 import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
 import WebIcon from '@mui/icons-material/Web';
 import ViewQuiltIcon from '@mui/icons-material/ViewQuilt';
+import EventNoteIcon from '@mui/icons-material/EventNote';
+import GavelIcon from '@mui/icons-material/Gavel';
 
 /** Nagłówek grupy w menu (widoczny przy rozwiniętym menu) */
 const Section = ({ title }: { title: string }) => {
@@ -103,6 +105,8 @@ export const CustomMenu = () => {
       <Menu.Item to="/contact/media" primaryText="Media społecznościowe" leftIcon={<ShareIcon />} />
 
       <Section title="Ustawienia" />
+      {isOwner && <Menu.Item to="/ustawienia/rezerwacje" primaryText="Zasady rezerwacji" leftIcon={<EventNoteIcon />} />}
+      {isOwner && <Menu.Item to="/ustawienia/dokumenty" primaryText="Dokumenty prawne" leftIcon={<GavelIcon />} />}
       {isOwner && <Menu.Item to="/users" primaryText="Konta" leftIcon={<GroupIcon />} />}
       <Menu.Item to="/help" primaryText="Pomoc" leftIcon={<HelpIcon />} />
     </Menu>
