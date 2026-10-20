@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createTransport, type Transporter } from 'nodemailer';
 import { StatsService } from '../stats/stats.service';
+import { ServicesService } from '../settings/services.service';
 
 /** Rodzaj wiadomości – do statystyk (licznik wysłanych e-maili w panelu) */
 export type MailCategory =
@@ -40,6 +41,7 @@ export class MailService {
   constructor(
     config: ConfigService,
     private readonly stats: StatsService,
+    private readonly services: ServicesService,
   ) {
     const host = config.get<string>('SMTP_HOST');
     const port = Number(config.get<string>('SMTP_PORT') ?? 587);
@@ -62,8 +64,23 @@ export class MailService {
       );
   }
 
-  /** Wysyłka „w tle” – błąd poczty nie może zablokować rezerwacji */
+  /** Czy e-maile są teraz wysyłane (wyłącznik i limit dzienny w „Usługi i koszty”) – np. do komunikatów na stronie */
+  async available(): Promise<boolean> {
+    return (await this.services.state('emails')).available;
+  }
+
+  /**
+   * Wysyłka „w tle” – błąd poczty nie może zablokować rezerwacji. Wyłączone e-maile albo wykorzystany limit
+   * dzienny – wiadomość nie wychodzi (licznik „mail_blocked” w statystykach).
+   */
   send(message: MailMessage): void {
+    void this.services.consume('emails').then((allowed) => {
+      if (allowed) this.deliver(message);
+      else this.stats.increment('mail_blocked', message.category ?? 'inne');
+    });
+  }
+
+  private deliver(message: MailMessage): void {
     if (!this.transporter) {
       this.logger.log(`[bez SMTP] ${message.to}: ${message.subject}`);
       return;

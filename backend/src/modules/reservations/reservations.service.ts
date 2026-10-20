@@ -261,11 +261,14 @@ export class ReservationsService {
           ),
         );
 
+    // czy potwierdzenie wyjdzie (Usługi i koszty) – strona pokaże wtedy „zapisz numer rezerwacji”
+    const confirmationEmail = await this.mail.available();
+
     void this.sendEmail(
       (ctx) => reservationConfirmationEmail(reservation, ctx),
       reservation,
     );
-    return this.publicView(reservation);
+    return { ...(await this.publicView(reservation)), confirmationEmail };
   }
 
   /**
