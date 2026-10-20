@@ -356,6 +356,22 @@ export const CONTENT_DEFAULTS = {
     "text": "Odbierz w wybranej piekarni lub z chlebowozu. Płacisz na miejscu, przy odbiorze.",
     "unavailable": "Rezerwacje są chwilowo niedostępne. Spróbuj ponownie za kilka minut lub zadzwoń do piekarni."
   },
+  "reservation.form": {
+    "stepProducts": "Produkty",
+    "addMore": "+ Dodaj kolejne produkty",
+    "stepPickup": "Odbiór",
+    "rulesNote": "Rezerwacje przyjmujemy do {godzina} dnia poprzedzającego odbiór, maksymalnie {dni} do przodu.",
+    "noDates": "W najbliższych dniach nie ma terminów dostępnych do rezerwacji.",
+    "stepDetails": "Twoje dane",
+    "namePlaceholder": "Zawołamy Cię przy odbiorze",
+    "emailLabel": "E-mail – wyślemy na niego potwierdzenie",
+    "summaryTitle": "Podsumowanie",
+    "submit": "Zarezerwuj",
+    "paymentNote": "Płatność gotówką lub kartą przy odbiorze.",
+    "successTitle": "Rezerwacja przyjęta",
+    "howItWorksTitle": "Jak działa rezerwacja?",
+    "howItWorks": "Odbiór w jednej z naszych piekarni lub z chlebowozu.\nRezerwacje przyjmujemy do {godzina} dnia poprzedzającego odbiór, maksymalnie {dni} do przodu.\nPłacisz na miejscu, przy odbiorze."
+  },
   "seo.default": {
     "image": {
       "url": "/images/og-domyslny.jpg",

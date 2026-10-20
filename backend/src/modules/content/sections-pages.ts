@@ -450,7 +450,7 @@ export const PAGE_SECTIONS: Section[] = [
     page: 'reservation',
     title: 'Nagłówek strony',
     description:
-      'Tytuł nad formularzem rezerwacji. Zasady rezerwacji (terminy, limity) – w „Ustawienia rezerwacji” (wkrótce).',
+      'Tytuł nad formularzem rezerwacji. Zasady rezerwacji (terminy, limity) ustawia właściciel w „Ustawienia → Zasady rezerwacji”.',
     fields: [
       EYEBROW,
       text('title', 'Tytuł', 60),
@@ -465,6 +465,55 @@ export const PAGE_SECTIONS: Section[] = [
       text: 'Odbierz w wybranej piekarni lub z chlebowozu. Płacisz na miejscu, przy odbiorze.',
       unavailable:
         'Rezerwacje są chwilowo niedostępne. Spróbuj ponownie za kilka minut lub zadzwoń do piekarni.',
+    },
+  },
+
+  {
+    key: 'reservation.form',
+    page: 'reservation',
+    title: 'Formularz rezerwacji',
+    description:
+      'Nagłówki kroków, podpowiedzi i przyciski formularza oraz ramka „Jak działa rezerwacja?” na stronie produktu. Zasady (godzina, liczba dni, limit) ustawia właściciel w „Ustawienia → Zasady rezerwacji” – w tekstach wstawiaj je znacznikami.',
+    fields: [
+      text('stepProducts', 'Krok 1 – tytuł', 30),
+      text('addMore', 'Link do dodania produktów', 40),
+      text('stepPickup', 'Krok 2 – tytuł', 30),
+      area('rulesNote', 'Krok 2 – zasady pod tytułem', 250, {
+        rows: 2,
+        help: '{godzina} – godzina zamknięcia, {dni} – np. „5 dni”, {limit} – rezerwacji na telefon (z Ustawienia → Zasady rezerwacji)',
+      }),
+      area('noDates', 'Gdy nie ma wolnych terminów', 200, { rows: 2 }),
+      text('stepDetails', 'Krok 3 – tytuł', 30),
+      text('namePlaceholder', 'Podpowiedź w polu „Imię”', 40),
+      text('emailLabel', 'Opis pola „E-mail”', 60),
+      text('summaryTitle', 'Podsumowanie – tytuł', 30),
+      text('submit', 'Przycisk wysłania', 30),
+      text('paymentNote', 'Pod przyciskiem', 100),
+      text('successTitle', 'Po wysłaniu – tytuł', 40),
+      text('howItWorksTitle', 'Strona produktu – tytuł ramki', 40),
+      area('howItWorks', 'Strona produktu – punkty ramki', 500, {
+        rows: 4,
+        help: 'Każdy punkt w osobnej linii. {godzina} – godzina zamknięcia, {dni} – np. „5 dni”, {limit} – rezerwacji na telefon (z Ustawienia → Zasady rezerwacji)',
+      }),
+    ],
+    defaults: {
+      stepProducts: 'Produkty',
+      addMore: '+ Dodaj kolejne produkty',
+      stepPickup: 'Odbiór',
+      rulesNote:
+        'Rezerwacje przyjmujemy do {godzina} dnia poprzedzającego odbiór, maksymalnie {dni} do przodu.',
+      noDates:
+        'W najbliższych dniach nie ma terminów dostępnych do rezerwacji.',
+      stepDetails: 'Twoje dane',
+      namePlaceholder: 'Zawołamy Cię przy odbiorze',
+      emailLabel: 'E-mail – wyślemy na niego potwierdzenie',
+      summaryTitle: 'Podsumowanie',
+      submit: 'Zarezerwuj',
+      paymentNote: 'Płatność gotówką lub kartą przy odbiorze.',
+      successTitle: 'Rezerwacja przyjęta',
+      howItWorksTitle: 'Jak działa rezerwacja?',
+      howItWorks:
+        'Odbiór w jednej z naszych piekarni lub z chlebowozu.\nRezerwacje przyjmujemy do {godzina} dnia poprzedzającego odbiór, maksymalnie {dni} do przodu.\nPłacisz na miejscu, przy odbiorze.',
     },
   },
 

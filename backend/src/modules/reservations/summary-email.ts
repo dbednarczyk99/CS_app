@@ -97,6 +97,7 @@ export function dailySummaryEmail(
   to: string,
   adminUrl: string,
   webUrl: string,
+  cutoffTime: string,
 ): MailMessage {
   const day = capitalize(formatPickupDate(s.date));
   const points = s.points
@@ -142,7 +143,7 @@ ${points}`;
 <tr><td style="padding:28px 32px 0">
   ${label('Do przygotowania na')}
   <div style="margin-top:6px;font-family:${HEADING};font-weight:500;font-size:28px;letter-spacing:1.5px;text-transform:uppercase;color:${C.text}">${esc(day)}</div>
-  <div style="margin-top:6px;font-family:${BODY};font-size:14px;color:${C.muted}">Rezerwacji łącznie: <strong style="color:${C.text}">${s.reservationsCount}</strong> · lista zamknięta o 18:00, bez anulowanych</div>
+  <div style="margin-top:6px;font-family:${BODY};font-size:14px;color:${C.muted}">Rezerwacji łącznie: <strong style="color:${C.text}">${s.reservationsCount}</strong> · lista zamknięta o ${cutoffTime}, bez anulowanych</div>
 </td></tr>
 ${body}
 <tr><td style="padding:32px;font-family:${BODY};font-size:12px;line-height:1.6;color:${C.muted}">

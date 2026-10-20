@@ -1,28 +1,62 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Cron } from '@nestjs/schedule';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Cron, SchedulerRegistry } from '@nestjs/schedule';
+import { CronJob } from 'cron';
+import { SettingsService } from '../settings/settings.service';
+import type { ReservationSettings } from '../settings/reservation-settings';
 import { addDays, warsawNow } from './reservation-rules';
 import { ReservationsService } from './reservations.service';
 
+const SUMMARY_JOB = 'daily-summary';
+
 /** Zadania cykliczne rezerwacji (czas polski) */
 @Injectable()
-export class ReservationsJobs {
+export class ReservationsJobs implements OnModuleInit {
   private readonly logger = new Logger(ReservationsJobs.name);
 
   constructor(
     private readonly reservations: ReservationsService,
-    private readonly config: ConfigService,
+    private readonly settings: SettingsService,
+    private readonly scheduler: SchedulerRegistry,
   ) {}
 
-  /** Codziennie o 18:30 – zestawienie na jutro (lista jest już zamknięta). Włączane DAILY_SUMMARY_ENABLED=true */
-  @Cron('30 18 * * *', { timeZone: 'Europe/Warsaw' })
-  async dailySummary() {
-    if (this.config.get<string>('DAILY_SUMMARY_ENABLED') !== 'true') return;
+  async onModuleInit() {
+    this.scheduleSummary(await this.settings.reservations());
+    // zmiana godziny w panelu – nowy termin od razu, bez restartu serwera
+    this.settings.onReservationsChange((s) => this.scheduleSummary(s));
+  }
+
+  /**
+   * Codziennie o godzinie z ustawień (domyślnie 18:30, po zamknięciu listy) – zestawienie na jutro.
+   * Wyłączone w ustawieniach – zadanie istnieje, ale nic nie wysyła.
+   */
+  private scheduleSummary({ summaryTime }: ReservationSettings) {
+    if (this.scheduler.doesExist('cron', SUMMARY_JOB))
+      this.scheduler.deleteCronJob(SUMMARY_JOB);
+    const [hour, minute] = summaryTime.split(':').map(Number);
+    const job = CronJob.from({
+      cronTime: `${minute} ${hour} * * *`,
+      timeZone: 'Europe/Warsaw',
+      onTick: () => void this.dailySummary(),
+    });
+    this.scheduler.addCronJob(SUMMARY_JOB, job);
+    job.start();
+  }
+
+  private async dailySummary() {
+    const settings = await this.settings.reservations();
+    if (!settings.summaryEnabled) return;
     const tomorrow = addDays(warsawNow().date, 1);
-    const result = await this.reservations.sendDailySummary(tomorrow);
-    this.logger.log(
-      `Wysłano zestawienie na ${tomorrow} do ${result.sentTo} (${result.reservationsCount} rez.)`,
-    );
+    try {
+      const result = await this.reservations.sendDailySummary(tomorrow);
+      this.logger.log(
+        `Wysłano zestawienie na ${tomorrow} do ${result.sentTo} (${result.reservationsCount} rez.)`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Nie udało się wysłać zestawienia na ${tomorrow}`,
+        error,
+      );
+    }
   }
 
   /** Codziennie o 3:00 – anonimizacja danych klientów w rezerwacjach złożonych ponad 6 miesięcy temu */

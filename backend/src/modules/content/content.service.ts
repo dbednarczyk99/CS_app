@@ -6,6 +6,7 @@ import {
 import { HeroSlide, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import deleteImageFiles from '../../scripts/imageHandler';
+import { addRevision, listRevisions } from './revisions';
 import { SECTIONS, SECTION_BY_KEY, type Section } from './sections';
 import { collectImageUrls, validateFields } from './validate';
 import { SLIDE_DEFAULTS } from './hero-defaults';
@@ -169,29 +170,12 @@ export class ContentService {
 
   /* --- historia wersji --- */
 
-  private async addRevision(key: string, data: unknown, userId?: string) {
-    const user = userId
-      ? await this.prisma.user.findUnique({
-          where: { id: userId },
-          select: { name: true, login: true },
-        })
-      : null;
-    await this.prisma.contentRevision.create({
-      data: {
-        key,
-        data: data as Prisma.InputJsonValue,
-        createdBy: user?.name || user?.login || null,
-      },
-    });
+  private addRevision(key: string, data: unknown, userId?: string) {
+    return addRevision(this.prisma, key, data, userId);
   }
 
   private revisions(key: string) {
-    return this.prisma.contentRevision.findMany({
-      where: { key },
-      orderBy: { createdAt: 'desc' },
-      take: REVISIONS_KEPT,
-      select: { id: true, data: true, createdBy: true, createdAt: true },
-    });
+    return listRevisions(this.prisma, key, REVISIONS_KEPT);
   }
 
   /**
