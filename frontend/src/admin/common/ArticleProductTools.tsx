@@ -19,6 +19,7 @@ import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { apiUrl, httpClient } from '../../dataProvider';
+import { DevicePreview } from './DevicePreview';
 
 type ProductOption = {
   id: string;
@@ -88,6 +89,19 @@ const token = (p: ProductOption) => `[produkt:${p.id} ${p.name}]`;
  * Narzędzia pod treścią wpisu: wstawienie kafelka produktu (w miejscu kursora, jako osobny akapit),
  * „Wstaw aktualne promocje”, lista produktów w treści i podgląd e-maila newslettera (bez zapisu i wysyłki).
  */
+/** E-mail w ramce: wysokość dopasowana do treści (podgląd przewija się razem z oknem, nie w ramce) */
+function EmailFrame({ html }: { html: string }) {
+  const [height, setHeight] = useState(800);
+  return (
+    <iframe
+      title="Podgląd e-maila"
+      srcDoc={html}
+      onLoad={(e) => setHeight(e.currentTarget.contentDocument?.documentElement.scrollHeight ?? 800)}
+      style={{ width: '100%', height, border: 0, display: 'block' }}
+    />
+  );
+}
+
 export const ArticleProductTools = () => {
   const { setValue, getValues } = useFormContext();
   const content = (useWatch({ name: 'content' }) as string | undefined) ?? '';
@@ -215,15 +229,13 @@ export const ArticleProductTools = () => {
         </Alert>
       )}
 
-      <Dialog open={preview !== null} onClose={() => setPreview(null)} maxWidth="md" fullWidth>
+      <Dialog open={preview !== null} onClose={() => setPreview(null)} maxWidth="lg" fullWidth>
         <DialogTitle>Podgląd newslettera: {preview?.subject}</DialogTitle>
-        <DialogContent sx={{ p: 0, bgcolor: '#141618' }}>
+        <DialogContent sx={{ p: 2 }}>
           {preview && (
-            <iframe
-              title="Podgląd e-maila"
-              srcDoc={preview.html}
-              style={{ width: '100%', height: '70vh', border: 0, display: 'block' }}
-            />
+            <DevicePreview title="Podgląd e-maila" widths={{ desktop: 800, phone: 390 }}>
+              {() => <EmailFrame html={preview.html} />}
+            </DevicePreview>
           )}
         </DialogContent>
         <DialogActions>

@@ -31,6 +31,8 @@ import { Alert, Box, Button, Chip, Stack, Typography } from '@mui/material';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import { apiUrl, httpClient } from '../../dataProvider';
 import { ImageUploadField } from '../common/ImageUploadField';
+import { DevicePreview } from '../common/DevicePreview';
+import { previewImageUrl } from '../common/preview-url';
 import { VersionHistory } from './VersionHistory';
 import type { Revision } from './revisions';
 
@@ -293,30 +295,98 @@ const KindInfo = () => {
 };
 
 /** Podgląd tekstu slajdu (wygląd jak na stronie, w uproszczeniu) */
+/**
+ * Podgląd slajdu jak na stronie (HeroCarousel): zdjęcie z kadrem i przyciemnieniem, tekst i przyciski – na
+ * komputerze tekst z lewej na środku wysokości, na telefonie na dole (i osobne zdjęcie na telefon, jeśli jest).
+ */
 const Preview = () => {
-  const [eyebrow, line1, line2, text, cta1, cta2] = useWatch({
-    name: ['eyebrow', 'titleLine1', 'titleLine2', 'text', 'cta1Label', 'cta2Label'],
+  const [eyebrow, line1, line2, text, cta1, cta2, imageUrl, imagePosition, mobileImageUrl, mobileImagePosition] = useWatch({
+    name: [
+      'eyebrow',
+      'titleLine1',
+      'titleLine2',
+      'text',
+      'cta1Label',
+      'cta2Label',
+      'imageUrl',
+      'imagePosition',
+      'mobileImageUrl',
+      'mobileImagePosition',
+    ],
   }) as (string | undefined)[];
+  const button = { px: 3, py: 1.5, fontSize: 12, letterSpacing: '0.25em', textTransform: 'uppercase', fontFamily: 'Oswald, sans-serif' };
   return (
-    <Box sx={{ bgcolor: '#141618', color: '#f4efe6', p: 3, mb: 3, width: '100%', maxWidth: 560 }}>
-      <Typography sx={{ color: '#c9a36a', fontSize: 11, letterSpacing: '0.3em', textTransform: 'uppercase' }}>
-        {eyebrow || 'Nadtytuł'}
-      </Typography>
-      <Typography sx={{ fontFamily: 'Oswald, sans-serif', fontSize: 36, lineHeight: 1.05, textTransform: 'uppercase', mt: 1 }}>
-        {line1 || 'Tytuł'}
-        {line2 && (
-          <>
-            <br />
-            <span style={{ color: '#c9a36a' }}>{line2}</span>
-          </>
-        )}
-      </Typography>
-      <Typography sx={{ color: 'rgba(244,239,230,0.8)', mt: 1.5, fontSize: 14 }}>{text}</Typography>
-      <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-        {cta1 && <Box sx={{ bgcolor: '#c9a36a', color: '#141618', px: 2, py: 0.75, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase' }}>{cta1}</Box>}
-        {cta2 && <Box sx={{ border: '1px solid #f4efe6', px: 2, py: 0.75, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase' }}>{cta2}</Box>}
-      </Box>
-    </Box>
+    <DevicePreview>
+      {(device) => {
+        const phone = device === 'phone';
+        const image = phone ? mobileImageUrl || imageUrl : imageUrl;
+        const position = (phone && mobileImageUrl ? mobileImagePosition : imagePosition) || 'center';
+        return (
+          <Box
+            sx={{
+              position: 'relative',
+              height: phone ? 760 : 720,
+              bgcolor: '#141618',
+              color: '#f4efe6',
+              display: 'flex',
+              alignItems: phone ? 'flex-end' : 'center',
+              overflow: 'hidden',
+            }}
+          >
+            {image && (
+              <Box
+                component="img"
+                src={previewImageUrl(image)}
+                alt=""
+                sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: position }}
+              />
+            )}
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                background: phone
+                  ? 'linear-gradient(to top, #141618, rgba(20,22,24,0.55), rgba(20,22,24,0.2))'
+                  : 'linear-gradient(to right, rgba(20,22,24,0.95), rgba(20,22,24,0.6), transparent)',
+              }}
+            />
+            <Box sx={{ position: 'relative', width: '100%', maxWidth: 1280, mx: 'auto', px: phone ? 2.5 : 4, pb: phone ? 18 : 0 }}>
+              <Box sx={{ maxWidth: 640 }}>
+                <Typography sx={{ color: '#c9a36a', fontSize: 12, letterSpacing: '0.3em', textTransform: 'uppercase', fontFamily: 'Oswald, sans-serif' }}>
+                  {eyebrow || 'Nadtytuł'}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: 'Oswald, sans-serif',
+                    fontSize: phone ? 48 : 72,
+                    lineHeight: 1.05,
+                    textTransform: 'uppercase',
+                    mt: 2.5,
+                  }}
+                >
+                  {line1 || 'Tytuł'}
+                  {line2 && (
+                    <>
+                      <br />
+                      <span style={{ color: '#c9a36a' }}>{line2}</span>
+                    </>
+                  )}
+                </Typography>
+                {text && (
+                  <Typography sx={{ color: 'rgba(244,239,230,0.85)', mt: 3, fontSize: 18, lineHeight: 1.6, maxWidth: 448 }}>
+                    {text}
+                  </Typography>
+                )}
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 4 }}>
+                  {cta1 && <Box sx={{ ...button, bgcolor: '#c9a36a', color: '#141618' }}>{cta1}</Box>}
+                  {cta2 && <Box sx={{ ...button, border: '1px solid #f4efe6' }}>{cta2}</Box>}
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        );
+      }}
+    </DevicePreview>
   );
 };
 
