@@ -18,6 +18,8 @@ import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import GroupIcon from '@mui/icons-material/Group';
 import InsightsIcon from '@mui/icons-material/Insights';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import HomeIcon from '@mui/icons-material/Home';
+import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
 
 /** Nagłówek grupy w menu (widoczny przy rozwiniętym menu) */
 const Section = ({ title }: { title: string }) => {
@@ -76,6 +78,11 @@ export const CustomMenu = () => {
       <Menu.Item to="/blog" primaryText="Aktualności i newsletter" leftIcon={<ArticleIcon />} />
       <Menu.Item to="/announcements" primaryText="Baner informacyjny" leftIcon={<CampaignIcon />} />
       {isOwner && <Menu.Item to="/newsletter" primaryText="Subskrybenci" leftIcon={<MarkEmailReadIcon />} />}
+
+      {/* treści strony („domowy WordPress”) */}
+      <Section title="Strona" />
+      <Menu.Item to="/strona/glowna" primaryText="Strona główna" leftIcon={<HomeIcon />} />
+      <Menu.Item to="/content/hero-slides" primaryText="Karuzela" leftIcon={<ViewCarouselIcon />} />
 
       <Section title="Piekarnie" />
       <Menu.Item to="/contact/locations" primaryText="Piekarnie" leftIcon={<StorefrontIcon />} />

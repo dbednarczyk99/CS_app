@@ -109,6 +109,12 @@ Bread reservations (pay on pickup, no customer accounts) span all three apps:
 - **`/robots.txt`, `/sitemap.xml`** ([robots.ts](web/src/app/robots.ts), [sitemap.ts](web/src/app/sitemap.ts) – pages, active products, published articles, revalidated hourly).
 - **JSON-LD** ([structured-data.ts](web/src/lib/structured-data.ts), `JsonLd` component): Organization + WebSite (layout), Bakery per location with address/geo/phone/opening hours (home, /piekarnie), Product with today's price and availability, BlogPosting, BreadcrumbList. Deliberately no `aggregateRating` (self-serving reviews are against Google's guidelines).
 
+## Site content (“domowy WordPress”)
+
+- **Sections:** `SiteContent` (key → JSON). Every editable section is described once in [sections.ts](backend/src/modules/content/sections.ts) (fields: text/textarea with `max`, image `{url, alt}`, toggle, list with min/max; defaults = the original site texts). `GET /content` (public) returns all sections merged with defaults; panel: `GET /content/sections?page=`, `PUT /content/:key` (validated by [validate.ts](backend/src/modules/content/validate.ts), Polish messages), `DELETE /content/:key` (reset). Uploaded images no longer used by a section are deleted (only `/uploads/`, never built-in `/images/`). The panel renders forms generically from the field description ([ContentEditor.tsx](frontend/src/admin/content/ContentEditor.tsx)) – a new section needs only a `sections.ts` entry, a type + fallback in [web/src/lib/content.ts](web/src/lib/content.ts) (keep defaults in sync) and its use on the page.
+- **Hero carousel:** `HeroSlide` (kind CUSTOM | VAN | BAKERIES | SEASONAL, texts, 2 CTAs, desktop + optional mobile image with focal position, active, startsAt/endsAt, order). Public `GET /content/hero`; panel resource `content/hero-slides` (automatic kinds editable/disableable, not deletable). [heroSlides.ts](web/src/lib/heroSlides.ts) skips VAN without stops, SEASONAL without an available seasonal product (uses its photo when the slide has none), replaces `{piekarnie}` in BAKERIES; falls back to one brand slide.
+- **Panel:** menu group “Strona” – “Strona główna” (`/strona/glowna`) and “Karuzela”. Stage 2 adds the other pages, footer, newsletter dialog, 404, reservation texts and editable SEO (title/description/share image per page) to the same mechanism.
+
 ## Frontend architecture
 
 - [App.tsx](frontend/src/App.tsx) registers react-admin `<Resource>`s whose names are backend URL paths (e.g. `products/categories`, `contact/info`, `bread-van/locations`).

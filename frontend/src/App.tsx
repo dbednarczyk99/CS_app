@@ -26,6 +26,8 @@ import HelpPage from './admin/pages/HelpPage';
 import PreparationPage from './admin/pages/PreparationPage';
 import AccountPage from './admin/pages/AccountPage';
 import StatsPage from './admin/pages/StatsPage';
+import HomeContentPage from './admin/content/HomeContentPage';
+import { HeroSlideCreate, HeroSlideEdit, HeroSlideList } from './admin/content/heroSlides';
 import { UserCreate, UserEdit, UserList } from './admin/components/users';
 import { ReservationList, ReservationShow } from './admin/components/reservations';
 import { AdminLayout } from './admin/common/AdminLayout';
@@ -59,6 +61,7 @@ function App() {
               <Route path="/konto" element={<AccountPage />} />
               {isOwner && <Route path="/przygotowanie" element={<PreparationPage />} />}
               <Route path="/statystyki" element={<StatsPage />} />
+              <Route path="/strona/glowna" element={<HomeContentPage />} />
             </CustomRoutes>
             {isOwner && (
               <Resource
@@ -87,6 +90,13 @@ function App() {
               list={LabelList}
               create={LabelCreate}
               edit={LabelEdit}
+              recordRepresentation="name"
+            />
+            <Resource
+              name="content/hero-slides"
+              list={HeroSlideList}
+              create={HeroSlideCreate}
+              edit={HeroSlideEdit}
               recordRepresentation="name"
             />
             <Resource

@@ -55,6 +55,23 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
     ],
   },
   {
+    section: 'Treści strony',
+    items: [
+      {
+        q: 'Jak zmienić teksty i zdjęcia na stronie głównej?',
+        a: '„Strona” → „Strona główna”: sekcje w kolejności jak na stronie. Rozwiń sekcję, zmień teksty lub zdjęcia i kliknij „Zapisz sekcję” – zmiana pojawi się na stronie po kilku sekundach. Licznik przy polu pokazuje limit znaków (dopasowany do miejsca na stronie). Sekcje opcjonalne (opinie Google, cytat, galeria) możesz ukryć przełącznikiem. „Przywróć teksty domyślne” cofa sekcję do tekstów z dnia uruchomienia strony.',
+      },
+      {
+        q: 'Jak zmienić karuzelę na górze strony głównej?',
+        a: '„Strona” → „Karuzela”: slajdy z tytułem, opisem, przyciskami i zdjęciem (osobne zdjęcie na telefon jest opcjonalne). Własne slajdy możesz dodawać, wyłączać, planować („Od” / „Do”) i usuwać. Slajdy Chlebowóz, Piekarnie i Sezonowe pokazują dane z panelu – możesz zmienić ich teksty i wyłączyć je, ale nie usunąć. Kolejność ustalasz liczbą w polu „Kolejność”.',
+      },
+      {
+        q: 'Jakie zdjęcia wgrywać?',
+        a: 'Najlepiej duże (karuzela: ok. 2400 px szerokości) i w proporcjach podanych przy polu (np. pionowe 4:5, poziome 3:2). Przy zdjęciach w karuzeli wybierz „Kadr” – którą część zdjęcia zawsze pokazywać. Opis zdjęcia pomaga osobom niewidomym i Google; zdjęcie czysto ozdobne może zostać bez opisu.',
+      },
+    ],
+  },
+  {
     section: 'Piekarnie i chlebowóz',
     items: [
       {

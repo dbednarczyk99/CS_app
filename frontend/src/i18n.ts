@@ -243,6 +243,10 @@ const resources = {
     name: 'Etykieta |||| Etykiety |||| Etykiet',
     fields: { name: 'Nazwa', color: 'Kolor', order: 'Kolejność', slug: 'Adres filtra' },
   },
+  'content/hero-slides': {
+    name: 'Slajd |||| Karuzela |||| Slajdów',
+    fields: { name: 'Nazwa', order: 'Kolejność', isActive: 'Włączony' },
+  },
   'contact/info': {
     name: 'Dane kontaktowe |||| Dane kontaktowe |||| Danych kontaktowych',
     fields: { type: 'Rodzaj', value: 'Wartość', label: 'Opis' },
