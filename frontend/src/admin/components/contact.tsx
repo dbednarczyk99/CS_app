@@ -1,3 +1,5 @@
+import { ScreenTabs } from '../common/ScreenTabs';
+import { CONTACT_TABS } from '../common/screen-tabs';
 import {
   List,
   Datagrid,
@@ -40,6 +42,8 @@ const ContactTypeField = ({ source }: { source: string; label?: string }) => {
 };
 
 export const ContactInfoList = () => (
+  <>
+  <ScreenTabs tabs={CONTACT_TABS} />
   <List title="Dane kontaktowe">
     <Datagrid rowClick="edit">
       <ContactTypeField source="type" label="Rodzaj" />
@@ -47,6 +51,7 @@ export const ContactInfoList = () => (
       <TextField source="label" />
     </Datagrid>
   </List>
+  </>
 );
 
 export const ContactInfoEdit = () => (

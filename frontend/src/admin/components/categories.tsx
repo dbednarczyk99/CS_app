@@ -1,3 +1,5 @@
+import { ScreenTabs } from '../common/ScreenTabs';
+import { OFFER_TABS } from '../common/screen-tabs';
 import {
     List,
     Datagrid,
@@ -22,11 +24,14 @@ type CategoryRecord = {
 };
 
 export const CategoryList = () => (
+  <>
+  <ScreenTabs tabs={OFFER_TABS} />
   <List title="Kategorie">
     <Datagrid rowClick="edit">
       <TextField source="name" />
     </Datagrid>
   </List>
+  </>
 );
 
 export const CategoryCreate = () => (

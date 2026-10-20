@@ -1,3 +1,5 @@
+import { ScreenTabs } from '../common/ScreenTabs';
+import { OFFER_TABS } from '../common/screen-tabs';
 import {
   List,
   Datagrid,
@@ -138,6 +140,8 @@ const LabelFields = () => (
 );
 
 export const LabelList = () => (
+  <>
+  <ScreenTabs tabs={OFFER_TABS} />
   <List title="Etykiety produktów" sort={{ field: 'order', order: 'ASC' }} pagination={false}>
     <Datagrid rowClick="edit" bulkActionButtons={false}>
       <FunctionField
@@ -176,6 +180,7 @@ export const LabelList = () => (
       <TextField source="slug" label="Adres filtra" sortable={false} />
     </Datagrid>
   </List>
+  </>
 );
 
 export const LabelCreate = () => (

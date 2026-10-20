@@ -1,3 +1,5 @@
+import { ScreenTabs } from '../common/ScreenTabs';
+import { HOME_TABS } from '../common/screen-tabs';
 import {
   BooleanInput,
   Create,
@@ -108,6 +110,8 @@ function status(s: SlideRecord) {
 }
 
 export const HeroSlideList = () => (
+  <>
+  <ScreenTabs tabs={HOME_TABS} />
   <List title="Karuzela na stronie głównej" sort={{ field: 'order', order: 'ASC' }} pagination={false}>
     <Box sx={{ px: 2, pt: 2 }}>
       <Alert severity="info" variant="outlined">
@@ -148,6 +152,7 @@ export const HeroSlideList = () => (
       />
     </Datagrid>
   </List>
+  </>
 );
 
 /** Zdjęcie slajdu jako pole formularza (wgrywane od razu, w formularzu zostaje adres) */

@@ -1,3 +1,5 @@
+import { ScreenTabs } from '../common/ScreenTabs';
+import { CONTACT_TABS } from '../common/screen-tabs';
 import {
   List,
   Datagrid,
@@ -37,6 +39,8 @@ const getMediaChoice = (id: string) =>
   mediaChoices.find(choice => choice.id === id);
 
 export const MediaList = () => (
+  <>
+  <ScreenTabs tabs={CONTACT_TABS} />
   <List title="Media społecznościowe">
     <Datagrid rowClick='edit'>
       <FunctionField
@@ -54,6 +58,7 @@ export const MediaList = () => (
       <TextField source='url' />
     </Datagrid>
   </List>
+  </>
 );
 
 export const MediaCreate = () => {
