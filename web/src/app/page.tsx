@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { FaArrowRight, FaInstagram } from 'react-icons/fa6';
 import { LoopCarousel } from '@/components/LoopCarousel';
 import { HeroCarousel } from '@/components/HeroCarousel';
-import { LocationCard } from '@/components/LocationCard';
+import { HomeLocations } from '@/components/HomeLocations';
 import { ProductCard } from '@/components/ProductCard';
 import { GoogleRatingBand } from '@/components/GoogleRatingBand';
 import { JsonLd } from '@/components/JsonLd';
@@ -177,12 +177,9 @@ export default async function HomePage() {
               {locationsText.linkLabel} <FaArrowRight aria-hidden />
             </Link>
           </div>
-          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {locations.map((location, i) => (
-              <Reveal key={location.id} delay={i * 100} className="h-full">
-                <LocationCard location={location} index={i} showHours={false} />
-              </Reveal>
-            ))}
+          {/* do 4 piekarni – siatka na całą szerokość, więcej – karuzela */}
+          <div className="mt-14">
+            <HomeLocations locations={locations} />
           </div>
         </section>
       )}
