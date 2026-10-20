@@ -113,6 +113,23 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
     ],
   },
   {
+    section: 'Korzystanie z panelu',
+    items: [
+      {
+        q: 'Jak ukryć panel, którego nie używam, na pulpicie albo w statystykach?',
+        a: 'Kliknij ikonę oka w nagłówku panelu – zwinie się do paska z samym nagłówkiem i przekreślonym okiem. Kliknięcie paska pokazuje panel z powrotem. Ustawienie zapamiętuje przeglądarka, osobno dla każdego konta (zostaje po wylogowaniu; na innym komputerze lub w innej przeglądarce panele są widoczne).',
+      },
+      {
+        q: 'Jak wrócić do poprzedniego ekranu?',
+        a: 'Strzałka w lewo w górnym pasku z nazwą poprzedniego ekranu (np. „← Produkty”) – działa jak „Wstecz” w przeglądarce. Po cofnięciu pojawia się strzałka w prawo do ekranu, z którego wróciłeś (nazwa w podpowiedzi).',
+      },
+      {
+        q: 'Jak przełączyć tryb jasny i ciemny?',
+        a: 'Ikona w prawym górnym rogu: słońce (w trybie ciemnym) włącza tryb jasny, księżyc (w trybie jasnym) – ciemny. Wybór jest zapamiętywany.',
+      },
+    ],
+  },
+  {
     section: 'Konta i hasła',
     items: [
       {
