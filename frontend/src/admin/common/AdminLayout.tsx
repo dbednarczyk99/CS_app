@@ -5,6 +5,7 @@ import { Box, ListItemIcon, ListItemText, MenuItem } from '@mui/material';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import { CustomMenu } from './CustomMenu';
 import { ParentLink, ThemeToggle } from './AppBarControls';
+import { useTrackQuickActions } from './quick-actions';
 import { COLORS } from '../../theme';
 
 /** „Moje konto” w menu konta (prawy górny róg) – dla każdego zalogowanego */
@@ -61,4 +62,8 @@ const AdminAppBar = () => (
   </AppBar>
 );
 
-export const AdminLayout = (props: LayoutProps) => <Layout {...props} appBar={AdminAppBar} menu={CustomMenu} />;
+export const AdminLayout = (props: LayoutProps) => {
+  // szybkie akcje na pulpicie uczą się z tego, które ekrany otwierasz najczęściej
+  useTrackQuickActions();
+  return <Layout {...props} appBar={AdminAppBar} menu={CustomMenu} />;
+};

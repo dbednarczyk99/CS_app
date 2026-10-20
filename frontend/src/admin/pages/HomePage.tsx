@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Title, useGetIdentity, usePermissions } from 'react-admin';
 import { useSubscriberCount } from '../common/useSubscriberCount';
 import { DashboardPanel } from '../common/PanelVisibility';
@@ -6,6 +6,13 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Button, CardActionArea, CircularProgress, Paper, Typography } from '@mui/material';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import BoltIcon from '@mui/icons-material/Bolt';
+import ChecklistIcon from '@mui/icons-material/Checklist';
+import BakeryDiningIcon from '@mui/icons-material/BakeryDining';
+import EventIcon from '@mui/icons-material/Event';
+import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
+import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
+import HomeIcon from '@mui/icons-material/Home';
+import { topQuickActions, type QuickActionId } from '../common/quick-actions';
 import AddIcon from '@mui/icons-material/Add';
 import ArticleIcon from '@mui/icons-material/Article';
 import CampaignIcon from '@mui/icons-material/Campaign';
@@ -71,6 +78,22 @@ const StatTile = ({
   </Paper>
 );
 
+/** Napis i ikona każdej szybkiej akcji (kolejność i dobór – quick-actions.ts) */
+const ACTION_VIEW: Record<QuickActionId, { label: string; icon: ReactNode }> = {
+  'product-new': { label: 'Dodaj produkt', icon: <AddIcon /> },
+  'article-new': { label: 'Nowy wpis', icon: <ArticleIcon /> },
+  banner: { label: 'Baner', icon: <CampaignIcon /> },
+  van: { label: 'Trasa chlebowozu', icon: <EditCalendarIcon /> },
+  stats: { label: 'Statystyki', icon: <InsightsIcon /> },
+  reservations: { label: 'Rezerwacje', icon: <ReceiptLongIcon /> },
+  preparation: { label: 'Do przygotowania', icon: <ChecklistIcon /> },
+  products: { label: 'Produkty', icon: <BakeryDiningIcon /> },
+  scheduled: { label: 'Zaplanowane', icon: <EventIcon /> },
+  carousel: { label: 'Karuzela', icon: <ViewCarouselIcon /> },
+  subscribers: { label: 'Subskrybenci', icon: <MarkEmailReadIcon /> },
+  'home-content': { label: 'Strona główna', icon: <HomeIcon /> },
+};
+
 const Action = ({ icon, label, onClick }: { icon: ReactNode; label: string; onClick: () => void }) => (
   <Button variant="outlined" size="small" startIcon={icon} onClick={onClick} sx={{ justifyContent: 'flex-start' }}>
     {label}
@@ -94,6 +117,8 @@ const HomePage = () => {
   const todayCount = useReservationCount(today, isOwner);
   const tomorrowCount = useReservationCount(warsawDate(1), isOwner);
   const confirmed = useSubscriberCount();
+  // kolejność ustalana przy wejściu na pulpit, gdy znane jest konto (liczniki rosną dopiero po przejściu dalej)
+  const quickActions = useMemo(() => topQuickActions(identity?.id, isOwner, 5), [identity?.id, isOwner]);
   const todayLabel = new Intl.DateTimeFormat('pl-PL', {
     weekday: 'long',
     day: 'numeric',
@@ -151,16 +176,16 @@ const HomePage = () => {
           ]}
           right={[
             <DashboardPanel key="actions" title="Szybkie akcje" icon={<BoltIcon />}>
+              {/* 5 najczęściej otwieranych ekranów tego konta (uczy się samo) + stały link do strony */}
               <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' } }}>
-                <Action icon={<AddIcon />} label="Dodaj produkt" onClick={() => navigate('/products/create')} />
-                <Action icon={<ArticleIcon />} label="Nowy wpis" onClick={() => navigate('/blog/create')} />
-                <Action icon={<CampaignIcon />} label="Baner" onClick={() => navigate('/announcements')} />
-                <Action icon={<EditCalendarIcon />} label="Trasa chlebowozu" onClick={() => navigate('/bread-van/locations')} />
-                <Action
-                  icon={<InsightsIcon />}
-                  label={isOwner ? 'Statystyki i koszty' : 'Statystyki'}
-                  onClick={() => navigate('/statystyki')}
-                />
+                {quickActions.map((a) => (
+                  <Action
+                    key={a.id}
+                    icon={ACTION_VIEW[a.id].icon}
+                    label={a.id === 'stats' && isOwner ? 'Statystyki i koszty' : ACTION_VIEW[a.id].label}
+                    onClick={() => navigate(a.to)}
+                  />
+                ))}
                 <Button
                   variant="outlined"
                   size="small"
