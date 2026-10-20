@@ -1,3 +1,4 @@
+import { MobileList } from '../common/MobileList';
 import {
   List,
   Datagrid,
@@ -239,6 +240,13 @@ const PromoInputs = () => {
 
 export const ProductList = () => (
   <List title="Produkty">
+    <MobileList
+      primaryText={(p) => p.name}
+      secondaryText={(p) => [formatPrice(p.price), p.category?.name, promoState(p)?.text && `promocja: ${promoState(p)?.text}`, p.isActive === false && 'ukryty na stronie'].filter(Boolean).join(' · ')}
+      leftAvatar={(p) => p.images?.[0]?.src}
+      rowSx={(p) => (p.isActive === false ? { opacity: 0.55 } : {})}
+      rowClick="edit"
+    >
     <Datagrid rowClick="edit">
       <TextField source="name" />
       <NumberField source="price" locales="pl-PL" options={{ style: "currency", currency: "PLN" }} />
@@ -283,6 +291,7 @@ export const ProductList = () => (
         render={(p: ProductRecord) => <ScheduleCell product={p} />}
       />
     </Datagrid>
+    </MobileList>
   </List>
 );
 

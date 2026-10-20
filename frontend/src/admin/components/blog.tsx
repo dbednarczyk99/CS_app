@@ -1,3 +1,4 @@
+import { MobileList } from '../common/MobileList';
 import {
   List,
   Datagrid,
@@ -117,6 +118,13 @@ const PublishToggle = () => {
 
 export const BlogList = () => (
   <List title="Aktualności i newsletter" sort={{ field: 'createdAt', order: 'DESC' }}>
+    <MobileList
+      primaryText={(r) => r.title}
+      secondaryText={(r) => [r.isPublished === false ? 'tylko newsletter' : isFuture(r.publishAt) ? `zaplanowany: ${formatWhen(r.publishAt)}` : 'na stronie', r.newsletterSentAt ? 'newsletter wysłany' : r.sendAsNewsletter ? 'newsletter czeka' : null].filter(Boolean).join(' · ')}
+      tertiaryText={(r) => new Date(r.createdAt).toLocaleDateString('pl-PL')}
+      leftAvatar={(r) => r.images?.[0]?.src}
+      rowClick="edit"
+    >
     <Datagrid rowClick="edit">
       <TextField source="title" label="Tytuł" />
       <TextField source="shortDescription" label="Zajawka" />
@@ -159,6 +167,7 @@ export const BlogList = () => (
         }
       />
     </Datagrid>
+    </MobileList>
   </List>
 );
 

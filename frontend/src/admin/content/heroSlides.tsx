@@ -1,3 +1,4 @@
+import { MobileList } from '../common/MobileList';
 import { ScreenTabs } from '../common/ScreenTabs';
 import { HOME_TABS } from '../common/screen-tabs';
 import {
@@ -122,6 +123,14 @@ export const HeroSlideList = () => (
       </Alert>
     </Box>
     <ActiveCount />
+    <MobileList
+      primaryText={(s) => `${s.order}. ${s.name}`}
+      secondaryText={(s) => `${[s.titleLine1, s.titleLine2].filter(Boolean).join(' ')} · ${KIND[s.kind as Kind].label}`}
+      tertiaryText={(s) => status(s).label}
+      leftAvatar={(s) => s.imageUrl}
+      rowSx={(s) => (status(s).color === 'default' ? { opacity: 0.6 } : {})}
+      rowClick="edit"
+    >
     <Datagrid rowClick="edit" bulkActionButtons={false}>
       <NumberField source="order" label="Kolejność" />
       <FunctionField
@@ -151,6 +160,7 @@ export const HeroSlideList = () => (
         }}
       />
     </Datagrid>
+    </MobileList>
   </List>
   </>
 );

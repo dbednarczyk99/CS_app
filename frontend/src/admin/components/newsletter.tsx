@@ -1,3 +1,4 @@
+import { MobileList } from '../common/MobileList';
 import {
   Datagrid,
   DateField,
@@ -46,6 +47,12 @@ export const NewsletterList = () => (
     sort={{ field: 'consentAt', order: 'DESC' }}
     empty={false}
   >
+    <MobileList
+      primaryText={(r) => r.email}
+      secondaryText={(r) => STATUS[r.status as Subscriber['status']].label}
+      tertiaryText={(r) => (r.confirmedAt ? new Date(r.confirmedAt).toLocaleDateString('pl-PL') : '')}
+      rowClick={false}
+    >
     <Datagrid bulkActionButtons={false} rowClick={false}>
       <TextField source="email" label="E-mail" />
       <FunctionField
@@ -56,5 +63,6 @@ export const NewsletterList = () => (
       <DateField source="confirmedAt" label="Potwierdzenie" showTime locales="pl-PL" emptyText="—" />
       <DeleteButton mutationMode="pessimistic" confirmTitle="Usunąć zapis?" confirmContent="Adres zostanie trwale usunięty z listy." />
     </Datagrid>
+    </MobileList>
   </List>
 );

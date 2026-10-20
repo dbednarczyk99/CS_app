@@ -1,3 +1,4 @@
+import { MobileList } from '../common/MobileList';
 import {
   List,
   Datagrid,
@@ -67,6 +68,13 @@ const filters = [
 
 export const ReservationList = () => (
   <List filters={filters} title="Rezerwacje" pagination={false} perPage={1000} exporter={false}>
+    <MobileList
+      primaryText={(r) => `${r.number} · ${r.customerName}`}
+      secondaryText={(r) => `${formatDay(r.pickupDate)}${r.pickupTime ? `, ${r.pickupTime}` : ''} · ${r.pickupType === 'VAN' ? 'Chlebowóz' : 'Piekarnia'}: ${r.pickupLabel.split(/,\s*(?=\d{2}-\d{3})/)[0]}`}
+      tertiaryText={(r) => (r.status === 'CANCELLED' ? 'anulowana' : money(r.total))}
+      rowSx={(r) => (r.status === 'CANCELLED' ? { opacity: 0.55 } : {})}
+      rowClick="show"
+    >
     <Datagrid
       rowClick="show"
       bulkActionButtons={false}
@@ -109,6 +117,7 @@ export const ReservationList = () => (
       <FunctionField<Reservation> label="Kwota" render={(r) => money(r.total)} textAlign="right" />
       <FunctionField<Reservation> label="Status" render={(r) => <StatusChip status={r.status} />} />
     </Datagrid>
+    </MobileList>
   </List>
 );
 

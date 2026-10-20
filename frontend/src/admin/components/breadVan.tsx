@@ -1,3 +1,4 @@
+import { MobileList } from '../common/MobileList';
 // admin/components/breadVan.tsx
 
 import {
@@ -101,6 +102,11 @@ export const BreadVanScheduleList = () => (
         pojawi się przy nim informacja „Chlebowóz odpoczywa”.
       </Alert>
     </Box>
+    <MobileList
+      primaryText={(s) => s.address}
+      secondaryText={(s) => `${weekdayName(s.dayOfTheWeek)} · ${s.startTime}–${s.endTime}`}
+      rowClick="edit"
+    >
     <Datagrid rowClick="edit">
       <WeekdayTextField source="dayOfTheWeek" label="Dzień tygodnia" />
       <TextField source="startTime" />
@@ -108,6 +114,7 @@ export const BreadVanScheduleList = () => (
       <TextField source="address" />
       <TextField source="googleMapsUrl" />
     </Datagrid>
+    </MobileList>
   </List>
   </>
 );

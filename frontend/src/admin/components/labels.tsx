@@ -1,3 +1,4 @@
+import { MobileList } from '../common/MobileList';
 import { ScreenTabs } from '../common/ScreenTabs';
 import { OFFER_TABS } from '../common/screen-tabs';
 import {
@@ -143,6 +144,11 @@ export const LabelList = () => (
   <>
   <ScreenTabs tabs={OFFER_TABS} />
   <List title="Etykiety produktów" sort={{ field: 'order', order: 'ASC' }} pagination={false}>
+    <MobileList
+      primaryText={(r) => <LabelChip name={r.name} color={r.color} />}
+      secondaryText={(r) => (r.system === 'promo' ? 'stała – nadawana przy promocji' : '')}
+      rowClick="edit"
+    >
     <Datagrid rowClick="edit" bulkActionButtons={false}>
       <FunctionField
         label="Etykieta"
@@ -179,6 +185,7 @@ export const LabelList = () => (
       <NumberField source="order" label="Kolejność" />
       <TextField source="slug" label="Adres filtra" sortable={false} />
     </Datagrid>
+    </MobileList>
   </List>
   </>
 );

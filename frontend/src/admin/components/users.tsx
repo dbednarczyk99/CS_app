@@ -1,3 +1,4 @@
+import { MobileList } from '../common/MobileList';
 import {
   Create,
   Datagrid,
@@ -55,6 +56,11 @@ export const UserList = () => {
       <Box sx={{ px: 2, pt: 2 }}>
         <RolesInfo />
       </Box>
+      <MobileList
+        primaryText={(u) => u.name || u.login}
+        secondaryText={(u) => `${u.login} · ${roleLabel(u.role)}`}
+        rowClick="edit"
+      >
       <Datagrid rowClick="edit" bulkActionButtons={false}>
         <FunctionField
           label="Osoba"
@@ -79,6 +85,7 @@ export const UserList = () => {
         />
         <DateField source="createdAt" label="Utworzone" locales="pl-PL" />
       </Datagrid>
+      </MobileList>
     </List>
   );
 };

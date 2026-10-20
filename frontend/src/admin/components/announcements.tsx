@@ -1,3 +1,4 @@
+import { MobileList } from '../common/MobileList';
 import {
   BooleanInput,
   Create,
@@ -47,6 +48,12 @@ function status(a: AnnouncementRecord) {
 
 export const AnnouncementList = () => (
   <List title="Baner informacyjny" sort={{ field: 'order', order: 'ASC' }}>
+    <MobileList
+      primaryText={(a) => a.message}
+      secondaryText={(a) => status(a).label}
+      rowSx={(a) => (status(a).color === 'default' ? { opacity: 0.6 } : {})}
+      rowClick="edit"
+    >
     <Datagrid rowClick="edit" bulkActionButtons={false}>
       <FunctionField
         label="Komunikat"
@@ -82,6 +89,7 @@ export const AnnouncementList = () => (
       />
       <NumberField source="order" label="Kolejność" />
     </Datagrid>
+    </MobileList>
   </List>
 );
 
