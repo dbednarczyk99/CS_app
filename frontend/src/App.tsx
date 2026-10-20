@@ -1,5 +1,5 @@
 import { Admin, Resource, CustomRoutes } from 'react-admin';
-import { Route } from 'react-router-dom';
+import { Route, Navigate } from 'react-router-dom';
 
 import { dataProvider } from './dataProvider';
 import { authProvider } from './authProvider';
@@ -28,7 +28,6 @@ import AccountPage from './admin/pages/AccountPage';
 import StatsPage from './admin/pages/StatsPage';
 import HomeContentPage from './admin/content/HomeContentPage';
 import PagesContentPage from './admin/content/PagesContentPage';
-import CommonContentPage from './admin/content/CommonContentPage';
 import ReservationRulesPage from './admin/pages/ReservationRulesPage';
 import LegalDocumentsPage from './admin/pages/LegalDocumentsPage';
 import { HeroSlideCreate, HeroSlideEdit, HeroSlideList } from './admin/content/heroSlides';
@@ -69,7 +68,7 @@ function App() {
               <Route path="/statystyki" element={<StatsPage />} />
               <Route path="/strona/glowna" element={<HomeContentPage />} />
               <Route path="/strona/podstrony/:tab?" element={<PagesContentPage />} />
-              <Route path="/strona/wspolne" element={<CommonContentPage />} />
+              <Route path="/strona/wspolne" element={<Navigate to="/strona/podstrony/wspolne" replace />} />
             </CustomRoutes>
             {isOwner && (
               <Resource

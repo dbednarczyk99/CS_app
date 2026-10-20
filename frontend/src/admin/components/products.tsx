@@ -187,7 +187,7 @@ const LabelInputs = () => (
       <CheckboxGroupInput
         label={false}
         optionText={(l: { name: string; color: string }) => <LabelChip name={l.name} color={l.color} />}
-        helperText="Produkty z etykietą są pokazywane w pierwszej kolejności na stronie głównej. Nową etykietę dodasz w zakładce Oferta → Etykiety."
+        helperText="Produkty z etykietą są pokazywane w pierwszej kolejności na stronie głównej. Nową etykietę dodasz w zakładce Oferta → Kategorie i etykiety."
       />
     </ReferenceArrayInput>
   </>
@@ -211,7 +211,7 @@ const PromoInputs = () => {
         source="isPromo"
         label="Promocja"
         defaultValue={false}
-        helperText="Etykieta promocji na stronie i filtr w ofercie – w wybranym okresie (nazwę i kolor etykiety zmienisz w Oferta → Etykiety)"
+        helperText="Etykieta promocji na stronie i filtr w ofercie – w wybranym okresie (nazwę i kolor etykiety zmienisz w Oferta → Kategorie i etykiety)"
       />
       {values.isPromo && (
         <>

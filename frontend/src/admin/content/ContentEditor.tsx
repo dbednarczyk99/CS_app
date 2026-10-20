@@ -340,7 +340,7 @@ function SectionEditor({
             onChange={(v) => setValue((prev) => ({ ...prev, [field.name]: v }))}
             fallbackImage={
               section.seo && field.type === 'image' && defaultShareImage
-                ? { url: defaultShareImage, note: 'Domyślne zdjęcie (Strona → Elementy wspólne) – tak jest teraz.' }
+                ? { url: defaultShareImage, note: 'Domyślne zdjęcie (Strona → Podstrony → Elementy wspólne) – tak jest teraz.' }
                 : undefined
             }
           />

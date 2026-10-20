@@ -335,7 +335,7 @@ const SlideForm = () => (
     <TextInput source="eyebrow" label="Nadtytuł" fullWidth validate={maxLength(50)} helperText="Najwyżej 50 znaków" />
     <TextInput source="titleLine1" label="Tytuł – pierwsza linia" validate={[required(), maxLength(30)]} helperText="Najwyżej 30 znaków" />
     <TextInput source="titleLine2" label="Tytuł – druga linia (złota)" validate={maxLength(30)} helperText="Najwyżej 30 znaków; puste – tytuł w jednej linii" />
-    <TextInput source="text" label="Opis" multiline fullWidth validate={maxLength(220)} helperText="Najwyżej 220 znaków (na telefonie widać ok. 3 linie). Znaczniki w tytule i opisie: {godzina}, {dni}, {limit} – aktualne zasady z „Ustawienia → Zasady rezerwacji”." />
+    <TextInput source="text" label="Opis" multiline fullWidth validate={maxLength(220)} helperText="Najwyżej 220 znaków (na telefonie widać ok. 3 linie). Znaczniki w tytule i opisie: {godzina}, {dni}, {limit} – aktualne zasady z „Rezerwacje → Zasady rezerwacji”." />
 
     <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
       Przyciski

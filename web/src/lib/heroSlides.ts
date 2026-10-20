@@ -20,7 +20,7 @@ const FALLBACK: HeroSlide = {
 };
 
 /**
- * Slajdy karuzeli z panelu (Strona → Karuzela), w kolejności z panelu. Slajdy automatyczne biorą dane z panelu
+ * Slajdy karuzeli z panelu (Strona → Strona główna → Karuzela), w kolejności z panelu. Slajdy automatyczne biorą dane z panelu
  * i są pomijane, gdy danych brak: chlebowóz (najbliższy przystanek – bez trasy slajdu nie ma), piekarnie
  * ({piekarnie} w tytule → „4 piekarnie”), sezonowe (tylko gdy jakiś produkt sezonowy jest teraz dostępny).
  * W każdym slajdzie działają znaczniki zasad rezerwacji z panelu: {godzina}, {dni}, {limit}.
@@ -37,7 +37,7 @@ export function buildHeroSlides({
   locations: Location[];
   stops: BreadVanStop[];
   products: Product[];
-  /** zasady rezerwacji (Ustawienia → Zasady rezerwacji) – do znaczników w tekstach */
+  /** zasady rezerwacji (Rezerwacje → Zasady rezerwacji) – do znaczników w tekstach */
   rules: ReservationRules;
 }): HeroSlide[] {
   const ruleValues = ruleTokens(rules);

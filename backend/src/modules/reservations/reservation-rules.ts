@@ -3,7 +3,7 @@ import { toMinutes } from '../settings/reservation-settings';
 
 /**
  * Zasady rezerwacji (docs/ZALOZENIA.md). Godzina zamknięcia, liczba dni i limit na telefon – z panelu
- * (Ustawienia → Zasady rezerwacji, SettingsService); tu tylko obliczenia.
+ * (Rezerwacje → Zasady rezerwacji, SettingsService); tu tylko obliczenia.
  */
 export const DEFAULT_STORE_HOURS: [string, string] = ['07:00', '18:00'];
 const SLOT_MINUTES = 30;

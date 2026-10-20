@@ -1,6 +1,7 @@
 import { Menu, usePermissions, useSidebarState } from 'react-admin';
 import { Box, Typography, Divider } from '@mui/material';
 import { useLocation } from 'react-router-dom';
+import { CONTACT_TABS, HOME_TABS, OFFER_TABS, isTabActive } from './screen-tabs';
 
 import BakeryDiningIcon from '@mui/icons-material/BakeryDining';
 import CategoryIcon from '@mui/icons-material/Category';
@@ -8,7 +9,6 @@ import StorefrontIcon from '@mui/icons-material/Storefront';
 import PhoneIcon from '@mui/icons-material/Phone';
 import DirectionsBusFilledIcon from '@mui/icons-material/DirectionsBusFilled';
 import ArticleIcon from '@mui/icons-material/Article';
-import ShareIcon from '@mui/icons-material/Share';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import HelpIcon from '@mui/icons-material/Help';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
@@ -17,11 +17,8 @@ import CampaignIcon from '@mui/icons-material/Campaign';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import GroupIcon from '@mui/icons-material/Group';
 import InsightsIcon from '@mui/icons-material/Insights';
-import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import HomeIcon from '@mui/icons-material/Home';
-import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
 import WebIcon from '@mui/icons-material/Web';
-import ViewQuiltIcon from '@mui/icons-material/ViewQuilt';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import GavelIcon from '@mui/icons-material/Gavel';
 
@@ -65,6 +62,7 @@ export const CustomMenu = () => {
           <Section title="Rezerwacje" />
           <Menu.Item to="/reservations" primaryText="Rezerwacje" leftIcon={<ReceiptLongIcon />} />
           <Menu.Item to="/przygotowanie" primaryText="Do przygotowania" leftIcon={<ChecklistIcon />} />
+          <Menu.Item to="/ustawienia/rezerwacje" primaryText="Zasady rezerwacji" leftIcon={<EventNoteIcon />} />
         </>
       )}
 
@@ -75,8 +73,13 @@ export const CustomMenu = () => {
         leftIcon={<BakeryDiningIcon />}
         sx={/^\/products\/(categories|labels)/.test(pathname) ? notActive : undefined}
       />
-      <Menu.Item to="/products/categories" primaryText="Kategorie" leftIcon={<CategoryIcon />} />
-      <Menu.Item to="/products/labels" primaryText="Etykiety" leftIcon={<LocalOfferIcon />} />
+      {/* kategorie i etykiety – jeden ekran z zakładkami; pozycja podświetlona na obu */}
+      <Menu.Item
+        to="/products/categories"
+        primaryText="Kategorie i etykiety"
+        leftIcon={<CategoryIcon />}
+        className={isTabActive(OFFER_TABS, pathname) ? 'RaMenuItemLink-active' : undefined}
+      />
 
       <Section title="Marketing" />
       <Menu.Item to="/blog" primaryText="Aktualności i newsletter" leftIcon={<ArticleIcon />} />
@@ -85,12 +88,16 @@ export const CustomMenu = () => {
 
       {/* treści strony („domowy WordPress”) */}
       <Section title="Strona" />
-      <Menu.Item to="/strona/glowna" primaryText="Strona główna" leftIcon={<HomeIcon />} />
-      <Menu.Item to="/content/hero-slides" primaryText="Karuzela" leftIcon={<ViewCarouselIcon />} />
+      <Menu.Item
+        to="/strona/glowna"
+        primaryText="Strona główna"
+        leftIcon={<HomeIcon />}
+        className={isTabActive(HOME_TABS, pathname) ? 'RaMenuItemLink-active' : undefined}
+      />
       <Menu.Item to="/strona/podstrony" primaryText="Podstrony" leftIcon={<WebIcon />} />
-      <Menu.Item to="/strona/wspolne" primaryText="Elementy wspólne" leftIcon={<ViewQuiltIcon />} />
+      {isOwner && <Menu.Item to="/ustawienia/dokumenty" primaryText="Dokumenty prawne" leftIcon={<GavelIcon />} />}
 
-      <Section title="Piekarnie" />
+      <Section title="Piekarnie i kontakt" />
       <Menu.Item to="/contact/locations" primaryText="Piekarnie" leftIcon={<StorefrontIcon />} />
       {/* trasa i opis – jeden ekran z zakładkami; pozycja podświetlona na obu */}
       <Menu.Item
@@ -99,14 +106,14 @@ export const CustomMenu = () => {
         leftIcon={<DirectionsBusFilledIcon />}
         className={pathname.startsWith('/bread-van') ? 'RaMenuItemLink-active' : undefined}
       />
+      <Menu.Item
+        to="/contact/info"
+        primaryText="Kontakt"
+        leftIcon={<PhoneIcon />}
+        className={isTabActive(CONTACT_TABS, pathname) ? 'RaMenuItemLink-active' : undefined}
+      />
 
-      <Section title="Kontakt" />
-      <Menu.Item to="/contact/info" primaryText="Dane kontaktowe" leftIcon={<PhoneIcon />} />
-      <Menu.Item to="/contact/media" primaryText="Media społecznościowe" leftIcon={<ShareIcon />} />
-
-      <Section title="Ustawienia" />
-      {isOwner && <Menu.Item to="/ustawienia/rezerwacje" primaryText="Zasady rezerwacji" leftIcon={<EventNoteIcon />} />}
-      {isOwner && <Menu.Item to="/ustawienia/dokumenty" primaryText="Dokumenty prawne" leftIcon={<GavelIcon />} />}
+      <Divider sx={{ my: 1 }} />
       {isOwner && <Menu.Item to="/users" primaryText="Konta" leftIcon={<GroupIcon />} />}
       <Menu.Item to="/help" primaryText="Pomoc" leftIcon={<HelpIcon />} />
     </Menu>

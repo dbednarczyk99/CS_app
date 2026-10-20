@@ -493,7 +493,7 @@ export class ReservationsService {
           ].filter((e): e is string => !!e);
     if (!recipients.length)
       throw new BadRequestException(
-        'Brak adresu odbiorcy – dodaj go w Ustawienia → Zasady rezerwacji',
+        'Brak adresu odbiorcy – dodaj go w Rezerwacje → Zasady rezerwacji',
       );
     const summary = await this.summary(date);
     const adminUrl =

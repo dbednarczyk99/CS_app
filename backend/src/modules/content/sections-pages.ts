@@ -100,7 +100,7 @@ function seo(
       image(
         'image',
         'Zdjęcie w podglądzie linku (opcjonalnie)',
-        'Poziome 1200 × 630 px. Puste – domyślne zdjęcie z „Strona → Elementy wspólne”.',
+        'Poziome 1200 × 630 px. Puste – domyślne zdjęcie z „Strona → Podstrony → Elementy wspólne”.',
         false,
         '1.91 / 1',
       ),
@@ -450,7 +450,7 @@ export const PAGE_SECTIONS: Section[] = [
     page: 'reservation',
     title: 'Nagłówek strony',
     description:
-      'Tytuł nad formularzem rezerwacji. Zasady rezerwacji (terminy, limity) ustawia właściciel w „Ustawienia → Zasady rezerwacji”.',
+      'Tytuł nad formularzem rezerwacji. Zasady rezerwacji (terminy, limity) ustawia właściciel w „Rezerwacje → Zasady rezerwacji”.',
     fields: [
       EYEBROW,
       text('title', 'Tytuł', 60),
@@ -473,14 +473,14 @@ export const PAGE_SECTIONS: Section[] = [
     page: 'reservation',
     title: 'Formularz rezerwacji',
     description:
-      'Nagłówki kroków, podpowiedzi i przyciski formularza oraz ramka „Jak działa rezerwacja?” na stronie produktu. Zasady (godzina, liczba dni, limit) ustawia właściciel w „Ustawienia → Zasady rezerwacji” – w tekstach wstawiaj je znacznikami.',
+      'Nagłówki kroków, podpowiedzi i przyciski formularza oraz ramka „Jak działa rezerwacja?” na stronie produktu. Zasady (godzina, liczba dni, limit) ustawia właściciel w „Rezerwacje → Zasady rezerwacji” – w tekstach wstawiaj je znacznikami.',
     fields: [
       text('stepProducts', 'Krok 1 – tytuł', 30),
       text('addMore', 'Link do dodania produktów', 40),
       text('stepPickup', 'Krok 2 – tytuł', 30),
       area('rulesNote', 'Krok 2 – zasady pod tytułem', 250, {
         rows: 2,
-        help: '{godzina} – godzina zamknięcia, {dni} – np. „5 dni”, {limit} – rezerwacji na telefon (z Ustawienia → Zasady rezerwacji)',
+        help: '{godzina} – godzina zamknięcia, {dni} – np. „5 dni”, {limit} – rezerwacji na telefon (z Rezerwacje → Zasady rezerwacji)',
       }),
       area('noDates', 'Gdy nie ma wolnych terminów', 200, { rows: 2 }),
       text('stepDetails', 'Krok 3 – tytuł', 30),
@@ -493,7 +493,7 @@ export const PAGE_SECTIONS: Section[] = [
       text('howItWorksTitle', 'Strona produktu – tytuł ramki', 40),
       area('howItWorks', 'Strona produktu – punkty ramki', 500, {
         rows: 4,
-        help: 'Każdy punkt w osobnej linii. {godzina} – godzina zamknięcia, {dni} – np. „5 dni”, {limit} – rezerwacji na telefon (z Ustawienia → Zasady rezerwacji)',
+        help: 'Każdy punkt w osobnej linii. {godzina} – godzina zamknięcia, {dni} – np. „5 dni”, {limit} – rezerwacji na telefon (z Rezerwacje → Zasady rezerwacji)',
       }),
     ],
     defaults: {

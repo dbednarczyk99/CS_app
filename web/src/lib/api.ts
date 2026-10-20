@@ -173,7 +173,7 @@ export interface Announcement {
   updatedAt: string;
 }
 
-/** Zasady rezerwacji z panelu (Ustawienia → Zasady rezerwacji) */
+/** Zasady rezerwacji z panelu (Rezerwacje → Zasady rezerwacji) */
 export interface ReservationRules {
   /** rezerwacja i anulowanie do tej godziny dnia poprzedzającego odbiór, „HH:MM” */
   cutoffTime: string;
@@ -232,7 +232,7 @@ export interface PublicReservation {
   cancelDeadline: { date: string; hour: string };
 }
 
-/** Slajd karuzeli strony głównej z panelu (Strona → Karuzela) */
+/** Slajd karuzeli strony głównej z panelu (Strona → Strona główna → Karuzela) */
 export interface HeroSlideData {
   id: string;
   /** CUSTOM – własny; VAN, BAKERIES, SEASONAL – z danymi z panelu (trasa, liczba piekarni, produkty sezonowe) */

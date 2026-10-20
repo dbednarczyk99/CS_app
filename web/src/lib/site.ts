@@ -15,7 +15,7 @@ export const productPath = (p: Pick<Product, 'id' | 'slug'>) => `/oferta/${p.slu
 /** Adres wpisu na stronie – czytelny (slug), a gdy go nie ma – po id */
 export const articlePath = (a: Pick<Article, 'id' | 'slug'>) => `/aktualnosci/${a.slug ?? a.id}`;
 
-/** Domyślne zdjęcie podglądu linku (gdy panel nie odpowiada; w panelu: Strona → Elementy wspólne) */
+/** Domyślne zdjęcie podglądu linku (gdy panel nie odpowiada; w panelu: Strona → Podstrony → Elementy wspólne) */
 export const DEFAULT_OG_IMAGE = {
   url: '/images/og-domyslny.jpg',
   width: 1200,

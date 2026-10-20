@@ -52,11 +52,18 @@ const PAGES = [
     page: 'reservation',
     label: 'Rezerwacja',
     path: '/rezerwacja',
-    intro: 'Nagłówek nad formularzem rezerwacji.',
+    intro: 'Nagłówek i teksty formularza rezerwacji. Zasady (godzina, dni, limit) – w „Rezerwacje → Zasady rezerwacji”.',
+  },
+  {
+    tab: 'wspolne',
+    page: 'common',
+    label: 'Elementy wspólne',
+    path: '/',
+    intro: 'Elementy widoczne na wszystkich stronach: stopka, okienko newslettera, strona 404 i domyślne zdjęcie do udostępniania.',
   },
 ];
 
-/** Strona → Podstrony: zakładka na każdą podstronę, w każdej – SEO i sekcje treści */
+/** Strona → Podstrony: zakładka na każdą podstronę (w każdej – SEO i sekcje treści) i na elementy wspólne */
 const PagesContentPage = () => {
   const { tab } = useParams();
   const navigate = useNavigate();

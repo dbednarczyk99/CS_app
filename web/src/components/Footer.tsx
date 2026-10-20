@@ -16,7 +16,7 @@ export async function Footer() {
     orFallback(api.media(), []),
     getContent(),
   ]);
-  // teksty – z panelu (Strona → Elementy wspólne → Stopka)
+  // teksty – z panelu (Strona → Podstrony → Elementy wspólne → Stopka)
   const texts = content['common.footer'];
   const email = contact.find((c) => c.type === 'EMAIL')?.value;
   // główny telefon (z panelu: Contact info, typ PHONE) – oprócz numerów poszczególnych piekarni

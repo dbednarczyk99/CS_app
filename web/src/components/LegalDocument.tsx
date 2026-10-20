@@ -6,7 +6,7 @@ import { getReservationRules } from '@/lib/reservation-rules';
 import { fill, ruleTokens } from '@/lib/text';
 
 /**
- * Dokument prawny z panelu (Ustawienia → Dokumenty prawne); gdy API nie odpowiada – wersja domyślna
+ * Dokument prawny z panelu (Strona → Dokumenty prawne); gdy API nie odpowiada – wersja domyślna
  * (backend/content/prawne, kopia w lib/legal-defaults.ts). Znaczniki {godzina}, {dni}, {limit} → aktualne zasady
  * rezerwacji z panelu, więc dokument zgadza się z formularzem.
  */

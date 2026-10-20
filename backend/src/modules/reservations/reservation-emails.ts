@@ -25,7 +25,7 @@ export interface ReservationForEmail {
 /** Dane spoza rezerwacji: kontakt, linki – z bazy (punkt odbioru, dane kontaktowe, social media) */
 export interface EmailContext {
   webUrl: string;
-  /** godzina zamknięcia rezerwacji i anulowania, „HH:MM” (Ustawienia → Zasady rezerwacji) – w e-mailach rezerwacji */
+  /** godzina zamknięcia rezerwacji i anulowania, „HH:MM” (Rezerwacje → Zasady rezerwacji) – w e-mailach rezerwacji */
   cutoffTime?: string;
   /** telefon punktu odbioru (piekarni); dla chlebowozu zwykle brak */
   pointPhone?: string | null;

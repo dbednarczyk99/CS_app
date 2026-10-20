@@ -1,4 +1,4 @@
-/** Zasady rezerwacji ustawiane przez właściciela w panelu (Ustawienia → Zasady rezerwacji) */
+/** Zasady rezerwacji ustawiane przez właściciela w panelu (Rezerwacje → Zasady rezerwacji) */
 export interface ReservationSettings {
   /** rezerwacja i anulowanie do tej godziny dnia poprzedzającego odbiór, „HH:MM” */
   cutoffTime: string;

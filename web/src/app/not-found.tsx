@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getContent } from '@/lib/content';
 
-/** Teksty – z panelu (Strona → Elementy wspólne → Strona 404) */
+/** Teksty – z panelu (Strona → Podstrony → Elementy wspólne → Strona 404) */
 export default async function NotFound() {
   const texts = (await getContent())['common.notFound'];
   return (

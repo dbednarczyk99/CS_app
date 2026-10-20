@@ -77,7 +77,7 @@ function Example({ form }: { form: Form }) {
 }
 
 /**
- * Ustawienia → Zasady rezerwacji (tylko administrator): godzina zamknięcia, liczba dni do przodu, limit na telefon
+ * Rezerwacje → Zasady rezerwacji (tylko administrator): godzina zamknięcia, liczba dni do przodu, limit na telefon
  * i codzienne zestawienie „do przygotowania”. Zmiana działa od razu w formularzu, e-mailach i regulaminie.
  */
 export default function ReservationRulesPage() {
@@ -147,7 +147,7 @@ export default function ReservationRulesPage() {
       </Typography>
       <Alert severity="warning" sx={{ mb: 3 }}>
         Zasady rezerwacji są częścią regulaminu. Przy istotnej zmianie (np. krótszy czas na anulowanie) zaktualizuj datę
-        „Obowiązuje od” w regulaminie (Ustawienia → Dokumenty prawne) i poinformuj klientów, np. banerem albo w
+        „Obowiązuje od” w regulaminie (Strona → Dokumenty prawne) i poinformuj klientów, np. banerem albo w
         newsletterze. Rezerwacje już złożone podlegają nowej godzinie anulowania.
       </Alert>
 
