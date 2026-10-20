@@ -20,6 +20,7 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { apiUrl, httpClient } from '../../dataProvider';
 import { DevicePreview } from './DevicePreview';
+import { ArticleSitePreview } from './ArticleSitePreview';
 
 type ProductOption = {
   id: string;
@@ -197,6 +198,7 @@ export const ArticleProductTools = () => {
         <Button startIcon={<VisibilityIcon />} onClick={showPreview}>
           Podgląd e-maila
         </Button>
+        <ArticleSitePreview />
       </Stack>
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
         Kafelek pojawia się w treści jako osobny akapit „[produkt: …]” – na stronie i w newsletterze zamienia się w
