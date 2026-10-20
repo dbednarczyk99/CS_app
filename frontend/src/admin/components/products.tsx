@@ -23,6 +23,7 @@ import {
 import { useState } from 'react';
 import { Alert, Box, Typography } from '@mui/material';
 import { useWatch } from 'react-hook-form';
+import { IMAGE_PRESETS } from '../common/image-presets';
 import SortableImageInput from '../common/SortableImageInput';
 import { LabelChip } from './labels';
 import { SiteAddress } from '../common/SiteAddress';
@@ -336,7 +337,7 @@ export const ProductCreate = () => (
         <SelectInput optionText="name" validate={[required()]} />
       </ReferenceInput>
 
-      <SortableImageInput source="images" validate={true} maxQty={3} />
+      <SortableImageInput source="images" validate={true} maxQty={3} preset={IMAGE_PRESETS.product} />
     </SimpleForm>
   </Create>
 );
@@ -365,7 +366,7 @@ export const ProductEdit = () => (
         <SelectInput optionText="name" validate={[required()]} />
       </ReferenceInput>
 
-      <SortableImageInput source="images" validate={true} maxQty={3} />
+      <SortableImageInput source="images" validate={true} maxQty={3} preset={IMAGE_PRESETS.product} />
     </SimpleForm>
   </Edit>
 );

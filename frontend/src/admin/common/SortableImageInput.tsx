@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, type JSX } from 'react';
+import React, { useCallback, useEffect, useRef, useState, type JSX } from 'react';
 import { useInput } from 'react-admin';
 import { Button, IconButton, Typography } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -11,6 +11,8 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { ImageCropDialog } from './ImageCropDialog';
+import { IMAGE_PRESETS, presetHint, type ImagePreset } from './image-presets';
 
 type ImageItem = {
   id?: string;
@@ -25,10 +27,13 @@ export const SortableImageInput = ({
   source,
   validate = true,
   maxQty = 10,
+  preset = IMAGE_PRESETS.place,
 }: {
   source: string;
   validate?: boolean;
   maxQty?: number;
+  /** proporcje i rozmiary – każde dodane zdjęcie przechodzi przez okno kadrowania */
+  preset?: ImagePreset;
 }) => {
   const {
     field,
@@ -77,34 +82,56 @@ export const SortableImageInput = ({
     }
   }, [values, setOrdered]);
 
+  // wybrane pliki czekają w kolejce na kadrowanie – po jednym
+  const [queue, setQueue] = useState<File[]>([]);
+
   const onAddFiles = useCallback(
     (files: FileList | null) => {
       if (!files || files.length === 0) return;
-      const arr = values ? [...values] : [];
+      let picked = Array.from(files);
+      if (fileInputRef.current) fileInputRef.current.value = '';
 
       // Ogranicz ilość zdjęć
-      if (maxQty && arr.length + files.length > maxQty) {
+      const free = maxQty - (values?.length ?? 0) - queue.length;
+      if (maxQty && picked.length > free) {
         alert(`Możesz dodać maksymalnie ${maxQty} zdjęć`);
-        files = Array.from(files).slice(0, maxQty - arr.length) as unknown as FileList;
+        picked = picked.slice(0, Math.max(0, free));
       }
 
-      for (const f of Array.from(files)) {
-        if (validate) {
-          if (f.size > 5_000_000) {
-            alert(`${f.name} jest za duży (max 5MB)`);
-            continue;
-          }
-          if (!f.type.startsWith('image/')) {
-            alert(`${f.name} nie jest zdjęciem`);
-            continue;
-          }
+      const accepted = picked.filter((f) => {
+        if (!f.type.startsWith('image/')) {
+          alert(`${f.name} nie jest zdjęciem`);
+          return false;
         }
-        const src = URL.createObjectURL(f);
-        arr.push({ rawFile: f, src, title: f.name });
-      }
-      setOrdered(arr);
+        if (f.size > 30 * 1024 * 1024) {
+          alert(`${f.name} jest za duży (najwyżej 30 MB)`);
+          return false;
+        }
+        return true;
+      });
+      setQueue((q) => [...q, ...accepted]);
     },
-    [values, setOrdered, validate, maxQty],
+    [values, queue.length, maxQty],
+  );
+
+  // przycięte zdjęcie trafia na koniec listy (wgra się przy zapisie formularza)
+  const onCropped = (f: File) => {
+    setQueue((q) => q.slice(1));
+    setOrdered([...(values ?? []), { rawFile: f, src: URL.createObjectURL(f), title: f.name }]);
+  };
+  const cropDialog = queue[0] && (
+    <ImageCropDialog
+      key={`${queue[0].name}-${queue[0].lastModified}-${queue.length}`}
+      file={queue[0]}
+      preset={preset}
+      onDone={onCropped}
+      onCancel={() => setQueue((q) => q.slice(1))}
+    />
+  );
+  const hint = (
+    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+      {presetHint(preset)}
+    </Typography>
   );
 
   const onRemove = useCallback(
@@ -145,10 +172,14 @@ export const SortableImageInput = ({
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // cleanup object urls on unmount
+  // cleanup object urls on unmount (tylko przy zamknięciu formularza – nie przy każdej zmianie listy)
+  const latestRef = useRef(values);
+  useEffect(() => {
+    latestRef.current = values;
+  }, [values]);
   useEffect(() => {
     return () => {
-      const arr = values as ImageItem[] | undefined;
+      const arr = latestRef.current;
       (arr ?? []).forEach((it) => {
         if (it?.rawFile && it.src) {
           try {
@@ -159,7 +190,7 @@ export const SortableImageInput = ({
         }
       });
     };
-  }, [values]);
+  }, []);
 
   let error = fieldState?.error?.message;
   if (error && typeof error === 'string') {
@@ -182,7 +213,9 @@ export const SortableImageInput = ({
             onChange={(e) => onAddFiles(e.target.files)}
           />
         </div>
+        {hint}
         {error && <Typography color="error" variant="body2" sx={{ mb: 1 }}>{error}</Typography>}
+        {cropDialog}
       </div>
     );
   }
@@ -206,7 +239,9 @@ export const SortableImageInput = ({
         />
       </div>
 
+      {hint}
       {error && <Typography color="error" variant="body2" sx={{ mb: 1 }}>{error}</Typography>}
+      {cropDialog}
 
       <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext

@@ -20,6 +20,7 @@ import { useWatch } from 'react-hook-form';
 import TagInput from '../common/TagInput';
 import { NewsletterSaveToolbar } from '../common/NewsletterSaveToolbar';
 import { useSubscriberCount } from '../common/useSubscriberCount';
+import { IMAGE_PRESETS } from '../common/image-presets';
 import SortableImageInput from '../common/SortableImageInput';
 import { ArticleProductTools } from '../common/ArticleProductTools';
 import { SiteAddress } from '../common/SiteAddress';
@@ -186,7 +187,7 @@ export const BlogCreate = () => (
       <NewsletterToggle />
       <ScheduleInput />
 
-      <SortableImageInput source="images" maxQty={5} />
+      <SortableImageInput source="images" maxQty={5} preset={IMAGE_PRESETS.article} />
       <ShareImageInput />
     </SimpleForm>
   </Create>
@@ -207,7 +208,7 @@ export const BlogEdit = () => (
       <NewsletterToggle />
       <ScheduleInput />
 
-      <SortableImageInput source="images" maxQty={5} />
+      <SortableImageInput source="images" maxQty={5} preset={IMAGE_PRESETS.article} />
       <ShareImageInput />
     </SimpleForm>
   </Edit>

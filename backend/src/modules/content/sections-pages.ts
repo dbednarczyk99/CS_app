@@ -39,6 +39,8 @@ const HEADER_IMAGE = image(
   'image',
   'Zdjęcie w tle',
   'Poziome, duże (najlepiej 2400 px szerokości); jest przyciemnione, tekst leży na dole',
+  true,
+  '16 / 9',
 );
 
 /** Nagłówek podstrony: zdjęcie w tle, nadtytuł, tytuł i (opcjonalnie) tekst pod tytułem */
@@ -142,7 +144,7 @@ export const PAGE_SECTIONS: Section[] = [
         rows: 6,
         help: 'Akapity oddziel pustą linią',
       }),
-      image('image', 'Zdjęcie', 'Pionowe (4:5)'),
+      image('image', 'Zdjęcie', 'Pionowe (4:5)', true, '4 / 5'),
     ],
     defaults: {
       eyebrow: 'Nasza historia',
@@ -212,7 +214,7 @@ export const PAGE_SECTIONS: Section[] = [
         max: 8,
         itemLabel: 'Zdjęcie',
         help: 'Pionowe (3:4); najlepiej 4 albo 8 (pełne rzędy).',
-        fields: [image('image', 'Zdjęcie')],
+        fields: [image('image', 'Zdjęcie', undefined, true, '3 / 4')],
       },
       text('title', 'Hasło', 60),
       text('buttonLabel', 'Napis przycisku', 30, {
@@ -275,7 +277,7 @@ export const PAGE_SECTIONS: Section[] = [
       EYEBROW,
       text('title', 'Tytuł', 60),
       area('text', 'Tekst', 400),
-      image('image', 'Zdjęcie', 'Pionowe (3:4)'),
+      image('image', 'Zdjęcie', 'Pionowe (3:4)', true, '3 / 4'),
     ],
     defaults: {
       eyebrow: 'Na miejscu',
@@ -297,7 +299,7 @@ export const PAGE_SECTIONS: Section[] = [
         help: '{przystanki} zamieni się na liczbę miejsc, np. „5 miejscach”',
       }),
       text('cta', 'Napis linku', 40),
-      image('image', 'Zdjęcie', 'Poziome (3:2)'),
+      image('image', 'Zdjęcie', 'Poziome (3:2)', true, '3 / 2'),
     ],
     defaults: {
       eyebrow: 'Chlebowóz',
@@ -351,7 +353,7 @@ export const PAGE_SECTIONS: Section[] = [
         help: '{piekarnie} zamieni się na „naszej piekarni” albo „jednej z 4 naszych piekarni”',
       }),
       text('cta', 'Napis linku', 40),
-      image('image', 'Zdjęcie', 'Poziome (3:2)'),
+      image('image', 'Zdjęcie', 'Poziome (3:2)', true, '3 / 2'),
     ],
     defaults: {
       eyebrow: 'Nasze piekarnie',

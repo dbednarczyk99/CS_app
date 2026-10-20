@@ -147,7 +147,8 @@ export const SECTIONS: Section[] = [
         label: 'Zdjęcie',
         type: 'image',
         required: true,
-        help: 'Najlepiej pionowe (4:5)',
+        help: 'Pionowe (4:5)',
+        aspect: '4 / 5',
       },
       {
         name: 'showCount',
@@ -216,6 +217,7 @@ export const SECTIONS: Section[] = [
         type: 'image',
         required: true,
         help: 'Poziome, jasne zdjęcia zostaną przyciemnione',
+        aspect: '16 / 9',
       },
     ],
     defaults: {
@@ -284,6 +286,7 @@ export const SECTIONS: Section[] = [
         type: 'image',
         required: true,
         help: 'Poziome (3:2)',
+        aspect: '3 / 2',
       },
       {
         name: 'buttonLabel',
@@ -363,7 +366,13 @@ export const SECTIONS: Section[] = [
         itemLabel: 'Zdjęcie',
         help: 'Najlepiej pionowe (3:4). Kolejność zmienisz strzałkami.',
         fields: [
-          { name: 'image', label: 'Zdjęcie', type: 'image', required: true },
+          {
+            name: 'image',
+            label: 'Zdjęcie',
+            type: 'image',
+            required: true,
+            aspect: '3 / 4',
+          },
         ],
       },
     ],

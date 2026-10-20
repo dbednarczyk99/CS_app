@@ -4,6 +4,8 @@ import { Box, Button, CircularProgress, Stack, Typography } from '@mui/material'
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { uploadFile } from '../../dataProvider';
+import { ImageCropDialog } from './ImageCropDialog';
+import { presetForAspect, presetHint, type ImagePreset } from './image-presets';
 
 const webUrl = import.meta.env.VITE_WEB_URL || 'http://localhost:3001';
 
@@ -11,7 +13,8 @@ const webUrl = import.meta.env.VITE_WEB_URL || 'http://localhost:3001';
 const previewUrl = (url: string) => (url.startsWith('/') ? `${webUrl}${url}` : url);
 
 /**
- * Pole zdjęcia: podgląd, „Wybierz zdjęcie” / „Zmień” (plik wgrywa się od razu na serwer) i opcjonalnie „Usuń”.
+ * Pole zdjęcia: podgląd, „Wybierz zdjęcie” / „Zmień” (kadrowanie do proporcji z podglądu, kontrola minimalnego
+ * rozmiaru, zmniejszenie – potem plik wgrywa się od razu na serwer) i opcjonalnie „Usuń”.
  * Zwraca adres zdjęcia. Stare wgrane zdjęcie serwer usuwa sam po zapisaniu formularza.
  */
 export function ImageUploadField({
@@ -23,6 +26,7 @@ export function ImageUploadField({
   aspect = '4 / 3',
   fallbackUrl,
   fallbackNote,
+  preset,
 }: {
   label: string;
   value: string | null | undefined;
@@ -35,21 +39,32 @@ export function ImageUploadField({
   fallbackUrl?: string | null;
   /** wyjaśnienie pod podglądem zdjęcia zastępczego */
   fallbackNote?: string;
+  /** wymagania co do rozmiaru; domyślnie z proporcji podglądu */
+  preset?: ImagePreset;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [picked, setPicked] = useState<File | null>(null);
   const notify = useNotify();
+  const requirements = preset ?? presetForAspect(aspect);
 
-  const pick = async (file: File | undefined) => {
+  // wybrany plik → okno kadrowania → wgranie
+  const pick = (file: File | undefined) => {
+    if (input.current) input.current.value = '';
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       notify('Wybierz plik ze zdjęciem (JPG, PNG, WebP)', { type: 'warning' });
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      notify('Zdjęcie jest za duże – najwyżej 10 MB', { type: 'warning' });
+    if (file.size > 30 * 1024 * 1024) {
+      notify('Plik jest za duży – najwyżej 30 MB', { type: 'warning' });
       return;
     }
+    setPicked(file);
+  };
+
+  const upload = async (file: File) => {
+    setPicked(null);
     setUploading(true);
     try {
       onChange(await uploadFile(file));
@@ -57,7 +72,6 @@ export function ImageUploadField({
       notify('Nie udało się wgrać zdjęcia', { type: 'error' });
     } finally {
       setUploading(false);
-      if (input.current) input.current.value = '';
     }
   };
 
@@ -99,7 +113,7 @@ export function ImageUploadField({
             type="file"
             accept="image/*"
             hidden
-            onChange={(e) => void pick(e.target.files?.[0])}
+            onChange={(e) => pick(e.target.files?.[0])}
           />
           <Button
             variant="outlined"
@@ -125,8 +139,14 @@ export function ImageUploadField({
               {help}
             </Typography>
           )}
+          <Typography variant="caption" color="text.secondary" sx={{ maxWidth: 360 }}>
+            {presetHint(requirements)}
+          </Typography>
         </Stack>
       </Stack>
+      {picked && (
+        <ImageCropDialog file={picked} preset={requirements} onDone={(file) => void upload(file)} onCancel={() => setPicked(null)} />
+      )}
     </Box>
   );
 }
