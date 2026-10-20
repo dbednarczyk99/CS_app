@@ -1,34 +1,34 @@
-import type { Metadata } from 'next';
 import { CrossPromo } from '@/components/CrossPromo';
 import { PageHeader } from '@/components/PageHeader';
 import { SectionHeading } from '@/components/SectionHeading';
 import { StoresMap } from '@/components/StoresMap';
 import { VanSchedule } from '@/components/VanSchedule';
 import { api, orFallback } from '@/lib/api';
-import { pageMetadata } from '@/lib/site';
+import { fill, getContent, seoMetadata } from '@/lib/content';
 
-export const metadata: Metadata = pageMetadata({
-  title: 'Chlebowóz',
-  description: 'Trasa chlebowozu Chleba Smak – gdzie i kiedy kupisz nasze świeże pieczywo.',
-  path: '/chlebowoz',
-});
+export const generateMetadata = () => seoMetadata('seo.van', { path: '/chlebowoz' });
 
+/** Nagłówki i ramka – z panelu (Strona → Podstrony → Chlebowóz); opis i trasa – Piekarnie → Chlebowóz */
 export default async function BreadVanPage() {
-  const [description, stops, locations] = await Promise.all([
+  const [description, stops, locations, content] = await Promise.all([
     orFallback(api.breadVanDescription(), null),
     orFallback(api.breadVanStops(), []),
     orFallback(api.locations(), []),
+    getContent(),
   ]);
+  const header = content['van.header'];
+  const schedule = content['van.schedule'];
+  const promo = content['van.locations'];
 
   return (
     <>
-      <PageHeader eyebrow="Chlebowóz" title="Świeże pieczywo w drodze" image="/images/chlebowoz.jpg">
+      <PageHeader eyebrow={header.eyebrow} title={header.title} image={header.image.url}>
         {description?.shortDescription ?? 'Przyjeżdżamy z pieczywem prosto z pieca w kolejne miejsca Krakowa.'}
       </PageHeader>
 
       <div className="mx-auto grid max-w-7xl gap-14 px-5 py-16 sm:px-8 md:py-24 lg:grid-cols-[1fr_1.4fr] lg:gap-20">
         <div>
-          <SectionHeading eyebrow="Jak to działa" title="Stałe dni, stałe miejsca">
+          <SectionHeading eyebrow={schedule.eyebrow} title={schedule.title}>
             {description?.longDescription ? (
               <p>{description.longDescription}</p>
             ) : (
@@ -40,7 +40,7 @@ export default async function BreadVanPage() {
           </SectionHeading>
         </div>
         <div>
-          <h2 className="heading text-2xl">Trasa w tym tygodniu</h2>
+          <h2 className="heading text-2xl">{schedule.scheduleTitle}</h2>
           <div className="mt-6">
             <VanSchedule stops={stops} />
           </div>
@@ -49,7 +49,7 @@ export default async function BreadVanPage() {
 
       {stops.some((s) => s.lat != null) && (
         <section className="mx-auto max-w-7xl px-5 pb-24 sm:px-8">
-          <h2 className="heading mb-6 text-2xl">Przystanki na mapie</h2>
+          <h2 className="heading mb-6 text-2xl">{schedule.mapTitle}</h2>
           {/* ta sama mapa co na /piekarnie – tu domyślnie z filtrem „Chlebowóz” */}
           <StoresMap locations={locations} stops={stops} initialFilter="van" />
         </section>
@@ -58,16 +58,16 @@ export default async function BreadVanPage() {
       {locations.length > 0 && (
         <section className="mx-auto max-w-7xl px-5 pb-24 sm:px-8">
           <CrossPromo
-            eyebrow="Nasze piekarnie"
-            title="Może masz bliżej do piekarni?"
+            eyebrow={promo.eyebrow}
+            title={promo.title}
             href="/piekarnie"
-            cta="Zobacz nasze piekarnie"
-            image="/images/lokal.jpg"
-            imageAlt="Piekarnia Chleba Smak"
+            cta={promo.cta}
+            image={promo.image.url}
+            imageAlt={promo.image.alt}
           >
-            Chlebowóz nie dojeżdża w Twoje okolice albo nie pasuje Ci godzina? Zajrzyj do{' '}
-            {locations.length === 1 ? 'naszej piekarni' : `jednej z ${locations.length} naszych piekarni`}{' '}
-            w Krakowie – z pełnym asortymentem, kanapkami i kawą na miejscu.
+            {fill(promo.text, {
+              piekarnie: locations.length === 1 ? 'naszej piekarni' : `jednej z ${locations.length} naszych piekarni`,
+            })}
           </CrossPromo>
         </section>
       )}

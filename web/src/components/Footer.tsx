@@ -4,16 +4,20 @@ import { FaEnvelope, FaStar } from 'react-icons/fa6';
 import { api, orFallback } from '@/lib/api';
 import { telHref } from '@/lib/format';
 import { ratingFormat, ratingSummary } from '@/lib/google';
+import { getContent } from '@/lib/content';
 import { NAV } from '@/lib/nav';
 import { NewsletterButton } from './Newsletter';
 import { SocialLinks } from './SocialLinks';
 
 export async function Footer() {
-  const [locations, contact, media] = await Promise.all([
+  const [locations, contact, media, content] = await Promise.all([
     orFallback(api.locations(), []),
     orFallback(api.contactInfo(), []),
     orFallback(api.media(), []),
+    getContent(),
   ]);
+  // teksty – z panelu (Strona → Elementy wspólne → Stopka)
+  const texts = content['common.footer'];
   const email = contact.find((c) => c.type === 'EMAIL')?.value;
   // główny telefon (z panelu: Contact info, typ PHONE) – oprócz numerów poszczególnych piekarni
   const phone = contact.find((c) => c.type === 'PHONE')?.value;
@@ -32,9 +36,7 @@ export async function Footer() {
             height={112}
             className="w-52"
           />
-          <p className="mt-5 max-w-xs text-sm leading-relaxed text-stone">
-            Rzemieślnicza piekarnia z Krakowa. Chleb na naturalnym zakwasie i słodkie wypieki – codziennie od świtu.
-          </p>
+          <p className="mt-5 max-w-xs text-sm leading-relaxed text-stone">{texts.about}</p>
           {rating && (
             <Link href="/piekarnie" className="group mt-4 inline-flex items-center gap-2 text-sm">
               <FaStar aria-hidden className="text-gold" />
@@ -98,9 +100,9 @@ export async function Footer() {
             </>
           )}
           <h2 className={`eyebrow ${phone || email ? 'mt-8' : ''}`}>Newsletter</h2>
-          <p className="mt-3 max-w-xs text-sm leading-relaxed text-stone">Nowości, promocje i konkursy – prosto na skrzynkę.</p>
+          <p className="mt-3 max-w-xs text-sm leading-relaxed text-stone">{texts.newsletterText}</p>
           <NewsletterButton className="btn btn-outline mt-4 min-h-10 px-4 py-2 text-[0.7rem]">
-            <FaEnvelope size={11} aria-hidden /> Zapisz się
+            <FaEnvelope size={11} aria-hidden /> {texts.newsletterButton}
           </NewsletterButton>
         </div>
 
@@ -120,7 +122,9 @@ export async function Footer() {
 
       <div className="border-t border-line">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-5 py-5 text-xs tracking-wide text-stone sm:px-8">
-          <p>© {new Date().getFullYear()} Chleba Smak · Piekarnia Rzemieślnicza · Kraków</p>
+          <p>
+            © {new Date().getFullYear()} Chleba Smak{texts.copyright ? ` · ${texts.copyright}` : ''}
+          </p>
           <nav aria-label="Dokumenty" className="flex gap-5">
             <Link href="/regulamin" className="transition-colors hover:text-gold">
               Regulamin rezerwacji

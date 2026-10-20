@@ -1,4 +1,4 @@
-import type { Field, ImageValue } from './sections';
+import type { Field, ImageValue } from './section-types';
 
 const URL_RE = /^(\/[^\s]*|https?:\/\/[^\s]+)$/;
 

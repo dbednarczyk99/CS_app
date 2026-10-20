@@ -8,6 +8,7 @@ import { api, orFallback } from '@/lib/api';
 import { formatDate } from '@/lib/format';
 import { JsonLd } from '@/components/JsonLd';
 import { articlePath, pageMetadata } from '@/lib/site';
+import { defaultShareImage } from '@/lib/content';
 import { articleLd, breadcrumbsLd } from '@/lib/structured-data';
 
 type Props = { params: Promise<{ id: string }> };
@@ -24,7 +25,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     path: articlePath(article),
     type: 'article',
     publishedTime: article.publishedAt,
-    ...(cover ? { image: { url: cover.imgUrl, alt: article.title } } : {}),
+    image: article.shareImageUrl
+      ? { url: article.shareImageUrl, alt: article.title }
+      : cover
+        ? { url: cover.imgUrl, alt: article.title }
+        : await defaultShareImage(),
   });
 }
 

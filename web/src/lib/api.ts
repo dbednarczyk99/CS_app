@@ -158,6 +158,8 @@ export interface Article {
   createdAt: string;
   /** data publikacji na stronie: zaplanowana albo dodania */
   publishedAt: string;
+  /** zdjęcie w podglądzie linku (Facebook) – null = okładka */
+  shareImageUrl?: string | null;
   images: Image[];
   tags: { tag: { id: string; name: string } }[];
 }

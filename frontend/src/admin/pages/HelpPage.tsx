@@ -66,8 +66,20 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
         a: '„Strona” → „Karuzela”: slajdy z tytułem, opisem, przyciskami i zdjęciem (osobne zdjęcie na telefon jest opcjonalne). Własne slajdy możesz dodawać, wyłączać, planować („Od” / „Do”) i usuwać. Slajdy Chlebowóz, Piekarnie i Sezonowe pokazują dane z panelu – możesz zmienić ich teksty i wyłączyć je, ale nie usunąć. Kolejność ustalasz liczbą w polu „Kolejność”. Włączonych może być najwyżej 5 slajdów – kolejne trzymaj jako wyłączone w zapasie. W formularzu slajdu są też „Wcześniejsze wersje” i (dla slajdów startowych) „Przywróć stan domyślny”. Slajd Sezonowe bez własnego zdjęcia pokazuje zdjęcie dostępnego teraz produktu sezonowego – panel pokazuje, które to zdjęcie.',
       },
       {
+        q: 'Jak zmienić teksty na pozostałych stronach, w stopce i w okienku newslettera?',
+        a: '„Strona” → „Podstrony”: zakładka dla każdej strony (O nas, Oferta, Piekarnie, Chlebowóz, Aktualności, Kontakt, Rezerwacja) – sekcje działają tak samo jak na stronie głównej. „Strona” → „Elementy wspólne”: stopka, okienko zapisu do newslettera, strona 404 (pokazuje się po wejściu na nieistniejący adres) i domyślne zdjęcie do udostępniania. Niektóre teksty mają znaczniki w nawiasach klamrowych, np. {miejsca} albo {profil} – strona wstawia w ich miejsce aktualne dane (liczbę piekarni, nazwę profilu na Instagramie); opis znacznika jest pod polem. Dane takie jak adresy, godziny, telefony, opis chlebowozu czy produkty zmieniasz dalej w ich zakładkach.',
+      },
+      {
+        q: 'Jak ustawić, jak strona wygląda w Google i na Facebooku (SEO)?',
+        a: 'Pierwsza sekcja każdej strony to „Wyszukiwarka i udostępnianie (SEO)”: tytuł i opis w wynikach Google oraz zdjęcie w podglądzie linku (Facebook, Messenger, WhatsApp). Podgląd nad polami pokazuje, jak to będzie wyglądać. Google pokazuje ok. 60 znaków tytułu i ok. 155 znaków opisu – licznik ostrzega, gdy tekst jest dłuższy (dłuższy nie szkodzi, tylko zostanie obcięty). Najważniejsze słowa (np. „chleb na zakwasie Kraków”) dawaj na początek, a każda strona powinna mieć inny tytuł i opis. Bez własnego zdjęcia podgląd linku pokazuje domyślne zdjęcie z „Elementy wspólne”; produkty pokazują swoje zdjęcie, a wpis – okładkę albo zdjęcie z pola „Zdjęcie przy udostępnianiu”. Google odświeża wyniki samo, zwykle w ciągu kilku dni.',
+      },
+      {
+        q: 'Zmieniłem zdjęcie, a Facebook pokazuje stary podgląd linku – co zrobić?',
+        a: 'Facebook zapamiętuje podgląd linku na kilka dni. Wejdź na developers.facebook.com/tools/debug (Sharing Debugger, trzeba być zalogowanym na Facebooku), wklej adres strony, np. chlebasmak.pl/o-nas, i kliknij „Scrape Again” (Pobierz ponownie). Po chwili zobaczysz nowy podgląd, a kolejne udostępnienia będą już z nowym zdjęciem. Messenger i WhatsApp korzystają z tej samej pamięci lub odświeżają się same po kilku dniach.',
+      },
+      {
         q: 'Jakie zdjęcia wgrywać?',
-        a: 'Najlepiej duże (karuzela: ok. 2400 px szerokości) i w proporcjach podanych przy polu (np. pionowe 4:5, poziome 3:2). Przy zdjęciach w karuzeli wybierz „Kadr” – którą część zdjęcia zawsze pokazywać. Opis zdjęcia pomaga osobom niewidomym i Google; zdjęcie czysto ozdobne może zostać bez opisu.',
+        a: 'Najlepiej duże (karuzela: ok. 2400 px szerokości) i w proporcjach podanych przy polu (np. pionowe 4:5, poziome 3:2). Przy zdjęciach w karuzeli wybierz „Kadr” – którą część zdjęcia zawsze pokazywać. Opis zdjęcia pomaga osobom niewidomym i Google; zdjęcie czysto ozdobne może zostać bez opisu. Zdjęcie do udostępniania (podgląd linku): poziome 1200 × 630 px, z ważnymi elementami na środku.',
       },
     ],
   },

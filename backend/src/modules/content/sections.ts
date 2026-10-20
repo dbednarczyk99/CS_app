@@ -1,63 +1,15 @@
 /**
  * Opis edytowalnych sekcji strony („domowy WordPress”): pola, limity znaków i wartości domyślne (= obecne teksty
  * strony). Serwer sprawdza zapis według tego opisu, a panel na jego podstawie sam buduje formularze –
- * nowa sekcja to nowa pozycja tutaj (+ jej użycie na stronie). Wartości domyślne strony są też w
- * web/src/lib/content-defaults.ts (awaryjnie, gdy API nie odpowiada) – przy zmianie domyślnych tekstów
- * zaktualizować oba pliki.
+ * nowa sekcja to nowa pozycja tutaj (+ jej użycie na stronie). Strona ma kopię wartości
+ * domyślnych (awaryjnie, gdy API nie odpowiada) w web/src/lib/content-defaults.ts – po zmianie domyślnych
+ * tekstów wygenerować ją ponownie: npm run content:defaults (w backend).
  */
 
-export type Field =
-  | {
-      name: string;
-      label: string;
-      type: 'text';
-      max: number;
-      required?: boolean;
-      help?: string;
-    }
-  | {
-      name: string;
-      label: string;
-      type: 'textarea';
-      max: number;
-      required?: boolean;
-      help?: string;
-      rows?: number;
-    }
-  | {
-      name: string;
-      label: string;
-      type: 'image';
-      help?: string;
-      required?: boolean;
-    }
-  | { name: string; label: string; type: 'toggle'; help?: string }
-  | {
-      name: string;
-      label: string;
-      type: 'list';
-      help?: string;
-      min: number;
-      max: number;
-      /** nazwa pojedynczego elementu w panelu, np. „Zdjęcie” */
-      itemLabel: string;
-      fields: Field[];
-    };
+import { img, type Section } from './section-types';
+import { HOME_SEO, PAGE_SECTIONS } from './sections-pages';
 
-/** Zdjęcie w treści: adres (wgrany plik albo zdjęcie strony) i opis dla niewidomych / Google */
-export type ImageValue = { url: string; alt: string };
-
-export type Section = {
-  key: string;
-  /** strona w panelu (grupa ekranów), np. „home” */
-  page: string;
-  title: string;
-  description?: string;
-  fields: Field[];
-  defaults: Record<string, unknown>;
-};
-
-const img = (url: string, alt: string): ImageValue => ({ url, alt });
+export type { Field, ImageValue, Section } from './section-types';
 
 export const SECTIONS: Section[] = [
   {
@@ -429,5 +381,9 @@ export const SECTIONS: Section[] = [
     },
   },
 ];
+
+// SEO strony głównej na początku, strona główna (wyżej), podstrony i elementy wspólne
+SECTIONS.unshift(HOME_SEO);
+SECTIONS.push(...PAGE_SECTIONS);
 
 export const SECTION_BY_KEY = new Map(SECTIONS.map((s) => [s.key, s]));

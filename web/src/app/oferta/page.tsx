@@ -1,4 +1,3 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import { FaCheck, FaChevronDown, FaXmark } from 'react-icons/fa6';
 import { DropdownPanel } from '@/components/DropdownPanel';
@@ -6,13 +5,9 @@ import { PageHeader } from '@/components/PageHeader';
 import { ProductCard } from '@/components/ProductCard';
 import { api, orFallback, type Product } from '@/lib/api';
 import { isAvailable, isOutOfSeason, labelFilters } from '@/lib/products';
-import { pageMetadata } from '@/lib/site';
+import { getContent, seoMetadata } from '@/lib/content';
 
-export const metadata: Metadata = pageMetadata({
-  title: 'Oferta',
-  description: 'Chleby na zakwasie, słodkie wypieki, kanapki i lody rzemieślnicze z piekarni Chleba Smak w Krakowie.',
-  path: '/oferta',
-});
+export const generateMetadata = () => seoMetadata('seo.offer', { path: '/oferta' });
 
 /** Adres oferty z filtrami (kategorie + wyróżnione), oba z wielokrotnym wyborem */
 function offerHref(kategorie: string[], etykiety: string[]) {
@@ -32,7 +27,10 @@ export default async function OfferPage({
   searchParams: Promise<{ kategorie?: string; kategoria?: string; etykiety?: string; sezonowe?: string }>;
 }) {
   const params = await searchParams;
-  const all = (await orFallback(api.products(), [])).filter((p) => p.isActive);
+  const [allProducts, content] = await Promise.all([orFallback(api.products(), []), getContent()]);
+  const all = allProducts.filter((p) => p.isActive);
+  // nagłówek – z panelu (Strona → Podstrony → Oferta)
+  const header = content['offer.header'];
   const products = all.filter(isAvailable);
 
   // kategorie z produktów (kolejność pierwszego wystąpienia) – nowa kategoria z panelu pojawia się sama,
@@ -133,9 +131,8 @@ export default async function OfferPage({
 
   return (
     <>
-      <PageHeader eyebrow="Oferta" title="Nasze wypieki" image="/images/chleb-deska.jpg">
-        Pieczywo i wypieki dostępne w naszych piekarniach. Asortyment zmienia się z porami roku –
-        wypieki sezonowe dostępne teraz mają znaczek „Teraz dostępne”.
+      <PageHeader eyebrow={header.eyebrow} title={header.title} image={header.image.url}>
+        {header.text || null}
       </PageHeader>
 
       {/* Filtry – przyklejone pod nagłówkiem strony: kategoria + wyróżnione (etykiety) */}

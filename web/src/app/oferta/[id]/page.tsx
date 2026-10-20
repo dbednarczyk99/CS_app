@@ -11,6 +11,7 @@ import { BADGE_STYLE, isAvailable, isOnPromo, isOutOfSeason, oldPriceOf, priceOf
 import { formatDate, formatPrice } from '@/lib/format';
 import { JsonLd } from '@/components/JsonLd';
 import { pageMetadata, productPath } from '@/lib/site';
+import { defaultShareImage } from '@/lib/content';
 import { breadcrumbsLd, productLd } from '@/lib/structured-data';
 
 type Props = { params: Promise<{ id: string }> };
@@ -25,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: product.name,
     description: product.description,
     path: productPath(product),
-    ...(image ? { image: { url: image.imgUrl, alt: product.name } } : {}),
+    image: image ? { url: image.imgUrl, alt: product.name } : await defaultShareImage(),
   });
 }
 

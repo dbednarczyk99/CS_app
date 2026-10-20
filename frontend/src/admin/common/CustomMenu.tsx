@@ -20,6 +20,8 @@ import InsightsIcon from '@mui/icons-material/Insights';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import HomeIcon from '@mui/icons-material/Home';
 import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
+import WebIcon from '@mui/icons-material/Web';
+import ViewQuiltIcon from '@mui/icons-material/ViewQuilt';
 
 /** Nagłówek grupy w menu (widoczny przy rozwiniętym menu) */
 const Section = ({ title }: { title: string }) => {
@@ -83,6 +85,8 @@ export const CustomMenu = () => {
       <Section title="Strona" />
       <Menu.Item to="/strona/glowna" primaryText="Strona główna" leftIcon={<HomeIcon />} />
       <Menu.Item to="/content/hero-slides" primaryText="Karuzela" leftIcon={<ViewCarouselIcon />} />
+      <Menu.Item to="/strona/podstrony" primaryText="Podstrony" leftIcon={<WebIcon />} />
+      <Menu.Item to="/strona/wspolne" primaryText="Elementy wspólne" leftIcon={<ViewQuiltIcon />} />
 
       <Section title="Piekarnie" />
       <Menu.Item to="/contact/locations" primaryText="Piekarnie" leftIcon={<StorefrontIcon />} />

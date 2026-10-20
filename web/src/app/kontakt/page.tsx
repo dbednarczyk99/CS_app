@@ -1,4 +1,3 @@
-import type { Metadata } from 'next';
 import { FaEnvelope, FaInstagram, FaLocationArrow, FaPhone } from 'react-icons/fa6';
 import { ContactForm } from '@/components/ContactForm';
 import { NewsletterButton } from '@/components/Newsletter';
@@ -6,20 +5,20 @@ import { PageHeader } from '@/components/PageHeader';
 import { SocialLinks } from '@/components/SocialLinks';
 import { api, orFallback } from '@/lib/api';
 import { instagramProfile, telHref } from '@/lib/format';
-import { pageMetadata } from '@/lib/site';
+import { getContent, seoMetadata, type SiteContent } from '@/lib/content';
 
-export const metadata: Metadata = pageMetadata({
-  title: 'Kontakt',
-  description: 'Skontaktuj się z piekarnią Chleba Smak – telefony do piekarni, e-mail i formularz kontaktowy.',
-  path: '/kontakt',
-});
+export const generateMetadata = () => seoMetadata('seo.contact', { path: '/kontakt' });
 
+/** Teksty – z panelu (Strona → Podstrony → Kontakt); dane kontaktowe – z zakładek Kontakt i Piekarnie */
 export default async function ContactPage() {
-  const [locations, contact, media] = await Promise.all([
+  const [locations, contact, media, content] = await Promise.all([
     orFallback(api.locations(), []),
     orFallback(api.contactInfo(), []),
     orFallback(api.media(), []),
+    getContent(),
   ]);
+  const header = content['contact.header'];
+  const texts = content['contact.page'];
   const email = contact.find((c) => c.type === 'EMAIL')?.value;
   // główny telefon (z panelu: Contact info, typ PHONE) – oprócz numerów poszczególnych piekarni
   const phone = contact.find((c) => c.type === 'PHONE')?.value;
@@ -28,15 +27,14 @@ export default async function ContactPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Kontakt" title="Porozmawiajmy" image="/images/wnetrze.jpg">
-        Masz pytanie o zamówienie, chcesz zaproponować współpracę albo podzielić się pomysłem na nowy
-        bochenek? Napisz lub zadzwoń.
+      <PageHeader eyebrow={header.eyebrow} title={header.title} image={header.image.url}>
+        {header.text || null}
       </PageHeader>
 
       <div className="mx-auto grid max-w-7xl gap-16 px-5 py-16 sm:px-8 md:py-24 lg:grid-cols-[1.3fr_1fr] lg:gap-24">
         <section aria-labelledby="formularz">
           <h2 id="formularz" className="heading text-2xl sm:text-3xl">
-            Napisz do nas
+            {texts.formTitle}
           </h2>
           <div className="mt-5 h-px w-16 bg-gold" />
           <div className="mt-8">
@@ -44,7 +42,7 @@ export default async function ContactPage() {
           </div>
 
           {/* komputer: newsletter pod formularzem */}
-          <NewsletterSection className="mt-16 hidden border-t border-line pt-12 lg:block" />
+          <NewsletterSection texts={texts} className="mt-16 hidden border-t border-line pt-12 lg:block" />
         </section>
 
         <aside className="space-y-12">
@@ -52,12 +50,17 @@ export default async function ContactPage() {
             // nagłówek w tym samym stylu i na tej samej wysokości co „Napisz do nas” obok
             <section aria-labelledby="instagram" className="border-b border-line pb-12">
               <h2 id="instagram" className="heading text-2xl sm:text-3xl">
-                Wolisz Instagram?
+                {texts.instagramTitle}
               </h2>
               <div className="mt-5 h-px w-16 bg-gold" />
               <p className="mt-8 leading-relaxed text-stone">
-                Napisz do nas wiadomość – link otworzy od razu rozmowę z{' '}
-                <span className="text-cream">@{instagram.handle}</span>.
+                {/* {profil} → wyróżniona nazwa profilu */}
+                {texts.instagramText.split('{profil}').map((part, i) => (
+                  <span key={i}>
+                    {i > 0 && <span className="text-cream">@{instagram.handle}</span>}
+                    {part}
+                  </span>
+                ))}
               </p>
               <a
                 href={instagram.dmUrl}
@@ -65,13 +68,13 @@ export default async function ContactPage() {
                 rel="noreferrer"
                 className="btn btn-gold mt-6 w-full sm:w-auto"
               >
-                <FaInstagram aria-hidden /> Otwórz rozmowę
+                <FaInstagram aria-hidden /> {texts.instagramButton}
               </a>
             </section>
           )}
 
           {/* telefon/tablet: newsletter pod sekcją Instagrama */}
-          <NewsletterSection className="border-b border-line pb-12 lg:hidden" />
+          <NewsletterSection texts={texts} className="border-b border-line pb-12 lg:hidden" />
 
           {phone && (
             <div>
@@ -141,17 +144,14 @@ export default async function ContactPage() {
 }
 
 /** Zapis do newslettera – na komputerze pod formularzem, na telefonie pod sekcją Instagrama */
-function NewsletterSection({ className }: { className: string }) {
+function NewsletterSection({ className, texts }: { className: string; texts: SiteContent['contact.page'] }) {
   return (
     <section aria-label="Newsletter" className={className}>
-      <p className="eyebrow">Newsletter</p>
-      <h2 className="heading mt-3 text-2xl">Bądź na bieżąco</h2>
-      <p className="mt-4 max-w-lg leading-relaxed text-stone">
-        Nowości, wypieki sezonowe, promocje i konkursy – a do tego ważne informacje, np. o przerwie w
-        kursowaniu chlebowozu czy zmianie godzin piekarni. Bez spamu, wypiszesz się w każdej chwili.
-      </p>
+      <p className="eyebrow">{texts.newsletterEyebrow}</p>
+      <h2 className="heading mt-3 text-2xl">{texts.newsletterTitle}</h2>
+      <p className="mt-4 max-w-lg leading-relaxed text-stone">{texts.newsletterText}</p>
       <NewsletterButton className="btn btn-gold mt-6 w-full sm:w-auto">
-        <FaEnvelope aria-hidden /> Zapisz się do newslettera
+        <FaEnvelope aria-hidden /> {texts.newsletterButton}
       </NewsletterButton>
     </section>
   );

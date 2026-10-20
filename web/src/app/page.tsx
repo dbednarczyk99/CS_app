@@ -1,4 +1,3 @@
-import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaArrowRight, FaInstagram } from 'react-icons/fa6';
@@ -11,19 +10,14 @@ import { JsonLd } from '@/components/JsonLd';
 import { Reveal } from '@/components/Reveal';
 import { SectionHeading } from '@/components/SectionHeading';
 import { api, orFallback } from '@/lib/api';
-import { getContent, paragraphs } from '@/lib/content';
+import { getContent, paragraphs, seoMetadata } from '@/lib/content';
 import { featuredProducts, isAvailable } from '@/lib/products';
 import { formatDate, plural } from '@/lib/format';
 import { buildHeroSlides } from '@/lib/heroSlides';
-import { articlePath, pageMetadata } from '@/lib/site';
+import { articlePath } from '@/lib/site';
 import { bakeryLd } from '@/lib/structured-data';
 
-export const metadata: Metadata = pageMetadata({
-  title: null,
-  description:
-    'Rzemieślnicza piekarnia z Krakowa: chleb na naturalnym zakwasie, słodkie wypieki i chlebowóz. Nasze piekarnie znajdziesz w różnych częściach Krakowa.',
-  path: '/',
-});
+export const generateMetadata = () => seoMetadata('seo.home', { path: '/' });
 
 /** Teksty, zdjęcia i widoczność sekcji – z panelu (Strona → Strona główna, Karuzela) */
 export default async function HomePage() {

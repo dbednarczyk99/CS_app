@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { FaEnvelopeOpenText, FaXmark } from 'react-icons/fa6';
+import type { NewsletterTexts } from '@/lib/content';
 
 const OPEN_EVENT = 'newsletter:open';
 
@@ -25,7 +26,7 @@ export function NewsletterButton({ className, children }: { className: string; c
  * komunikatów) albo wejściem na adres z #newsletter. Zapis z podwójnym potwierdzeniem – po wysłaniu
  * prosi o kliknięcie linku z e-maila.
  */
-export function NewsletterDialog() {
+export function NewsletterDialog({ texts }: { texts: NewsletterTexts }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -106,28 +107,22 @@ export function NewsletterDialog() {
         </button>
 
         <FaEnvelopeOpenText size={26} className="text-gold" aria-hidden />
-        <p className="eyebrow mt-5">Newsletter</p>
+        <p className="eyebrow mt-5">{texts.eyebrow}</p>
         <h2 id="newsletter-title" className="heading mt-2 text-2xl sm:text-3xl">
-          {status === 'sent' ? 'Sprawdź skrzynkę' : 'Bądź na bieżąco'}
+          {status === 'sent' ? texts.sentTitle : texts.title}
         </h2>
         <div className="mt-4 h-px w-12 bg-gold" />
 
         {status === 'sent' ? (
           <div role="status">
-            <p className="mt-5 leading-relaxed text-stone">
-              Wysłaliśmy Ci e-mail z linkiem potwierdzającym. Kliknij go, a zaczniemy wysyłać wiadomości –
-              bez potwierdzenia nie wyślemy nic więcej.
-            </p>
+            <p className="mt-5 leading-relaxed text-stone">{texts.sentText}</p>
             <button type="button" onClick={close} className="btn btn-outline mt-7 w-full">
               Zamknij
             </button>
           </div>
         ) : (
           <form onSubmit={submit} className="mt-5">
-            <p className="leading-relaxed text-stone">
-              Nowości, wypieki sezonowe, promocje i konkursy, a także ważne informacje – np. o przerwie
-              w kursowaniu chlebowozu czy zmianie godzin piekarni. Bez spamu, wypiszesz się w każdej chwili.
-            </p>
+            <p className="leading-relaxed text-stone">{texts.text}</p>
             <label htmlFor="newsletter-email" className="mt-6 block font-display text-[0.7rem] uppercase tracking-[0.25em] text-stone">
               Adres e-mail
             </label>
@@ -168,7 +163,7 @@ export function NewsletterDialog() {
               </p>
             )}
             <button type="submit" disabled={status === 'sending'} className="btn btn-gold mt-6 w-full">
-              {status === 'sending' ? 'Zapisywanie…' : 'Zapisz się'}
+              {status === 'sending' ? 'Zapisywanie…' : texts.button}
             </button>
           </form>
         )}

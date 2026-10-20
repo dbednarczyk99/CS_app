@@ -21,6 +21,7 @@ import { useSubscriberCount } from '../common/useSubscriberCount';
 import SortableImageInput from '../common/SortableImageInput';
 import { ArticleProductTools } from '../common/ArticleProductTools';
 import { SiteAddress } from '../common/SiteAddress';
+import { ShareImageInput } from '../common/ShareImageInput';
 
 interface NewsletterInfo {
   sendAsNewsletter?: boolean;
@@ -175,6 +176,7 @@ export const BlogCreate = () => (
       <ScheduleInput />
 
       <SortableImageInput source="images" maxQty={5} />
+      <ShareImageInput />
     </SimpleForm>
   </Create>
 );
@@ -194,6 +196,7 @@ export const BlogEdit = () => (
       <ScheduleInput />
 
       <SortableImageInput source="images" maxQty={5} />
+      <ShareImageInput />
     </SimpleForm>
   </Edit>
 );

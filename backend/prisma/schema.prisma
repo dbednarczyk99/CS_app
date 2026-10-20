@@ -278,6 +278,8 @@ model Article {
   shortDescription     String          @db.VarChar(500)
   content              String          @db.Text
   images               ArticleImages[]
+  // zdjęcie w podglądzie linku (Facebook, Messenger); null = okładka wpisu
+  shareImageUrl        String?         @db.VarChar(500)
   tags                 TagOnArticle[]
   // false = wpis tylko dla subskrybentów newslettera (niewidoczny na stronie)
   isPublished          Boolean         @default(true)

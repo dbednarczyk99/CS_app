@@ -1,15 +1,26 @@
+import type { Metadata } from 'next';
 import { api, orFallback } from './api';
+import { CONTENT_DEFAULTS } from './content-defaults';
+import { pageMetadata } from './site';
 
 /**
  * Treści strony edytowane w panelu („Strona”). API zwraca sekcje uzupełnione wartościami domyślnymi;
- * DEFAULTS poniżej to te same teksty – używane tylko awaryjnie, gdy API nie odpowiada (strona nigdy nie jest
- * pusta). Opis pól i limity: backend/src/modules/content/sections.ts – przy zmianie domyślnych tekstów
- * zaktualizować oba pliki.
+ * content-defaults.ts to te same wartości (wygenerowane z backend/src/modules/content/sections.ts:
+ * `npm run content:defaults` w backend) – używane tylko awaryjnie, gdy API nie odpowiada (strona nigdy nie jest
+ * pusta). Opis pól i limity: sections.ts i sections-pages.ts w backend.
  */
 
 export type ContentImage = { url: string; alt: string };
 
-export interface HomeContent {
+/** Tytuł i opis w Google, zdjęcie w podglądzie linku (puste url = domyślne) */
+export type SeoContent = { title: string; description: string; image: ContentImage };
+
+type Header = { eyebrow: string; title: string; image: ContentImage };
+type HeaderWithText = Header & { text: string };
+type Promo = { eyebrow: string; title: string; text: string; cta: string; image: ContentImage };
+
+export interface SiteContent {
+  'seo.home': SeoContent;
   'home.values': { items: { title: string; text: string }[] };
   'home.featured': { eyebrow: string; title: string; linkLabel: string };
   'home.rating': { visible: boolean; eyebrow: string; cta: string };
@@ -39,66 +50,63 @@ export interface HomeContent {
     instagramLabel: string;
     images: { image: ContentImage }[];
   };
+
+  'seo.about': SeoContent;
+  'about.header': Header;
+  'about.story': { eyebrow: string; title: string; text: string; image: ContentImage };
+  'about.principles': { eyebrow: string; title: string; items: { title: string; text: string }[] };
+  'about.gallery': { images: { image: ContentImage }[]; title: string; buttonLabel: string };
+
+  'seo.offer': SeoContent;
+  'offer.header': HeaderWithText;
+
+  'seo.locations': SeoContent;
+  'locations.header': HeaderWithText;
+  'locations.onsite': { eyebrow: string; title: string; text: string; image: ContentImage };
+  'locations.van': Promo;
+
+  'seo.van': SeoContent;
+  'van.header': Header;
+  'van.schedule': { eyebrow: string; title: string; scheduleTitle: string; mapTitle: string };
+  'van.locations': Promo;
+
+  'seo.news': SeoContent;
+  'news.header': Header;
+  'news.list': { readMore: string; empty: string };
+
+  'seo.contact': SeoContent;
+  'contact.header': HeaderWithText;
+  'contact.page': {
+    formTitle: string;
+    instagramTitle: string;
+    instagramText: string;
+    instagramButton: string;
+    newsletterEyebrow: string;
+    newsletterTitle: string;
+    newsletterText: string;
+    newsletterButton: string;
+  };
+
+  'seo.reservation': SeoContent;
+  'reservation.header': { eyebrow: string; title: string; text: string; unavailable: string };
+
+  'seo.default': { image: ContentImage };
+  'common.footer': { about: string; newsletterText: string; newsletterButton: string; copyright: string };
+  'common.newsletter': {
+    eyebrow: string;
+    title: string;
+    text: string;
+    button: string;
+    sentTitle: string;
+    sentText: string;
+  };
+  'common.notFound': { eyebrow: string; title: string; text: string; homeButton: string; offerButton: string };
 }
 
-export type SiteContent = HomeContent;
+/** Teksty okienka newslettera (komponent kliencki dostaje je z układu strony) */
+export type NewsletterTexts = SiteContent['common.newsletter'];
 
-const DEFAULTS: SiteContent = {
-  'home.values': {
-    items: [
-      {
-        title: 'Naturalny zakwas',
-        text: 'Bez polepszaczy i skrótów. Tylko mąka, woda, sól i czas potrzebny na dobrą fermentację.',
-      },
-      {
-        title: 'Ręczna praca',
-        text: 'Każdy bochenek formujemy ręcznie. Dlatego żaden nie jest identyczny – i dobrze.',
-      },
-      {
-        title: 'Codziennie świeże',
-        text: 'Pieczemy nocą i nad ranem, żeby rano na półkach czekało pieczywo prosto z pieca.',
-      },
-    ],
-  },
-  'home.featured': { eyebrow: 'Z naszego pieca', title: 'Wypieki, po które się wraca', linkLabel: 'Cała oferta' },
-  'home.rating': { visible: true, eyebrow: 'Opinie naszych gości', cta: 'Byłeś u nas? Oceń swoją piekarnię w Google' },
-  'home.about': {
-    eyebrow: 'O nas',
-    title: 'Rzemiosło, które czuć w każdym kęsie',
-    text:
-      'Chleba Smak to piekarnia rzemieślnicza, w której chleb robi się tak jak kiedyś: na naturalnym zakwasie, z dobrej mąki i bez pośpiechu.\n\n' +
-      'Codziennie rano na nasze półki trafiają chrupiące bochenki, maślane drożdżówki i sezonowe wypieki – w naszych krakowskich piekarniach i w chlebowozie.',
-    image: { url: '/images/piekarz.jpg', alt: 'Piekarz trzymający świeże bochenki chleba' },
-    showCount: true,
-    linkLabel: 'Poznaj nas',
-  },
-  'home.quote': {
-    visible: true,
-    eyebrow: 'Nasza filozofia',
-    line1: 'Mąka, woda, sól',
-    highlight: 'i czas.',
-    text: 'Tyle potrzeba, żeby upiec dobry chleb. Resztę robi cierpliwość.',
-    image: { url: '/images/zakwas.jpg', alt: '' },
-  },
-  'home.locations': { eyebrow: 'Odwiedź nas', title: 'Nasze piekarnie', linkLabel: 'Godziny i dojazd' },
-  'home.van': {
-    eyebrow: 'Chlebowóz',
-    title: 'Przyjeżdżamy z pieczywem do Ciebie',
-    text: 'Nasz chlebowóz w stałe dni tygodnia zatrzymuje się w kolejnych punktach miasta. Sprawdź trasę i złap świeży chleb po drodze.',
-    image: { url: '/images/chlebowoz.jpg', alt: 'Świeże bochenki na drewnianej łopacie' },
-    buttonLabel: 'Sprawdź trasę',
-  },
-  'home.news': { eyebrow: 'Aktualności', title: 'Co słychać w piekarni', linkLabel: 'Wszystkie wpisy' },
-  'home.gallery': {
-    visible: true,
-    eyebrow: 'Zajrzyj do nas',
-    title: 'Prosto z piekarni',
-    instagramLabel: 'Obserwuj nas',
-    images: ['01', '02', '03', '04', '05', '06', '07', '08'].map((n, i) => ({
-      image: { url: `/images/galeria/${n}.jpg`, alt: `Wypieki Chleba Smak – zdjęcie ${i + 1}` },
-    })),
-  },
-};
+const DEFAULTS: SiteContent = CONTENT_DEFAULTS;
 
 /** Wszystkie treści: z API, a każda brakująca sekcja – awaryjnie z wartości domyślnych */
 export async function getContent(): Promise<SiteContent> {
@@ -108,9 +116,42 @@ export async function getContent(): Promise<SiteContent> {
   ) as unknown as SiteContent;
 }
 
+type SeoKey = { [K in keyof SiteContent]: K extends `seo.${string}` ? (K extends 'seo.default' ? never : K) : never }[keyof SiteContent];
+
+/**
+ * Metadane podstrony z panelu (Strona → … → „Wyszukiwarka i udostępnianie”): tytuł, opis i zdjęcie podglądu linku;
+ * bez własnego zdjęcia – domyślne z „Elementy wspólne”.
+ */
+export async function seoMetadata(
+  key: SeoKey,
+  options: { path: string; noindex?: boolean },
+): Promise<Metadata> {
+  const content = await getContent();
+  const seo = content[key];
+  const image = seo.image.url ? seo.image : content['seo.default'].image;
+  return pageMetadata({
+    title: key === 'seo.home' ? null : seo.title,
+    homeTitle: key === 'seo.home' ? seo.title : undefined,
+    description: seo.description,
+    path: options.path,
+    noindex: options.noindex,
+    image: { url: image.url, alt: image.alt || seo.title },
+  });
+}
+
+/** Zdjęcie podglądu linku domyślne (dla produktów i wpisów bez zdjęcia) */
+export async function defaultShareImage() {
+  const { image } = (await getContent())['seo.default'];
+  return { url: image.url, alt: image.alt };
+}
+
 /** Tekst z akapitami oddzielonymi pustą linią → lista akapitów */
 export const paragraphs = (text: string) =>
   text
     .split(/\r?\n\s*\r?\n/)
     .map((p) => p.trim())
     .filter(Boolean);
+
+/** Wstawia wartości w miejsce znaczników, np. fill('W {miejsca}', { miejsca: '4 miejscach' }) */
+export const fill = (text: string, values: Record<string, string>) =>
+  text.replace(/\{(\w+)\}/g, (match, name: string) => values[name] ?? match);

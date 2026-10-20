@@ -85,6 +85,7 @@ export class ContentService {
       page: s.page,
       title: s.title,
       description: s.description,
+      seo: s.seo,
       fields: s.fields,
       defaults: s.defaults,
       value: this.withDefaults(s, saved.get(s.key)?.data),

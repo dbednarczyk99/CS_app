@@ -30,13 +30,24 @@ import { apiUrl, httpClient } from '../../dataProvider';
 import { ImageUploadField } from '../common/ImageUploadField';
 import { VersionHistory } from './VersionHistory';
 import { fetchRevisions } from './revisions';
+import { SeoPreview } from './SeoPreview';
 
 const webUrl = import.meta.env.VITE_WEB_URL || 'http://localhost:3001';
 
 // opis pól z serwera (backend/src/modules/content/sections.ts)
 type Field =
-  | { name: string; label: string; type: 'text' | 'textarea'; max: number; required?: boolean; help?: string; rows?: number }
-  | { name: string; label: string; type: 'image'; help?: string; required?: boolean }
+  | {
+      name: string;
+      label: string;
+      type: 'text' | 'textarea';
+      max: number;
+      /** zalecana długość (np. w Google) – po przekroczeniu ostrzeżenie */
+      recommended?: number;
+      required?: boolean;
+      help?: string;
+      rows?: number;
+    }
+  | { name: string; label: string; type: 'image'; help?: string; required?: boolean; aspect?: string }
   | { name: string; label: string; type: 'toggle'; help?: string }
   | { name: string; label: string; type: 'list'; help?: string; min: number; max: number; itemLabel: string; fields: Field[] };
 
@@ -47,6 +58,8 @@ interface Section {
   key: string;
   title: string;
   description?: string;
+  /** sekcja SEO – podgląd w Google i na Facebooku */
+  seo?: { path: string; suffix: boolean };
   fields: Field[];
   defaults: Values;
   value: Values;
@@ -67,12 +80,24 @@ const emptyValue = (field: Field): unknown =>
 const emptyItem = (fields: Field[]) => Object.fromEntries(fields.map((f) => [f.name, emptyValue(f)]));
 
 /** Jedno pole formularza (lista – rekurencyjnie, z dodawaniem, usuwaniem i kolejnością) */
-function FieldInput({ field, value, onChange }: { field: Field; value: unknown; onChange: (v: unknown) => void }) {
+function FieldInput({
+  field,
+  value,
+  onChange,
+  fallbackImage,
+}: {
+  field: Field;
+  value: unknown;
+  onChange: (v: unknown) => void;
+  /** zdjęcie pokazywane, gdy pole zdjęcia jest puste (np. domyślne zdjęcie do udostępniania) */
+  fallbackImage?: { url: string; note: string };
+}) {
   switch (field.type) {
     case 'text':
     case 'textarea': {
       const text = typeof value === 'string' ? value : '';
       const over = text.length > field.max;
+      const overRecommended = !over && field.recommended !== undefined && text.length > field.recommended;
       return (
         <TextField
           label={field.label + (field.required ? ' *' : '')}
@@ -85,9 +110,11 @@ function FieldInput({ field, value, onChange }: { field: Field; value: unknown; 
           helperText={
             <Box component="span" sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
               <span>{field.help ?? ''}</span>
-              <span style={{ whiteSpace: 'nowrap' }}>
-                {text.length} / {field.max}
-              </span>
+              <Box component="span" sx={{ whiteSpace: 'nowrap', color: overRecommended ? 'warning.main' : undefined }}>
+                {field.recommended !== undefined
+                  ? `${text.length} znaków${overRecommended ? ` – Google pokaże ok. ${field.recommended}` : ` (zalecane do ${field.recommended})`}`
+                  : `${text.length} / ${field.max}`}
+              </Box>
             </Box>
           }
           sx={{ mb: 2 }}
@@ -119,6 +146,10 @@ function FieldInput({ field, value, onChange }: { field: Field; value: unknown; 
             value={image.url || null}
             onChange={(url) => onChange({ ...image, url: url ?? '' })}
             help={field.help}
+            aspect={field.aspect}
+            removable={!field.required}
+            fallbackUrl={fallbackImage?.url}
+            fallbackNote={fallbackImage?.note}
           />
           <TextField
             label="Opis zdjęcia (dla niewidomych i Google)"
@@ -225,7 +256,16 @@ const summarize = (data: Values) => {
 };
 
 /** Jedna sekcja strony: formularz, zapis, wcześniejsze wersje, stan domyślny */
-function SectionEditor({ section, onSaved }: { section: Section; onSaved: (s: Section) => void }) {
+function SectionEditor({
+  section,
+  onSaved,
+  defaultShareImage,
+}: {
+  section: Section;
+  onSaved: (s: Section) => void;
+  /** domyślne zdjęcie podglądu linku (Elementy wspólne) – dla sekcji SEO bez własnego */
+  defaultShareImage?: string;
+}) {
   const notify = useNotify();
   const [value, setValue] = useState<Values>(section.value);
   const [errors, setErrors] = useState<string[]>([]);
@@ -283,12 +323,26 @@ function SectionEditor({ section, onSaved }: { section: Section; onSaved: (s: Se
             Wczytano {loaded}. Sprawdź treść i kliknij „Zapisz sekcję”, aby ją przywrócić na stronie – albo „Cofnij zmiany”.
           </Alert>
         )}
+        {section.seo && (
+          <SeoPreview
+            title={String(value.title ?? '')}
+            description={String(value.description ?? '')}
+            imageUrl={(value.image as Image | undefined)?.url || defaultShareImage || ''}
+            path={section.seo.path}
+            suffix={section.seo.suffix}
+          />
+        )}
         {section.fields.map((field) => (
           <FieldInput
             key={field.name}
             field={field}
             value={value[field.name]}
             onChange={(v) => setValue((prev) => ({ ...prev, [field.name]: v }))}
+            fallbackImage={
+              section.seo && field.type === 'image' && defaultShareImage
+                ? { url: defaultShareImage, note: 'Domyślne zdjęcie (Strona → Elementy wspólne) – tak jest teraz.' }
+                : undefined
+            }
           />
         ))}
         {errors.length > 0 && (
@@ -346,14 +400,25 @@ export function ContentEditor({
   title,
   intro,
   path,
+  embedded = false,
 }: {
   page: string;
   title: string;
   intro: string;
   /** adres strony do podglądu, np. „/” */
   path: string;
+  /** wewnątrz innego ekranu (np. zakładka „Podstrony”) – bez własnego tytułu w pasku */
+  embedded?: boolean;
 }) {
   const [sections, setSections] = useState<Section[] | null | undefined>(undefined);
+  // domyślne zdjęcie podglądu linku – do podglądu sekcji SEO bez własnego zdjęcia
+  const [defaultShareImage, setDefaultShareImage] = useState<string>();
+
+  useEffect(() => {
+    httpClient(`${apiUrl}/content`)
+      .then(({ json }) => setDefaultShareImage((json as Record<string, { image?: Image }>)['seo.default']?.image?.url))
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -366,8 +431,8 @@ export function ContentEditor({
   }, [page]);
 
   return (
-    <Box sx={{ maxWidth: 1000, mx: 'auto', py: { xs: 2, md: 4 } }}>
-      <Title title={title} />
+    <Box sx={{ maxWidth: 1000, mx: 'auto', py: embedded ? 2 : { xs: 2, md: 4 } }}>
+      {!embedded && <Title title={title} />}
       <Stack direction="row" alignItems="flex-end" justifyContent="space-between" flexWrap="wrap" gap={2} sx={{ mb: 1 }}>
         <Typography variant="h5">{title}</Typography>
         <Link href={`${webUrl}${path}`} target="_blank" rel="noreferrer" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
@@ -385,7 +450,11 @@ export function ContentEditor({
             <SectionEditor
               key={section.key}
               section={section}
-              onSaved={(next) => setSections((all) => all?.map((s) => (s.key === next.key ? next : s)) ?? null)}
+              defaultShareImage={section.key === 'seo.default' ? undefined : defaultShareImage}
+              onSaved={(next) => {
+                setSections((all) => all?.map((s) => (s.key === next.key ? next : s)) ?? null);
+                if (next.key === 'seo.default') setDefaultShareImage((next.value.image as Image | undefined)?.url);
+              }}
             />
           ))}
         </Stack>
