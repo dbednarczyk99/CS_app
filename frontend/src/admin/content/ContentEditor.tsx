@@ -9,10 +9,6 @@ import {
   Button,
   Chip,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   FormControlLabel,
   IconButton,
   Link,
@@ -32,6 +28,8 @@ import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { apiUrl, httpClient } from '../../dataProvider';
 import { ImageUploadField } from '../common/ImageUploadField';
+import { VersionHistory } from './VersionHistory';
+import { fetchRevisions } from './revisions';
 
 const webUrl = import.meta.env.VITE_WEB_URL || 'http://localhost:3001';
 
@@ -219,14 +217,29 @@ function FieldInput({ field, value, onChange }: { field: Field; value: unknown; 
   }
 }
 
-/** Jedna sekcja strony: formularz, zapis, przywrócenie tekstów domyślnych */
+/** Krótki opis wersji sekcji na liście historii: pierwszy niepusty tekst (np. tytuł) */
+const summarize = (data: Values) => {
+  for (const v of Object.values(data)) if (typeof v === 'string' && v.trim()) return v.length > 70 ? `${v.slice(0, 67)}…` : v;
+  const list = Object.values(data).find(Array.isArray) as unknown[] | undefined;
+  return list ? `${list.length} poz.` : '';
+};
+
+/** Jedna sekcja strony: formularz, zapis, wcześniejsze wersje, stan domyślny */
 function SectionEditor({ section, onSaved }: { section: Section; onSaved: (s: Section) => void }) {
   const notify = useNotify();
   const [value, setValue] = useState<Values>(section.value);
   const [errors, setErrors] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
-  const [confirmReset, setConfirmReset] = useState(false);
+  // wczytana do formularza wcześniejsza wersja albo stan domyślny (jeszcze niezapisane)
+  const [loaded, setLoaded] = useState<string | null>(null);
   const dirty = JSON.stringify(value) !== JSON.stringify(section.value);
+  const isDefault = JSON.stringify(value) === JSON.stringify(section.defaults);
+
+  const load = (data: Values, label: string) => {
+    setValue(data);
+    setLoaded(label);
+    setErrors([]);
+  };
 
   const save = async () => {
     setSaving(true);
@@ -238,25 +251,13 @@ function SectionEditor({ section, onSaved }: { section: Section; onSaved: (s: Se
       });
       onSaved({ ...section, value: json as Values, customized: true, updatedAt: new Date().toISOString() });
       setValue(json as Values);
+      setLoaded(null);
       notify('Zapisano – zmiana pojawi się na stronie za kilka sekund', { type: 'success' });
     } catch (error) {
       const message = (error as { body?: { message?: string | string[] } }).body?.message;
       setErrors(Array.isArray(message) ? message : [message ?? 'Nie udało się zapisać sekcji']);
     } finally {
       setSaving(false);
-    }
-  };
-
-  const reset = async () => {
-    setConfirmReset(false);
-    try {
-      const { json } = await httpClient(`${apiUrl}/content/${section.key}`, { method: 'DELETE' });
-      onSaved({ ...section, value: json as Values, customized: false, updatedAt: null });
-      setValue(json as Values);
-      setErrors([]);
-      notify('Przywrócono teksty domyślne', { type: 'info' });
-    } catch {
-      notify('Nie udało się przywrócić tekstów domyślnych', { type: 'error' });
     }
   };
 
@@ -268,7 +269,7 @@ function SectionEditor({ section, onSaved }: { section: Section; onSaved: (s: Se
             {section.title}
           </Typography>
           {dirty && <Chip size="small" color="warning" label="niezapisane zmiany" />}
-          {!dirty && section.customized && <Chip size="small" variant="outlined" label="zmienione" />}
+          {!dirty && section.customized && !isDefault && <Chip size="small" variant="outlined" label="zmienione" />}
         </Stack>
       </AccordionSummary>
       <AccordionDetails sx={{ maxWidth: 820 }}>
@@ -276,6 +277,11 @@ function SectionEditor({ section, onSaved }: { section: Section; onSaved: (s: Se
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             {section.description}
           </Typography>
+        )}
+        {loaded && dirty && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Wczytano {loaded}. Sprawdź treść i kliknij „Zapisz sekcję”, aby ją przywrócić na stronie – albo „Cofnij zmiany”.
+          </Alert>
         )}
         {section.fields.map((field) => (
           <FieldInput
@@ -297,15 +303,29 @@ function SectionEditor({ section, onSaved }: { section: Section; onSaved: (s: Se
             {saving ? 'Zapisywanie…' : 'Zapisz sekcję'}
           </Button>
           {dirty && (
-            <Button onClick={() => setValue(section.value)} disabled={saving}>
+            <Button
+              onClick={() => {
+                setValue(section.value);
+                setLoaded(null);
+              }}
+              disabled={saving}
+            >
               Cofnij zmiany
             </Button>
           )}
-          {section.customized && (
-            <Button color="inherit" startIcon={<RestartAltIcon />} onClick={() => setConfirmReset(true)}>
-              Przywróć teksty domyślne
-            </Button>
-          )}
+          <VersionHistory
+            revisions={() => fetchRevisions(`${apiUrl}/content/${section.key}/revisions`)}
+            load={load}
+            summary={summarize}
+          />
+          <Button
+            color="inherit"
+            startIcon={<RestartAltIcon />}
+            disabled={isDefault}
+            onClick={() => load(section.defaults, 'stan domyślny (teksty i zdjęcia z dnia uruchomienia strony)')}
+          >
+            Przywróć stan domyślny
+          </Button>
           {section.updatedAt && (
             <Typography variant="caption" color="text.secondary">
               Zmieniono {new Date(section.updatedAt).toLocaleString('pl-PL')}
@@ -313,19 +333,6 @@ function SectionEditor({ section, onSaved }: { section: Section; onSaved: (s: Se
           )}
         </Stack>
       </AccordionDetails>
-      <Dialog open={confirmReset} onClose={() => setConfirmReset(false)}>
-        <DialogTitle>Przywrócić teksty domyślne?</DialogTitle>
-        <DialogContent>
-          Sekcja „{section.title}” wróci do tekstów i zdjęć z momentu uruchomienia strony. Twoje zmiany w tej sekcji (także
-          wgrane do niej zdjęcia) zostaną usunięte.
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmReset(false)}>Anuluj</Button>
-          <Button color="error" onClick={reset}>
-            Przywróć
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Accordion>
   );
 }

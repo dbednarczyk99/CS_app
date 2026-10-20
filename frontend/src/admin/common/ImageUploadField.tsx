@@ -21,6 +21,8 @@ export function ImageUploadField({
   help,
   removable = false,
   aspect = '4 / 3',
+  fallbackUrl,
+  fallbackNote,
 }: {
   label: string;
   value: string | null | undefined;
@@ -29,6 +31,10 @@ export function ImageUploadField({
   removable?: boolean;
   /** proporcje podglądu (jak na stronie), np. „4 / 5” */
   aspect?: string;
+  /** zdjęcie pokazywane na stronie, gdy pole jest puste (np. zdjęcie produktu sezonowego) */
+  fallbackUrl?: string | null;
+  /** wyjaśnienie pod podglądem zdjęcia zastępczego */
+  fallbackNote?: string;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -78,6 +84,9 @@ export function ImageUploadField({
             <CircularProgress size={24} />
           ) : value ? (
             <img src={previewUrl(value)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : fallbackUrl ? (
+            // pole puste, ale strona pokazuje zdjęcie automatyczne – podgląd tego, co faktycznie widać
+            <img src={previewUrl(fallbackUrl)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }} />
           ) : (
             <Typography variant="caption" color="text.secondary">
               brak zdjęcia
@@ -105,6 +114,11 @@ export function ImageUploadField({
             <Button size="small" color="error" startIcon={<DeleteOutlineIcon />} onClick={() => onChange(null)}>
               Usuń
             </Button>
+          )}
+          {!value && fallbackUrl && fallbackNote && (
+            <Typography variant="caption" color="info.main" sx={{ maxWidth: 360 }}>
+              {fallbackNote}
+            </Typography>
           )}
           {help && (
             <Typography variant="caption" color="text.secondary" sx={{ maxWidth: 360 }}>

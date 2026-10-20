@@ -16,12 +16,40 @@ import {
   Toolbar,
   maxLength,
   required,
+  useGetList,
   useInput,
+  useListContext,
+  useNotify,
   useRecordContext,
 } from 'react-admin';
-import { useWatch } from 'react-hook-form';
-import { Alert, Box, Chip, Typography } from '@mui/material';
+import { useState } from 'react';
+import { useFormContext, useFormState, useWatch } from 'react-hook-form';
+import { Alert, Box, Button, Chip, Stack, Typography } from '@mui/material';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import { apiUrl, httpClient } from '../../dataProvider';
 import { ImageUploadField } from '../common/ImageUploadField';
+import { VersionHistory } from './VersionHistory';
+import type { Revision } from './revisions';
+
+/** najwyżej tyle włączonych slajdów naraz (to samo sprawdza serwer) */
+const MAX_ACTIVE = 5;
+/** pola slajdu wczytywane z historii / stanu domyślnego */
+const SLIDE_FIELDS = [
+  'name',
+  'eyebrow',
+  'titleLine1',
+  'titleLine2',
+  'text',
+  'cta1Label',
+  'cta1Href',
+  'cta2Label',
+  'cta2Href',
+  'imageUrl',
+  'imageAlt',
+  'imagePosition',
+  'mobileImageUrl',
+  'mobileImagePosition',
+];
 
 /* Karuzela na górze strony głównej – slajdy z tekstem, przyciskami i zdjęciem (osobny kadr na telefon) */
 
@@ -30,6 +58,7 @@ type Kind = 'CUSTOM' | 'VAN' | 'BAKERIES' | 'SEASONAL';
 interface SlideRecord {
   id: string;
   kind: Kind;
+  defaultKey?: string | null;
   name: string;
   titleLine1: string;
   titleLine2: string;
@@ -55,6 +84,21 @@ const KIND: Record<Kind, { label: string; info: string }> = {
   },
 };
 
+/** Slajd liczy się do limitu: włączony i jeszcze się nie zakończył */
+const countsToLimit = (s: SlideRecord) => s.isActive && (!s.endsAt || new Date(s.endsAt).getTime() > Date.now());
+
+/** Licznik włączonych slajdów nad listą */
+const ActiveCount = () => {
+  const { data = [] } = useListContext<SlideRecord>();
+  const active = data.filter(countsToLimit).length;
+  return (
+    <Typography variant="body2" sx={{ px: 2, pt: 1.5, color: active >= MAX_ACTIVE ? 'warning.main' : 'text.secondary' }}>
+      Włączone slajdy: <strong>{active}</strong> / {MAX_ACTIVE}
+      {active >= MAX_ACTIVE && ' – aby włączyć kolejny, najpierw wyłącz inny.'}
+    </Typography>
+  );
+};
+
 function status(s: SlideRecord) {
   const now = Date.now();
   if (!s.isActive) return { label: 'Wyłączony', color: 'default' as const };
@@ -67,10 +111,13 @@ export const HeroSlideList = () => (
   <List title="Karuzela na stronie głównej" sort={{ field: 'order', order: 'ASC' }} pagination={false}>
     <Box sx={{ px: 2, pt: 2 }}>
       <Alert severity="info" variant="outlined">
-        Slajdy zmieniają się co 7 sekund, w kolejności od najmniejszej liczby w kolumnie „Kolejność”. Slajdy automatyczne
-        (Chlebowóz, Piekarnie, Sezonowe) pokazują dane z panelu – można je edytować i wyłączać, ale nie usuwać.
+        Slajdy zmieniają się co 7 sekund, w kolejności od najmniejszej liczby w kolumnie „Kolejność”. Na karuzeli może być
+        najwyżej {MAX_ACTIVE} włączonych slajdów – pozostałe możesz trzymać w zapasie jako wyłączone (np. świąteczny na
+        grudzień). Slajdy automatyczne (Chlebowóz, Piekarnie, Sezonowe) pokazują dane z panelu – można je edytować i
+        wyłączać, ale nie usuwać.
       </Alert>
     </Box>
+    <ActiveCount />
     <Datagrid rowClick="edit" bulkActionButtons={false}>
       <NumberField source="order" label="Kolejność" />
       <FunctionField
@@ -110,12 +157,16 @@ const SlideImageInput = ({
   help,
   aspect,
   removable,
+  fallbackUrl,
+  fallbackNote,
 }: {
   source: string;
   label: string;
   help: string;
   aspect: string;
   removable?: boolean;
+  fallbackUrl?: string | null;
+  fallbackNote?: string;
 }) => {
   const { field } = useInput({ source });
   return (
@@ -126,7 +177,103 @@ const SlideImageInput = ({
       help={help}
       aspect={aspect}
       removable={removable}
+      fallbackUrl={fallbackUrl}
+      fallbackNote={fallbackNote}
     />
+  );
+};
+
+type ProductOption = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  isSeasonal: boolean;
+  inSeason: boolean;
+  images?: { imgUrl: string }[];
+};
+
+/**
+ * Zdjęcie na komputer. Slajd „Sezonowe” bez własnego zdjęcia pokazuje na stronie zdjęcie dostępnego produktu
+ * sezonowego – panel pokazuje to samo zdjęcie, żeby nie wyglądało, jakby slajd nie miał zdjęcia.
+ */
+const DesktopImageInput = () => {
+  const record = useRecordContext<SlideRecord>();
+  const seasonal = record?.kind === 'SEASONAL';
+  const { data: products = [] } = useGetList<ProductOption>(
+    'products',
+    { pagination: { page: 1, perPage: 500 } },
+    { enabled: seasonal },
+  );
+  const product = seasonal
+    ? products.find((p) => p.isActive && p.isSeasonal && p.inSeason && p.images?.length)
+    : undefined;
+  return (
+    <SlideImageInput
+      source="imageUrl"
+      label="Zdjęcie na komputer"
+      help={
+        seasonal
+          ? 'Opcjonalnie – bez własnego zdjęcia slajd pokazuje zdjęcie produktu sezonowego, który jest teraz dostępny.'
+          : 'Poziome, duże (najlepiej 2400 px szerokości). Tekst jest po lewej – ważny fragment zdjęcia najlepiej po prawej.'
+      }
+      aspect="16 / 9"
+      removable
+      fallbackUrl={product?.images?.[0]?.imgUrl}
+      fallbackNote={product ? `Automatycznie: zdjęcie produktu sezonowego „${product.name}” (tak jest teraz na stronie).` : undefined}
+    />
+  );
+};
+
+/**
+ * „Wcześniejsze wersje” i „Przywróć stan domyślny” (slajdy startowe): wersja trafia do formularza bez zapisu.
+ */
+const SlideVersions = () => {
+  const record = useRecordContext<SlideRecord>();
+  const { setValue } = useFormContext();
+  const { isDirty } = useFormState();
+  const notify = useNotify();
+  const [loaded, setLoaded] = useState<string | null>(null);
+  if (!record) return null;
+  const history = async () =>
+    (await httpClient(`${apiUrl}/content/hero-slides/${record.id}/history`)).json as {
+      revisions: Revision[];
+      defaults: Record<string, unknown> | null;
+    };
+  const load = (data: Record<string, unknown>, label: string) => {
+    for (const field of SLIDE_FIELDS)
+      if (field in data) setValue(field, data[field] ?? null, { shouldDirty: true, shouldValidate: true });
+    setLoaded(label);
+  };
+  const loadDefaults = async () => {
+    try {
+      const { defaults } = await history();
+      if (defaults) load(defaults, 'stan domyślny (slajd z dnia uruchomienia strony)');
+    } catch {
+      notify('Nie udało się wczytać stanu domyślnego', { type: 'error' });
+    }
+  };
+  return (
+    <Box sx={{ mb: 2, width: '100%' }}>
+      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+        <VersionHistory
+          revisions={async () => (await history()).revisions}
+          load={load}
+          summary={(d) => [d.titleLine1, d.titleLine2].filter(Boolean).join(' ') as string}
+        />
+        {record.defaultKey && (
+          <Button color="inherit" startIcon={<RestartAltIcon />} onClick={loadDefaults}>
+            Przywróć stan domyślny
+          </Button>
+        )}
+      </Stack>
+      {loaded && (
+        <Alert severity="info" sx={{ mt: 1 }}>
+          {isDirty
+            ? `Wczytano ${loaded}. Sprawdź slajd i kliknij „Zapisz”, aby go przywrócić na stronie.`
+            : `Wczytano ${loaded} – slajd na stronie już tak wygląda, nie trzeba nic zapisywać.`}
+        </Alert>
+      )}
+    </Box>
   );
 };
 
@@ -203,6 +350,7 @@ const FormToolbar = () => {
 const SlideForm = () => (
   <SimpleForm toolbar={<FormToolbar />}>
     <KindInfo />
+    <SlideVersions />
     <Preview />
     <Typography variant="h6" sx={{ mb: 1 }}>
       Tekst
@@ -228,13 +376,7 @@ const SlideForm = () => (
     <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
       Zdjęcia
     </Typography>
-    <SlideImageInput
-      source="imageUrl"
-      label="Zdjęcie na komputer"
-      help="Poziome, duże (najlepiej 2400 px szerokości). Tekst jest po lewej – ważny fragment zdjęcia najlepiej po prawej."
-      aspect="16 / 9"
-      removable
-    />
+    <DesktopImageInput />
     <SelectInput source="imagePosition" label="Kadr na komputerze" choices={POSITIONS} defaultValue="center" />
     <TextInput source="imageAlt" label="Opis zdjęcia (dla niewidomych i Google)" fullWidth validate={maxLength(160)} />
     <SlideImageInput

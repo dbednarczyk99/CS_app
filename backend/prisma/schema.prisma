@@ -446,6 +446,8 @@ enum HeroSlideKind {
 model HeroSlide {
   id                  String        @id @default(uuid())
   kind                HeroSlideKind @default(CUSTOM)
+  // slajd startowy (marka, rezerwacja, chlebowoz, piekarnie, sezonowe) – można przywrócić jego stan domyślny
+  defaultKey          String?       @unique @db.VarChar(20)
   // krótka nazwa pod paskiem postępu karuzeli
   name                String        @db.VarChar(20)
   eyebrow             String        @db.VarChar(50)
@@ -471,4 +473,17 @@ model HeroSlide {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Historia zmian treści strony – ostatnie zapisy sekcji (key = klucz sekcji) i slajdów (key = "hero:<id>"),
+// do „Przywróć wcześniejszą wersję”. Trzymamy 10 ostatnich na klucz.
+model ContentRevision {
+  id        Int      @id @default(autoincrement())
+  key       String   @db.VarChar(80)
+  data      Json
+  // kto zapisał wersję, która została zastąpiona (imię albo login)
+  createdBy String?  @db.VarChar(100)
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
 }

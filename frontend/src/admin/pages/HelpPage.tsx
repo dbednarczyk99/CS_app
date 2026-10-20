@@ -59,11 +59,11 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
     items: [
       {
         q: 'Jak zmienić teksty i zdjęcia na stronie głównej?',
-        a: '„Strona” → „Strona główna”: sekcje w kolejności jak na stronie. Rozwiń sekcję, zmień teksty lub zdjęcia i kliknij „Zapisz sekcję” – zmiana pojawi się na stronie po kilku sekundach. Licznik przy polu pokazuje limit znaków (dopasowany do miejsca na stronie). Sekcje opcjonalne (opinie Google, cytat, galeria) możesz ukryć przełącznikiem. „Przywróć teksty domyślne” cofa sekcję do tekstów z dnia uruchomienia strony.',
+        a: '„Strona” → „Strona główna”: sekcje w kolejności jak na stronie. Rozwiń sekcję, zmień teksty lub zdjęcia i kliknij „Zapisz sekcję” – zmiana pojawi się na stronie po kilku sekundach. Licznik przy polu pokazuje limit znaków (dopasowany do miejsca na stronie). Sekcje opcjonalne (opinie Google, cytat, galeria) możesz ukryć przełącznikiem. „Wcześniejsze wersje” pokazuje 10 ostatnich wersji sekcji (kiedy i kto zmienił) – wybraną wersję wczytujesz do formularza. „Przywróć stan domyślny” wczytuje teksty i zdjęcia z dnia uruchomienia strony. W obu przypadkach na stronie nic się nie zmienia, dopóki nie klikniesz „Zapisz sekcję” (a „Cofnij zmiany” wraca do obecnej wersji).',
       },
       {
         q: 'Jak zmienić karuzelę na górze strony głównej?',
-        a: '„Strona” → „Karuzela”: slajdy z tytułem, opisem, przyciskami i zdjęciem (osobne zdjęcie na telefon jest opcjonalne). Własne slajdy możesz dodawać, wyłączać, planować („Od” / „Do”) i usuwać. Slajdy Chlebowóz, Piekarnie i Sezonowe pokazują dane z panelu – możesz zmienić ich teksty i wyłączyć je, ale nie usunąć. Kolejność ustalasz liczbą w polu „Kolejność”.',
+        a: '„Strona” → „Karuzela”: slajdy z tytułem, opisem, przyciskami i zdjęciem (osobne zdjęcie na telefon jest opcjonalne). Własne slajdy możesz dodawać, wyłączać, planować („Od” / „Do”) i usuwać. Slajdy Chlebowóz, Piekarnie i Sezonowe pokazują dane z panelu – możesz zmienić ich teksty i wyłączyć je, ale nie usunąć. Kolejność ustalasz liczbą w polu „Kolejność”. Włączonych może być najwyżej 5 slajdów – kolejne trzymaj jako wyłączone w zapasie. W formularzu slajdu są też „Wcześniejsze wersje” i (dla slajdów startowych) „Przywróć stan domyślny”. Slajd Sezonowe bez własnego zdjęcia pokazuje zdjęcie dostępnego teraz produktu sezonowego – panel pokazuje, które to zdjęcie.',
       },
       {
         q: 'Jakie zdjęcia wgrywać?',
