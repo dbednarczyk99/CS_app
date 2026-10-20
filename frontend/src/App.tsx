@@ -41,7 +41,7 @@ import { AnnouncementCreate, AnnouncementEdit, AnnouncementList } from './admin/
 import { NewsletterList } from './admin/components/newsletter';
 
 // nazwy sekcji i pól są w i18n.ts; recordRepresentation = jak rekord nazywa się w tytułach („Produkt: Jagodzianka”).
-// Rezerwacje, lista subskrybentów i konta tylko dla właściciela (ADMIN) – serwer pilnuje tego niezależnie.
+// Rezerwacje, zasady rezerwacji, dokumenty prawne i konta tylko dla administratora (ADMIN) – serwer pilnuje tego niezależnie.
 function App() {
   return (
     <Admin
@@ -144,7 +144,7 @@ function App() {
               edit={AnnouncementEdit}
               recordRepresentation="message"
             />
-            {isOwner && <Resource name="newsletter" list={NewsletterList} recordRepresentation="email" />}
+            <Resource name="newsletter" list={NewsletterList} recordRepresentation="email" />
             {isOwner && (
               <Resource
                 name="users"

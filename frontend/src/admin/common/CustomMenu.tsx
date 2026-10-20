@@ -81,7 +81,7 @@ export const CustomMenu = () => {
       <Section title="Marketing" />
       <Menu.Item to="/blog" primaryText="Aktualności i newsletter" leftIcon={<ArticleIcon />} />
       <Menu.Item to="/announcements" primaryText="Baner informacyjny" leftIcon={<CampaignIcon />} />
-      {isOwner && <Menu.Item to="/newsletter" primaryText="Subskrybenci" leftIcon={<MarkEmailReadIcon />} />}
+      <Menu.Item to="/newsletter" primaryText="Subskrybenci" leftIcon={<MarkEmailReadIcon />} />
 
       {/* treści strony („domowy WordPress”) */}
       <Section title="Strona" />

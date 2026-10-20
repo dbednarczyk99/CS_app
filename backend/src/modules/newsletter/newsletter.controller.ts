@@ -9,12 +9,7 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
-import {
-  CONTENT_ROLES,
-  OWNER_ROLES,
-  Public,
-  Roles,
-} from '../auth/auth.decorators';
+import { CONTENT_ROLES, Public, Roles } from '../auth/auth.decorators';
 import {
   NewsletterPreviewDto,
   SubscribeDto,
@@ -74,14 +69,12 @@ export class NewsletterController {
     });
   }
 
-  // lista adresów (dane osobowe) – tylko właściciel
-  @Roles(...OWNER_ROLES)
+  // lista adresów (dane osobowe) – administrator i marketing (role z klasy)
   @Get()
   findAll() {
     return this.service.findAll();
   }
 
-  @Roles(...OWNER_ROLES)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.service.remove(id);

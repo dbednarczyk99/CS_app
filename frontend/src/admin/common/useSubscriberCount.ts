@@ -4,7 +4,7 @@ const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 /**
  * Liczba potwierdzonych subskrybentów newslettera – z /newsletter/stats, dostępnego dla obu ról
- * (sama lista adresów jest tylko dla właściciela). undefined = ładowanie, null = błąd.
+ * (lista adresów – w „Subskrybenci”). undefined = ładowanie, null = błąd.
  */
 export function useSubscriberCount(): number | null | undefined {
   const [count, setCount] = useState<number | null | undefined>(undefined);
