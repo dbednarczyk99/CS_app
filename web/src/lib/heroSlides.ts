@@ -1,5 +1,6 @@
+import { fill as fillTokens, ruleTokens } from './text';
 import type { HeroSlide } from '@/components/HeroCarousel';
-import type { BreadVanStop, HeroSlideData, Location, Product } from './api';
+import type { BreadVanStop, HeroSlideData, Location, Product, ReservationRules } from './api';
 import { plural } from './format';
 import { isAvailable } from './products';
 
@@ -22,6 +23,7 @@ const FALLBACK: HeroSlide = {
  * Slajdy karuzeli z panelu (Strona → Karuzela), w kolejności z panelu. Slajdy automatyczne biorą dane z panelu
  * i są pomijane, gdy danych brak: chlebowóz (najbliższy przystanek – bez trasy slajdu nie ma), piekarnie
  * ({piekarnie} w tytule → „4 piekarnie”), sezonowe (tylko gdy jakiś produkt sezonowy jest teraz dostępny).
+ * W każdym slajdzie działają znaczniki zasad rezerwacji z panelu: {godzina}, {dni}, {limit}.
  * Każdy slajd ma własne zdjęcie (wymagane w panelu).
  */
 export function buildHeroSlides({
@@ -29,12 +31,16 @@ export function buildHeroSlides({
   locations,
   stops,
   products,
+  rules,
 }: {
   slides: HeroSlideData[];
   locations: Location[];
   stops: BreadVanStop[];
   products: Product[];
+  /** zasady rezerwacji (Ustawienia → Zasady rezerwacji) – do znaczników w tekstach */
+  rules: ReservationRules;
 }): HeroSlide[] {
+  const ruleValues = ruleTokens(rules);
   // slajd sezonowy tylko wtedy, gdy jakiś produkt sezonowy jest teraz dostępny (poza sezonem nie reklamujemy)
   const hasSeasonal = products.some((p) => isAvailable(p) && p.isSeasonal);
   const bakeries =
@@ -47,7 +53,8 @@ export function buildHeroSlides({
     if (s.kind === 'BAKERIES' && locations.length === 0) return null;
     if (s.kind === 'SEASONAL' && !hasSeasonal) return null;
 
-    const fill = (text: string) => (s.kind === 'BAKERIES' ? text.replace(/\{piekarnie\}/gi, bakeries) : text);
+    const fill = (text: string) =>
+      fillTokens(s.kind === 'BAKERIES' ? text.replace(/\{piekarnie\}/gi, bakeries) : text, ruleValues);
     const ctas = [
       s.cta1Label && s.cta1Href ? { href: s.cta1Href, label: s.cta1Label, primary: true } : null,
       s.cta2Label && s.cta2Href ? { href: s.cta2Href, label: s.cta2Label } : null,

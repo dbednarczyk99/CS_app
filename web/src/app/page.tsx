@@ -14,6 +14,7 @@ import { getContent, paragraphs, seoMetadata } from '@/lib/content';
 import { featuredProducts, isAvailable } from '@/lib/products';
 import { formatDate, plural } from '@/lib/format';
 import { buildHeroSlides } from '@/lib/heroSlides';
+import { getReservationRules } from '@/lib/reservation-rules';
 import { articlePath } from '@/lib/site';
 import { bakeryLd } from '@/lib/structured-data';
 
@@ -21,7 +22,7 @@ export const generateMetadata = () => seoMetadata('seo.home', { path: '/' });
 
 /** Teksty, zdjęcia i widoczność sekcji – z panelu (Strona → Strona główna, Karuzela) */
 export default async function HomePage() {
-  const [products, locations, articles, media, stops, slides, content] = await Promise.all([
+  const [products, locations, articles, media, stops, slides, content, rules] = await Promise.all([
     orFallback(api.products(), []),
     orFallback(api.locations(), []),
     orFallback(api.articles(), []),
@@ -29,6 +30,7 @@ export default async function HomePage() {
     orFallback(api.breadVanStops(), []),
     orFallback(api.heroSlides(), []),
     getContent(),
+    getReservationRules(),
   ]);
   const values = content['home.values'];
   const featuredText = content['home.featured'];
@@ -44,7 +46,7 @@ export default async function HomePage() {
   const featured = featuredProducts(products.filter((p) => isAvailable(p) && p.images?.length));
   const latestArticles = [...articles].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt)).slice(0, 3);
   const instagram = media.find((m) => m.name === 'INSTAGRAM');
-  const heroSlides = buildHeroSlides({ slides, locations, stops, products });
+  const heroSlides = buildHeroSlides({ slides, locations, stops, products, rules });
   const first = heroSlides[0];
 
   return (

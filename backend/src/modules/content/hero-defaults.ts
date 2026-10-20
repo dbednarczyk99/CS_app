@@ -24,7 +24,7 @@ export const SLIDE_DEFAULTS: Record<string, Record<string, unknown>> = {
     eyebrow: 'Rezerwacja online',
     titleLine1: 'Twój chleb',
     titleLine2: 'już czeka',
-    text: 'Zarezerwuj wypieki do 18:00 dnia poprzedniego i odbierz je w piekarni albo w chlebowozie. Płacisz przy odbiorze, bez zakładania konta.',
+    text: 'Zarezerwuj wypieki do {godzina} dnia poprzedniego i odbierz je w piekarni albo w chlebowozie. Płacisz przy odbiorze, bez zakładania konta.',
     cta1Label: 'Wybierz wypieki',
     cta1Href: '/oferta',
     cta2Label: null,
