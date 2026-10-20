@@ -230,7 +230,7 @@ export interface HeroSlideData {
   cta1Href: string | null;
   cta2Label: string | null;
   cta2Href: string | null;
-  imageUrl: string | null;
+  imageUrl: string;
   imageAlt: string;
   imagePosition: string;
   mobileImageUrl: string | null;

@@ -269,6 +269,9 @@ export class ContentService {
 
   async updateSlide(id: string, dto: UpdateHeroSlideDto, userId?: string) {
     const current = await this.slide(id);
+    // zdjęcie jest wymagane – nie można go usunąć (PartialType przepuszcza null)
+    if (dto.imageUrl === null || dto.imageUrl === '')
+      throw new BadRequestException('Wybierz zdjęcie slajdu');
     this.checkDates(
       dto.startsAt === undefined ? current.startsAt : dto.startsAt,
       dto.endsAt === undefined ? current.endsAt : dto.endsAt,

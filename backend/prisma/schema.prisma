@@ -462,7 +462,7 @@ model HeroSlide {
   cta2Label           String?       @db.VarChar(30)
   cta2Href            String?       @db.VarChar(300)
   // zdjęcie na komputer (SEASONAL bez zdjęcia – zdjęcie produktu sezonowego) i opcjonalnie osobny kadr na telefon
-  imageUrl            String?       @db.VarChar(500)
+  imageUrl            String        @db.VarChar(500)
   imageAlt            String        @default("") @db.VarChar(160)
   // punkt kadrowania, np. "60% center"
   imagePosition       String        @default("center") @db.VarChar(30)

@@ -21,8 +21,8 @@ const FALLBACK: HeroSlide = {
 /**
  * Slajdy karuzeli z panelu (Strona → Karuzela), w kolejności z panelu. Slajdy automatyczne biorą dane z panelu
  * i są pomijane, gdy danych brak: chlebowóz (najbliższy przystanek – bez trasy slajdu nie ma), piekarnie
- * ({piekarnie} w tytule → „4 piekarnie”), sezonowe (zdjęcie produktu sezonowego, gdy slajd nie ma własnego;
- * bez dostępnych sezonowych slajdu nie ma). Własny slajd bez zdjęcia jest pomijany.
+ * ({piekarnie} w tytule → „4 piekarnie”), sezonowe (tylko gdy jakiś produkt sezonowy jest teraz dostępny).
+ * Każdy slajd ma własne zdjęcie (wymagane w panelu).
  */
 export function buildHeroSlides({
   slides,
@@ -35,8 +35,8 @@ export function buildHeroSlides({
   stops: BreadVanStop[];
   products: Product[];
 }): HeroSlide[] {
-  // tylko sezonowe dostępne teraz (poza sezonem nie reklamujemy)
-  const seasonalImage = products.find((p) => isAvailable(p) && p.isSeasonal && p.images?.length)?.images?.[0].imgUrl;
+  // slajd sezonowy tylko wtedy, gdy jakiś produkt sezonowy jest teraz dostępny (poza sezonem nie reklamujemy)
+  const hasSeasonal = products.some((p) => isAvailable(p) && p.isSeasonal);
   const bakeries =
     locations.length === 1
       ? '1 piekarnia'
@@ -45,9 +45,7 @@ export function buildHeroSlides({
   const built = slides.map((s): HeroSlide | null => {
     if (s.kind === 'VAN' && stops.length === 0) return null;
     if (s.kind === 'BAKERIES' && locations.length === 0) return null;
-    if (s.kind === 'SEASONAL' && !seasonalImage) return null;
-    const imageUrl = s.imageUrl ?? (s.kind === 'SEASONAL' ? seasonalImage : null);
-    if (!imageUrl) return null;
+    if (s.kind === 'SEASONAL' && !hasSeasonal) return null;
 
     const fill = (text: string) => (s.kind === 'BAKERIES' ? text.replace(/\{piekarnie\}/gi, bakeries) : text);
     const ctas = [
@@ -63,7 +61,7 @@ export function buildHeroSlides({
       text: fill(s.text),
       ...(s.kind === 'VAN' ? { vanStops: stops } : {}),
       ctas,
-      image: { src: imageUrl, alt: s.imageAlt, position: s.imagePosition },
+      image: { src: s.imageUrl, alt: s.imageAlt, position: s.imagePosition },
       ...(s.mobileImageUrl ? { mobileImage: { src: s.mobileImageUrl, position: s.mobileImagePosition } } : {}),
     };
   });

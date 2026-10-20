@@ -16,11 +16,11 @@ import {
   Toolbar,
   maxLength,
   required,
-  useGetList,
   useInput,
   useListContext,
   useNotify,
   useRecordContext,
+  ValidationError,
 } from 'react-admin';
 import { useState } from 'react';
 import { useFormContext, useFormState, useWatch } from 'react-hook-form';
@@ -62,7 +62,7 @@ interface SlideRecord {
   name: string;
   titleLine1: string;
   titleLine2: string;
-  imageUrl: string | null;
+  imageUrl: string;
   isActive: boolean;
   startsAt?: string | null;
   endsAt?: string | null;
@@ -80,7 +80,7 @@ const KIND: Record<Kind, { label: string; info: string }> = {
   },
   SEASONAL: {
     label: 'Sezonowe',
-    info: 'Slajd automatyczny: wyświetla się, gdy jest dostępny produkt sezonowy. Bez własnego zdjęcia pokazuje zdjęcie produktu sezonowego.',
+    info: 'Slajd automatyczny: wyświetla się tylko wtedy, gdy w ofercie jest dostępny teraz jakiś produkt sezonowy (poza sezonem znika sam).',
   },
 };
 
@@ -157,72 +157,43 @@ const SlideImageInput = ({
   help,
   aspect,
   removable,
-  fallbackUrl,
-  fallbackNote,
+  isRequired,
 }: {
   source: string;
   label: string;
   help: string;
   aspect: string;
   removable?: boolean;
-  fallbackUrl?: string | null;
-  fallbackNote?: string;
+  /** bez zdjęcia nie da się zapisać slajdu */
+  isRequired?: boolean;
 }) => {
-  const { field } = useInput({ source });
+  const { field, fieldState, formState } = useInput({
+    source,
+    validate: isRequired ? required('Wybierz zdjęcie – bez zdjęcia slajdu nie da się zapisać') : undefined,
+  });
+  const error = fieldState.error && (fieldState.isTouched || formState.isSubmitted) ? fieldState.error.message : null;
   return (
-    <ImageUploadField
-      label={label}
-      value={field.value as string | null}
-      onChange={(url) => field.onChange(url)}
-      help={help}
-      aspect={aspect}
-      removable={removable}
-      fallbackUrl={fallbackUrl}
-      fallbackNote={fallbackNote}
-    />
+    <Box sx={{ width: '100%' }}>
+      <ImageUploadField
+        label={label + (isRequired ? ' *' : '')}
+        value={(field.value as string | null) || null}
+        onChange={(url) => {
+          field.onChange(url ?? '');
+          field.onBlur();
+        }}
+        help={help}
+        aspect={aspect}
+        removable={removable}
+      />
+      {error && (
+        <Typography variant="caption" color="error" sx={{ display: 'block', mt: -1, mb: 2 }}>
+          <ValidationError error={error} />
+        </Typography>
+      )}
+    </Box>
   );
 };
 
-type ProductOption = {
-  id: string;
-  name: string;
-  isActive: boolean;
-  isSeasonal: boolean;
-  inSeason: boolean;
-  images?: { imgUrl: string }[];
-};
-
-/**
- * Zdjęcie na komputer. Slajd „Sezonowe” bez własnego zdjęcia pokazuje na stronie zdjęcie dostępnego produktu
- * sezonowego – panel pokazuje to samo zdjęcie, żeby nie wyglądało, jakby slajd nie miał zdjęcia.
- */
-const DesktopImageInput = () => {
-  const record = useRecordContext<SlideRecord>();
-  const seasonal = record?.kind === 'SEASONAL';
-  const { data: products = [] } = useGetList<ProductOption>(
-    'products',
-    { pagination: { page: 1, perPage: 500 } },
-    { enabled: seasonal },
-  );
-  const product = seasonal
-    ? products.find((p) => p.isActive && p.isSeasonal && p.inSeason && p.images?.length)
-    : undefined;
-  return (
-    <SlideImageInput
-      source="imageUrl"
-      label="Zdjęcie na komputer"
-      help={
-        seasonal
-          ? 'Opcjonalnie – bez własnego zdjęcia slajd pokazuje zdjęcie produktu sezonowego, który jest teraz dostępny.'
-          : 'Poziome, duże (najlepiej 2400 px szerokości). Tekst jest po lewej – ważny fragment zdjęcia najlepiej po prawej.'
-      }
-      aspect="16 / 9"
-      removable
-      fallbackUrl={product?.images?.[0]?.imgUrl}
-      fallbackNote={product ? `Automatycznie: zdjęcie produktu sezonowego „${product.name}” (tak jest teraz na stronie).` : undefined}
-    />
-  );
-};
 
 /**
  * „Wcześniejsze wersje” i „Przywróć stan domyślny” (slajdy startowe): wersja trafia do formularza bez zapisu.
@@ -376,7 +347,13 @@ const SlideForm = () => (
     <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
       Zdjęcia
     </Typography>
-    <DesktopImageInput />
+    <SlideImageInput
+      source="imageUrl"
+      label="Zdjęcie na komputer"
+      help="Wymagane. Poziome, duże (najlepiej 2400 px szerokości). Tekst jest po lewej – ważny fragment zdjęcia najlepiej po prawej."
+      aspect="16 / 9"
+      isRequired
+    />
     <SelectInput source="imagePosition" label="Kadr na komputerze" choices={POSITIONS} defaultValue="center" />
     <TextInput source="imageAlt" label="Opis zdjęcia (dla niewidomych i Google)" fullWidth validate={maxLength(160)} />
     <SlideImageInput

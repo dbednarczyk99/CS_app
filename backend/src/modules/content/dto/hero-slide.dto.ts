@@ -79,10 +79,10 @@ export class CreateHeroSlideDto {
   })
   cta2Href?: string | null;
 
-  @IsOptional()
-  @Transform(emptyToNull)
-  @Matches(IMAGE, { message: 'Niepoprawny adres zdjęcia' })
-  imageUrl?: string | null;
+  @Transform(trim)
+  // brak, pusty albo niepoprawny adres – jeden komunikat (zdjęcie wybiera się w panelu)
+  @Matches(IMAGE, { message: 'Wybierz zdjęcie slajdu' })
+  imageUrl: string;
 
   @IsOptional()
   @Transform(trim)
