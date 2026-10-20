@@ -20,6 +20,10 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
         a: '„Rezerwacje” → „Zasady rezerwacji” (tylko administrator): godzina, do której przyjmujemy rezerwacje i anulowania na następny dzień, ile dni do przodu można rezerwować i ile aktywnych rezerwacji może mieć jeden numer telefonu. Przykład pod polami pokazuje, co zobaczy klient. Zmiana działa od razu – w formularzu, komunikatach, e-mailach, na stronach produktów, w karuzeli i w regulaminie (tam liczby wstawiają się same w miejscu znaczników {godzina}, {dni}, {limit}). Zasady są częścią regulaminu: przy istotnej zmianie zaktualizuj datę „Obowiązuje od” i poinformuj klientów. „Wcześniejsze wersje” i „Przywróć stan domyślny” działają jak w treściach strony.',
       },
       {
+        q: 'Co zrobić, gdy usługa płatna (e-maile, mapa, oceny Google) zaczyna dużo kosztować?',
+        a: '„Usługi i koszty” (na dole menu, tylko administrator): każdą płatną usługę wyłączysz jednym przełącznikiem, a każda ma też twardy limit dzienny – po jego przekroczeniu wyłącza się sama do północy. Widać tam też dzisiejsze zużycie. Gdy usługa nie działa, strona pokazuje zamiennik: zamiast mapy – listę adresów z linkami do Map Google; bez e-maili rezerwacje dalej działają (klient dostaje numer rezerwacji na ekranie), a zapisy do newslettera i formularz kontaktowy pokazują komunikat; oceny Google zostają z ostatniego odświeżenia. Na pulpicie pojawia się wtedy ostrzeżenie.',
+      },
+      {
         q: 'Jak zmienić regulamin albo politykę prywatności?',
         a: '„Strona” → „Dokumenty prawne” (tylko administrator): po lewej treść, po prawej podgląd jak na stronie. Składnia: # tytuł, ## rozdział, **pogrubienie**, „1.” albo „-” na początku linii – lista, pusta linia – nowy akapit. Pola w podwójnych nawiasach [[…]] to miejsca do uzupełnienia (np. nazwa firmy, NIP) – panel ostrzega, ile ich zostało. „Zapisz i opublikuj” od razu zmienia dokument na stronie; poprzednie wersje zostają w historii w całości. Wersja startowa to projekt – przed uruchomieniem strony powinien go sprawdzić prawnik.',
       },
