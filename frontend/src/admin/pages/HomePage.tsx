@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Title, useGetIdentity, usePermissions } from 'react-admin';
 import { useSubscriberCount } from '../common/useSubscriberCount';
+import { HideableSection } from '../common/PanelVisibility';
 import { useNavigate } from 'react-router-dom';
 import { Box, Button, Card, CardActionArea, CardContent, CircularProgress, Stack, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -115,7 +116,8 @@ const HomePage = () => {
 
       {/* administrator: najpierw rezerwacje (dziś, jutro) i newsletter; konto marketingowe – od razu marketing */}
       {isOwner && (
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 4 }}>
+        <HideableSection id="pulpit:Rezerwacje i newsletter" title="Rezerwacje i newsletter" sx={{ mt: 4 }}>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
           <>
             <StatCard
               label="Rezerwacje na dziś"
@@ -139,6 +141,7 @@ const HomePage = () => {
             onClick={() => navigate('/newsletter')}
           />
         </Stack>
+        </HideableSection>
       )}
 
       <Typography variant="h6" sx={{ mt: isOwner ? 5 : 4, mb: 2 }}>
@@ -146,9 +149,7 @@ const HomePage = () => {
       </Typography>
       <MarketingOverview />
 
-      <Typography variant="h6" sx={{ mt: 5, mb: 2 }}>
-        Szybkie akcje
-      </Typography>
+      <HideableSection id="pulpit:Szybkie akcje" title="Szybkie akcje" sx={{ mt: 5 }}>
       <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' } }}>
         <Action icon={<AddIcon />} label="Dodaj produkt" onClick={() => navigate('/products/create')} />
         <Action icon={<ArticleIcon />} label="Nowy wpis / newsletter" onClick={() => navigate('/blog/create')} />
@@ -170,6 +171,7 @@ const HomePage = () => {
           Otwórz stronę piekarni
         </Button>
       </Box>
+      </HideableSection>
 
       <Typography variant="body2" color="text.secondary" sx={{ mt: 5 }}>
         Zmiany zapisane w panelu pojawiają się na stronie po kilku sekundach. Odpowiedzi na najczęstsze pytania

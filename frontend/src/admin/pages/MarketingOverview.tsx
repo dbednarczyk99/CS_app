@@ -7,6 +7,8 @@ import BakeryDiningIcon from '@mui/icons-material/BakeryDining';
 import LabelIcon from '@mui/icons-material/Label';
 import InsightsIcon from '@mui/icons-material/Insights';
 import { apiUrl, httpClient } from '../../dataProvider';
+import { HiddenPanelBar, HidePanelButton } from '../common/PanelVisibility';
+import { usePanelHidden } from '../common/panel-visibility';
 import { LabelChip } from '../components/labels';
 
 interface Overview {
@@ -41,7 +43,7 @@ const day = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString('pl-PL',
 const when = (iso: string) =>
   new Date(iso).toLocaleString('pl-PL', { weekday: 'short', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
 
-/** Karta pulpitu z nagłówkiem, ikoną i linkiem „Przejdź” */
+/** Karta pulpitu z nagłówkiem, ikoną, linkiem „Przejdź” i okiem (ukrycie do paska – zapamiętane) */
 const Panel = ({
   title,
   icon,
@@ -52,24 +54,29 @@ const Panel = ({
   icon: ReactNode;
   action?: { label: string; onClick: () => void };
   children: ReactNode;
-}) => (
-  <Card variant="outlined" sx={{ height: '100%' }}>
-    <CardContent sx={{ p: 2.5 }}>
-      <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.5 }}>
-        <Box sx={{ color: 'primary.main', display: 'flex' }}>{icon}</Box>
-        <Typography variant="h6" sx={{ flex: 1, fontSize: '1.05rem' }}>
-          {title}
-        </Typography>
-        {action && (
-          <Button size="small" onClick={action.onClick}>
-            {action.label}
-          </Button>
-        )}
-      </Stack>
-      {children}
-    </CardContent>
-  </Card>
-);
+}) => {
+  const [hidden, toggle] = usePanelHidden(`pulpit:${title}`);
+  if (hidden) return <HiddenPanelBar title={title} icon={icon} onShow={toggle} />;
+  return (
+    <Card variant="outlined" sx={{ height: '100%' }}>
+      <CardContent sx={{ p: 2.5 }}>
+        <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.5 }}>
+          <Box sx={{ color: 'primary.main', display: 'flex' }}>{icon}</Box>
+          <Typography variant="h6" sx={{ flex: 1, fontSize: '1.05rem' }}>
+            {title}
+          </Typography>
+          {action && (
+            <Button size="small" onClick={action.onClick}>
+              {action.label}
+            </Button>
+          )}
+          <HidePanelButton onClick={toggle} />
+        </Stack>
+        {children}
+      </CardContent>
+    </Card>
+  );
+};
 
 const Empty = ({ children }: { children: ReactNode }) => (
   <Typography variant="body2" color="text.secondary">

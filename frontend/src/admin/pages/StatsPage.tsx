@@ -26,6 +26,8 @@ import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import { HiddenPanelBar, HidePanelButton } from '../common/PanelVisibility';
+import { usePanelHidden } from '../common/panel-visibility';
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -227,17 +229,29 @@ const Section = ({
   icon: ReactNode;
   children: ReactNode;
   sx?: object;
-}) => (
-  <Card variant="outlined" sx={{ height: '100%', ...sx }}>
-    <CardContent sx={{ p: 3 }}>
-      <Stack direction="row" spacing={1.25} alignItems="center">
-        <Box sx={{ color: 'primary.main', display: 'flex' }}>{icon}</Box>
-        <Typography variant="h6">{title}</Typography>
-      </Stack>
-      {children}
-    </CardContent>
-  </Card>
-);
+}) => {
+  const [hidden, toggle] = usePanelHidden(`statystyki:${title}`);
+  if (hidden)
+    return (
+      <Box sx={sx}>
+        <HiddenPanelBar title={title} icon={icon} onShow={toggle} />
+      </Box>
+    );
+  return (
+    <Card variant="outlined" sx={{ height: '100%', ...sx }}>
+      <CardContent sx={{ p: 3 }}>
+        <Stack direction="row" spacing={1.25} alignItems="center">
+          <Box sx={{ color: 'primary.main', display: 'flex' }}>{icon}</Box>
+          <Typography variant="h6" sx={{ flex: 1 }}>
+            {title}
+          </Typography>
+          <HidePanelButton onClick={toggle} />
+        </Stack>
+        {children}
+      </CardContent>
+    </Card>
+  );
+};
 
 /** Lista z poziomymi paskami (udział w całości) */
 function RankList({
@@ -346,6 +360,7 @@ export default function StatsPage() {
   const { permissions } = usePermissions();
   const isOwner = permissions === 'ADMIN';
   const [days, setDays] = useState(30);
+  const [visitsHidden, toggleVisits] = usePanelHidden('statystyki:Odwiedziny strony');
   const [result, setResult] = useState<{ days: number; stats?: Stats; error?: string } | null>(null);
   const [metric, setMetric] = useState<SeriesKey>('views');
 
@@ -477,6 +492,11 @@ export default function StatsPage() {
           )}
 
           {/* 2. ODWIEDZINY */}
+          {visitsHidden ? (
+            <Box sx={{ mt: 2 }}>
+              <HiddenPanelBar title="Odwiedziny strony" icon={<VisibilityIcon />} onShow={toggleVisits} />
+            </Box>
+          ) : (
           <Card variant="outlined" sx={{ mt: 2 }}>
             <CardContent sx={{ p: 3 }}>
               <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={2}>
@@ -485,6 +505,7 @@ export default function StatsPage() {
                     <VisibilityIcon />
                   </Box>
                   <Typography variant="h6">Odwiedziny strony</Typography>
+                  <HidePanelButton onClick={toggleVisits} />
                 </Stack>
                 <ToggleButtonGroup
                   size="small"
@@ -527,6 +548,7 @@ export default function StatsPage() {
               <DailyChart series={stats.series} metric={metric} />
             </CardContent>
           </Card>
+          )}
 
           {/* 3. SZCZEGÓŁY */}
           <Box sx={{ display: 'grid', gap: 2, mt: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
