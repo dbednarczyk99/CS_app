@@ -6,9 +6,11 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaCheck, FaTrash } from 'react-icons/fa6';
 import type { PublicReservation, ReservationOptions } from '@/lib/api';
+import type { ReservationFormTexts } from '@/lib/content';
 import { formatDay, formatDayMonth, formatPrice, plural } from '@/lib/format';
 import { inPromoWindow, priceOn, type PromoWindow } from '@/lib/products';
 import { useReservationCart } from '@/lib/reservation-cart';
+import { fill, ruleTokens } from '@/lib/text';
 import { QuantityStepper } from './AddToReservation';
 import { DropdownSelect } from './DropdownSelect';
 import { PickupPointPicker, type PickupPoint } from './PickupPointPicker';
@@ -154,9 +156,12 @@ const shortStreet = (address: string) => address.split(/,\s*(?=\d{2}-\d{3})/)[0]
 export function ReservationForm({
   options,
   reservable,
+  texts,
 }: {
   options: ReservationOptions;
   reservable: ReservableProduct[];
+  /** teksty z panelu (Strona → Podstrony → Rezerwacja → Formularz rezerwacji) */
+  texts: ReservationFormTexts;
 }) {
   const cart = useReservationCart();
   const [removedNames, setRemovedNames] = useState<string[]>([]);
@@ -307,7 +312,7 @@ export function ReservationForm({
     }
   }
 
-  if (result) return <ReservationSuccess reservation={result} />;
+  if (result) return <ReservationSuccess reservation={result} title={texts.successTitle} />;
 
   if (cart.ready && cart.items.length === 0) {
     return (
@@ -331,7 +336,7 @@ export function ReservationForm({
     <form onSubmit={submit} noValidate className="grid gap-12 lg:grid-cols-[1fr_22rem] lg:gap-16">
       <div className="space-y-14">
         {/* 1. PRODUKTY */}
-        <Step number={1} title="Produkty">
+        <Step number={1} title={texts.stepProducts}>
           {removedNames.length > 0 && (
             <p className="mb-4 border border-gold/40 bg-gold/10 px-4 py-3 text-sm">
               Usunęliśmy produkty niedostępne już do rezerwacji: {removedNames.join(', ')}.
@@ -384,18 +389,17 @@ export function ReservationForm({
             ))}
           </ul>
           <Link href="/oferta" className="link-arrow mt-4 inline-block text-[0.75rem]">
-            + Dodaj kolejne produkty
+            {texts.addMore}
           </Link>
         </Step>
 
         {/* 2. ODBIÓR */}
-        <Step number={2} title="Odbiór">
-          <p className="mb-5 text-sm text-stone">
-            Rezerwacje przyjmujemy do {options.cutoffHour}:00 dnia poprzedzającego odbiór,
-            maksymalnie 5 dni do przodu.
-          </p>
+        <Step number={2} title={texts.stepPickup}>
+          {texts.rulesNote && (
+            <p className="mb-5 text-sm text-stone">{fill(texts.rulesNote, ruleTokens(options.rules))}</p>
+          )}
           {days.length === 0 ? (
-            <p className="text-stone">W najbliższych dniach nie ma terminów dostępnych do rezerwacji.</p>
+            <p className="text-stone">{fill(texts.noDates, ruleTokens(options.rules))}</p>
           ) : (
             <div className="space-y-8">
               <Fieldset legend="Dzień odbioru">
@@ -470,7 +474,7 @@ export function ReservationForm({
         </Step>
 
         {/* 3. DANE */}
-        <Step number={3} title="Twoje dane">
+        <Step number={3} title={texts.stepDetails}>
           <div className="grid gap-4 sm:grid-cols-2">
             <Label text="Imię" htmlFor="name">
               <input
@@ -480,7 +484,7 @@ export function ReservationForm({
                 onChange={(e) => setName(e.target.value)}
                 autoComplete="given-name"
                 maxLength={50}
-                placeholder="Zawołamy Cię przy odbiorze"
+                placeholder={texts.namePlaceholder}
                 required
               />
             </Label>
@@ -496,7 +500,7 @@ export function ReservationForm({
                 required
               />
             </Label>
-            <Label text="E-mail – wyślemy na niego potwierdzenie" htmlFor="email" wide>
+            <Label text={texts.emailLabel} htmlFor="email" wide>
               <input
                 id="email"
                 type="email"
@@ -565,7 +569,7 @@ export function ReservationForm({
       {/* PODSUMOWANIE */}
       <aside className="lg:sticky lg:top-[calc(7rem+var(--banner-h))] lg:self-start">
         <div className="border border-line bg-coal p-6">
-          <h2 className="heading text-xl">Podsumowanie</h2>
+          <h2 className="heading text-xl">{texts.summaryTitle}</h2>
           <ul className="mt-5 space-y-2 text-sm">
             {lines.map((i) => (
               <li key={i.productId} className="flex justify-between gap-4">
@@ -610,11 +614,9 @@ export function ReservationForm({
             disabled={submitting}
             className="btn btn-gold mt-6 w-full disabled:opacity-60"
           >
-            {submitting ? 'Wysyłanie…' : 'Zarezerwuj'}
+            {submitting ? 'Wysyłanie…' : texts.submit}
           </button>
-          <p className="mt-3 text-center text-xs text-stone">
-            Płatność gotówką lub kartą przy odbiorze.
-          </p>
+          {texts.paymentNote && <p className="mt-3 text-center text-xs text-stone">{texts.paymentNote}</p>}
         </div>
       </aside>
     </form>
@@ -714,13 +716,13 @@ function Label({
   );
 }
 
-function ReservationSuccess({ reservation: r }: { reservation: PublicReservation }) {
+function ReservationSuccess({ reservation: r, title }: { reservation: PublicReservation; title: string }) {
   return (
     <div className="mx-auto max-w-2xl border border-line bg-coal p-8 text-center sm:p-12">
       <span className="mx-auto grid size-14 place-items-center rounded-full bg-gold text-ink">
         <FaCheck size={24} />
       </span>
-      <h2 className="heading mt-6 text-3xl">Rezerwacja przyjęta</h2>
+      <h2 className="heading mt-6 text-3xl">{title}</h2>
       <p className="mt-3 text-stone">
         Dziękujemy, {r.customerName.split(' ')[0]}! Potwierdzenie wysłaliśmy na{' '}
         <strong className="text-cream">{r.customerEmail}</strong>.

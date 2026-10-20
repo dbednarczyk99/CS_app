@@ -11,7 +11,9 @@ import { BADGE_STYLE, isAvailable, isOnPromo, isOutOfSeason, oldPriceOf, priceOf
 import { formatDate, formatPrice } from '@/lib/format';
 import { JsonLd } from '@/components/JsonLd';
 import { pageMetadata, productPath } from '@/lib/site';
-import { defaultShareImage } from '@/lib/content';
+import { defaultShareImage, getContent } from '@/lib/content';
+import { getReservationRules } from '@/lib/reservation-rules';
+import { fill, ruleTokens } from '@/lib/text';
 import { breadcrumbsLd, productLd } from '@/lib/structured-data';
 
 type Props = { params: Promise<{ id: string }> };
@@ -32,10 +34,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { id } = await params;
-  const [product, all] = await Promise.all([
+  const [product, all, content, rules] = await Promise.all([
     orFallback(api.product(id), null),
     orFallback(api.products(), []),
+    getContent(),
+    getReservationRules(),
   ]);
+  // ramka „Jak działa rezerwacja?” – teksty z panelu, zasady z ustawień
+  const howItWorks = content['reservation.form'];
   if (!product || !product.isActive) notFound();
 
   const image = product.images?.[0];
@@ -138,11 +144,15 @@ export default async function ProductPage({ params }: Props) {
 
             {/* poza sezonem nie można rezerwować – bez opisu rezerwacji */}
             <div className={`mt-10 border border-line bg-coal p-6 ${outOfSeason ? 'hidden' : ''}`}>
-              <p className="heading text-lg">Jak działa rezerwacja?</p>
+              <p className="heading text-lg">{howItWorks.howItWorksTitle}</p>
               <ul className="mt-3 space-y-2 leading-relaxed text-stone">
-                <li>Odbiór w jednej z naszych piekarni lub z chlebowozu.</li>
-                <li>Rezerwacje przyjmujemy do 18:00 dnia poprzedzającego odbiór, maksymalnie 5 dni do przodu.</li>
-                <li>Płacisz na miejscu, przy odbiorze.</li>
+                {howItWorks.howItWorks
+                  .split('\n')
+                  .map((line) => line.trim())
+                  .filter(Boolean)
+                  .map((line) => (
+                    <li key={line}>{fill(line, ruleTokens(rules))}</li>
+                  ))}
               </ul>
             </div>
           </div>

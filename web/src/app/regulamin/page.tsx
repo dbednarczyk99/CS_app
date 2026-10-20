@@ -11,5 +11,5 @@ export const generateMetadata = async () =>
   });
 
 export default function TermsPage() {
-  return <LegalDocument file="regulamin-rezerwacji.md" />;
+  return <LegalDocument doc="regulamin" />;
 }

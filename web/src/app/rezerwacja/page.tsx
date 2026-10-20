@@ -29,7 +29,7 @@ export default async function ReservationPage() {
       {header.text && <p className="mt-4 max-w-2xl text-lg leading-relaxed text-stone">{header.text}</p>}
       <div className="mt-12">
         {options ? (
-          <ReservationForm options={options} reservable={reservable} />
+          <ReservationForm options={options} reservable={reservable} texts={content['reservation.form']} />
         ) : (
           <p className="border border-line bg-coal p-6 text-stone">{header.unavailable}</p>
         )}

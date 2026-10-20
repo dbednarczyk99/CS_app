@@ -89,6 +89,22 @@ export interface SiteContent {
 
   'seo.reservation': SeoContent;
   'reservation.header': { eyebrow: string; title: string; text: string; unavailable: string };
+  'reservation.form': {
+    stepProducts: string;
+    addMore: string;
+    stepPickup: string;
+    rulesNote: string;
+    noDates: string;
+    stepDetails: string;
+    namePlaceholder: string;
+    emailLabel: string;
+    summaryTitle: string;
+    submit: string;
+    paymentNote: string;
+    successTitle: string;
+    howItWorksTitle: string;
+    howItWorks: string;
+  };
 
   'seo.default': { image: ContentImage };
   'common.footer': { about: string; newsletterText: string; newsletterButton: string; copyright: string };
@@ -102,6 +118,9 @@ export interface SiteContent {
   };
   'common.notFound': { eyebrow: string; title: string; text: string; homeButton: string; offerButton: string };
 }
+
+/** Teksty formularza rezerwacji (komponent kliencki dostaje je ze strony) */
+export type ReservationFormTexts = SiteContent['reservation.form'];
 
 /** Teksty okienka newslettera (komponent kliencki dostaje je z układu strony) */
 export type NewsletterTexts = SiteContent['common.newsletter'];
@@ -152,6 +171,5 @@ export const paragraphs = (text: string) =>
     .map((p) => p.trim())
     .filter(Boolean);
 
-/** Wstawia wartości w miejsce znaczników, np. fill('W {miejsca}', { miejsca: '4 miejscach' }) */
-export const fill = (text: string, values: Record<string, string>) =>
-  text.replace(/\{(\w+)\}/g, (match, name: string) => values[name] ?? match);
+/** Znaczniki w tekstach – w lib/text.ts (lekki plik, także dla komponentów klienckich) */
+export { fill } from './text';

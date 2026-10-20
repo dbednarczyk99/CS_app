@@ -173,9 +173,25 @@ export interface Announcement {
   updatedAt: string;
 }
 
+/** Zasady rezerwacji z panelu (Ustawienia → Zasady rezerwacji) */
+export interface ReservationRules {
+  /** rezerwacja i anulowanie do tej godziny dnia poprzedzającego odbiór, „HH:MM” */
+  cutoffTime: string;
+  maxDaysAhead: number;
+  maxActivePerPhone: number;
+}
+
+/** Dokument prawny (regulamin, polityka prywatności) – treść z panelu albo domyślna */
+export interface LegalDocumentData {
+  title: string;
+  markdown: string;
+  /** data ostatniej zmiany w panelu; null – wersja domyślna */
+  updatedAt: string | null;
+}
+
 /** Terminy i punkty odbioru dostępne teraz do rezerwacji (liczone przez API w czasie polskim) */
 export interface ReservationOptions {
-  cutoffHour: number;
+  rules: ReservationRules;
   dates: string[];
   stores: {
     id: string;
@@ -258,6 +274,8 @@ export const api = {
   // treści edytowane w panelu („Strona”) – typy i wartości awaryjne w lib/content.ts
   content: () => get<Partial<SiteContent>>('/content'),
   heroSlides: () => get<HeroSlideData[]>('/content/hero'),
+  reservationRules: () => get<ReservationRules>('/settings/reservations/public'),
+  legal: (doc: string) => get<LegalDocumentData>(`/settings/legal/${encodeURIComponent(doc)}`),
 };
 
 // Strona ma się wyświetlić nawet wtedy, gdy część API nie odpowiada

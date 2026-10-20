@@ -11,5 +11,5 @@ export const generateMetadata = async () =>
   });
 
 export default function PrivacyPage() {
-  return <LegalDocument file="polityka-prywatnosci.md" />;
+  return <LegalDocument doc="polityka-prywatnosci" />;
 }
