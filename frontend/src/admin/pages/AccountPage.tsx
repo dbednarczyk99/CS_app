@@ -61,8 +61,8 @@ export default function AccountPage() {
       </Typography>
       <Typography color="text.secondary" sx={{ mt: 1 }}>
         {permissions === 'ADMIN'
-          ? 'Właściciel – pełny dostęp do panelu'
-          : 'Treści strony: produkty, piekarnie, chlebowóz, aktualności, baner, media społecznościowe'}
+          ? 'Administrator – pełny dostęp do panelu'
+          : 'Marketing: produkty, piekarnie, chlebowóz, treści strony, aktualności i newsletter, subskrybenci, baner i media społecznościowe'}
       </Typography>
 
       <Card variant="outlined" sx={{ mt: 4 }}>
@@ -117,7 +117,7 @@ export default function AccountPage() {
             Po zmianie hasła zostaniesz wylogowany(-a) na innych urządzeniach.{' '}
             {permissions === 'ADMIN'
               ? 'Gdy ktoś zapomni hasła, ustawisz mu nowe w zakładce „Konta”.'
-              : 'Jeśli zapomnisz hasła, poproś właściciela o ustawienie nowego.'}
+              : 'Jeśli zapomnisz hasła, poproś administratora o ustawienie nowego.'}
           </Typography>
         </CardContent>
       </Card>

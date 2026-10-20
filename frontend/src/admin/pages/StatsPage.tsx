@@ -340,9 +340,9 @@ const Kpi = ({ label, value }: { label: string; value: string }) => (
   </Box>
 );
 
-/** Statystyki strony: limity i koszty (e-maile, Mapa Google), odwiedziny, rezerwacje – tylko właściciel */
+/** Statystyki strony: limity i koszty (e-maile, Mapa Google), odwiedziny, rezerwacje – całość tylko administrator */
 export default function StatsPage() {
-  // właściciel – całość; treści strony (marketing) – odwiedziny, źródła, najczęściej odwiedzane
+  // administrator – całość; marketing – odwiedziny, źródła, najczęściej odwiedzane
   const { permissions } = usePermissions();
   const isOwner = permissions === 'ADMIN';
   const [days, setDays] = useState(30);
@@ -393,7 +393,7 @@ export default function StatsPage() {
 
       {stats && (
         <>
-          {/* 1. LIMITY I KOSZTY – tylko właściciel */}
+          {/* 1. LIMITY I KOSZTY – tylko administrator */}
           {isOwner && (
             <Box sx={{ display: 'grid', gap: 2, mt: 4, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
               <Section title="Wysyłka e-maili" icon={<MailIcon />}>

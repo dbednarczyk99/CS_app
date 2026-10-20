@@ -46,7 +46,7 @@ export const authProvider: AuthProvider = {
     return Promise.resolve();
   },
 
-  // rola z tokenu: 'ADMIN' (właściciel) albo 'EDITOR' (treści strony); serwer i tak sprawdza uprawnienia sam
+  // rola z tokenu: 'ADMIN' (administrator) albo 'EDITOR' (marketing); serwer i tak sprawdza uprawnienia sam
   getPermissions: () => Promise.resolve(tokenRole()),
 
   // nazwa w prawym górnym rogu

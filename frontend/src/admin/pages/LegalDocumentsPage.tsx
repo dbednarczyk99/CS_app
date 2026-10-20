@@ -224,7 +224,7 @@ function DocumentEditor({ doc, path, rules }: { doc: string; path: string; rules
   );
 }
 
-/** Ustawienia → Dokumenty prawne (tylko właściciel): regulamin i polityka prywatności z podglądem i historią */
+/** Ustawienia → Dokumenty prawne (tylko administrator): regulamin i polityka prywatności z podglądem i historią */
 export default function LegalDocumentsPage() {
   const { doc } = useParams();
   const navigate = useNavigate();

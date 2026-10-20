@@ -77,7 +77,7 @@ function Example({ form }: { form: Form }) {
 }
 
 /**
- * Ustawienia → Zasady rezerwacji (tylko właściciel): godzina zamknięcia, liczba dni do przodu, limit na telefon
+ * Ustawienia → Zasady rezerwacji (tylko administrator): godzina zamknięcia, liczba dni do przodu, limit na telefon
  * i codzienne zestawienie „do przygotowania”. Zmiana działa od razu w formularzu, e-mailach i regulaminie.
  */
 export default function ReservationRulesPage() {

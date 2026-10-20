@@ -85,7 +85,7 @@ const greeting = () => {
 const HomePage = () => {
   const navigate = useNavigate();
   const today = warsawDate(0);
-  // rezerwacje (dane klientów) widzi tylko właściciel
+  // rezerwacje (dane klientów) widzi tylko administrator
   const { permissions } = usePermissions();
   const isOwner = permissions === 'ADMIN';
   const { identity } = useGetIdentity();
@@ -113,7 +113,7 @@ const HomePage = () => {
         {todayLabel}
       </Typography>
 
-      {/* właściciel: najpierw rezerwacje (dziś, jutro) i newsletter; konto treści – od razu marketing */}
+      {/* administrator: najpierw rezerwacje (dziś, jutro) i newsletter; konto marketingowe – od razu marketing */}
       {isOwner && (
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 4 }}>
           <>

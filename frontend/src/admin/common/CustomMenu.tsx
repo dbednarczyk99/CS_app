@@ -52,7 +52,7 @@ const notActive = {
 
 export const CustomMenu = () => {
   const { pathname } = useLocation();
-  // rezerwacje, lista subskrybentów i konta – tylko właściciel
+  // rezerwacje, zasady rezerwacji, dokumenty prawne i konta – tylko administrator
   const { permissions } = usePermissions();
   const isOwner = permissions === 'ADMIN';
   return (

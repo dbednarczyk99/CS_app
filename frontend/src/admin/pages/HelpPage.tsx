@@ -17,11 +17,11 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Jak zmienić godzinę zamykania rezerwacji, liczbę dni albo limit na telefon?',
-        a: '„Ustawienia” → „Zasady rezerwacji” (tylko właściciel): godzina, do której przyjmujemy rezerwacje i anulowania na następny dzień, ile dni do przodu można rezerwować i ile aktywnych rezerwacji może mieć jeden numer telefonu. Przykład pod polami pokazuje, co zobaczy klient. Zmiana działa od razu – w formularzu, komunikatach, e-mailach, na stronach produktów, w karuzeli i w regulaminie (tam liczby wstawiają się same w miejscu znaczników {godzina}, {dni}, {limit}). Zasady są częścią regulaminu: przy istotnej zmianie zaktualizuj datę „Obowiązuje od” i poinformuj klientów. „Wcześniejsze wersje” i „Przywróć stan domyślny” działają jak w treściach strony.',
+        a: '„Ustawienia” → „Zasady rezerwacji” (tylko administrator): godzina, do której przyjmujemy rezerwacje i anulowania na następny dzień, ile dni do przodu można rezerwować i ile aktywnych rezerwacji może mieć jeden numer telefonu. Przykład pod polami pokazuje, co zobaczy klient. Zmiana działa od razu – w formularzu, komunikatach, e-mailach, na stronach produktów, w karuzeli i w regulaminie (tam liczby wstawiają się same w miejscu znaczników {godzina}, {dni}, {limit}). Zasady są częścią regulaminu: przy istotnej zmianie zaktualizuj datę „Obowiązuje od” i poinformuj klientów. „Wcześniejsze wersje” i „Przywróć stan domyślny” działają jak w treściach strony.',
       },
       {
         q: 'Jak zmienić regulamin albo politykę prywatności?',
-        a: '„Ustawienia” → „Dokumenty prawne” (tylko właściciel): po lewej treść, po prawej podgląd jak na stronie. Składnia: # tytuł, ## rozdział, **pogrubienie**, „1.” albo „-” na początku linii – lista, pusta linia – nowy akapit. Pola w podwójnych nawiasach [[…]] to miejsca do uzupełnienia (np. nazwa firmy, NIP) – panel ostrzega, ile ich zostało. „Zapisz i opublikuj” od razu zmienia dokument na stronie; poprzednie wersje zostają w historii w całości. Wersja startowa to projekt – przed uruchomieniem strony powinien go sprawdzić prawnik.',
+        a: '„Ustawienia” → „Dokumenty prawne” (tylko administrator): po lewej treść, po prawej podgląd jak na stronie. Składnia: # tytuł, ## rozdział, **pogrubienie**, „1.” albo „-” na początku linii – lista, pusta linia – nowy akapit. Pola w podwójnych nawiasach [[…]] to miejsca do uzupełnienia (np. nazwa firmy, NIP) – panel ostrzega, ile ich zostało. „Zapisz i opublikuj” od razu zmienia dokument na stronie; poprzednie wersje zostają w historii w całości. Wersja startowa to projekt – przed uruchomieniem strony powinien go sprawdzić prawnik.',
       },
       {
         q: 'Klient prosi o usunięcie swoich danych',
@@ -117,7 +117,7 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
     items: [
       {
         q: 'Kto ma dostęp do czego?',
-        a: 'Właściciel widzi wszystko, w tym rezerwacje z danymi klientów, listę subskrybentów newslettera i konta. Konto „Treści strony” (social media) edytuje produkty, piekarnie, chlebowóz, aktualności, baner i media społecznościowe oraz widzi statystyki odwiedzin (skąd przychodzi ruch, najczęściej odwiedzane strony) – bez dostępu do danych klientów i kosztów.',
+        a: 'Administrator widzi wszystko, w tym rezerwacje z danymi klientów, zasady rezerwacji, dokumenty prawne i konta. Konto „Marketing” edytuje produkty, piekarnie, chlebowóz, treści strony, aktualności i newsletter, subskrybenci, baner i media społecznościowe oraz widzi statystyki odwiedzin (skąd przychodzi ruch, najczęściej odwiedzane strony) – bez dostępu do rezerwacji, kosztów i ustawień.',
       },
       {
         q: 'Jak zmienić swoje hasło?',
@@ -125,7 +125,7 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Ktoś zapomniał hasła',
-        a: 'Właściciel ustawia nowe hasło w „Konta” → wybierz osobę → „Nowe hasło”. Gdy hasła zapomni właściciel, osoba administrująca serwerem może je zresetować poleceniem awaryjnym.',
+        a: 'Administrator ustawia nowe hasło w „Konta” → wybierz osobę → „Nowe hasło”. Gdy hasła zapomni administrator, osoba opiekująca się serwerem może je zresetować poleceniem awaryjnym.',
       },
     ],
   },
