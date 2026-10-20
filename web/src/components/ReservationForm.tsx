@@ -405,7 +405,7 @@ export function ReservationForm({
             <p className="text-stone">{fill(texts.noDates, ruleTokens(options.rules))}</p>
           ) : (
             <div className="space-y-8">
-              <Fieldset legend="Dzień odbioru">
+              <Fieldset legend="Dzień odbioru" required>
                 {/* telefon: jeden rząd kafelków (dzień tygodnia nad datą – najwyżej 5 dni); od tabletu – przyciski w linii */}
                 <div
                   className="grid gap-1.5 sm:flex sm:flex-wrap sm:gap-2"
@@ -442,7 +442,7 @@ export function ReservationForm({
               </Fieldset>
 
               {date && (
-                <Fieldset legend="Punkt odbioru">
+                <Fieldset legend="Punkt odbioru" required>
                   {pointNotice && (
                     <p role="status" className="mb-3 border border-gold/40 bg-gold/10 px-4 py-3 text-sm">
                       {pointNotice}
@@ -459,7 +459,7 @@ export function ReservationForm({
               )}
 
               {date && point && (
-                <Fieldset legend="Godzina odbioru">
+                <Fieldset legend="Godzina odbioru" required>
                   <PickupTimeSelect
                     slots={point.slots}
                     hint={
@@ -479,7 +479,7 @@ export function ReservationForm({
         {/* 3. DANE */}
         <Step number={3} title={texts.stepDetails}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Label text="Imię" htmlFor="name">
+            <Label text="Imię" htmlFor="name" required>
               <input
                 id="name"
                 className={field}
@@ -491,7 +491,7 @@ export function ReservationForm({
                 required
               />
             </Label>
-            <Label text="Telefon" htmlFor="phone">
+            <Label text="Telefon" htmlFor="phone" required>
               <input
                 id="phone"
                 className={field}
@@ -503,7 +503,7 @@ export function ReservationForm({
                 required
               />
             </Label>
-            <Label text={texts.emailLabel} htmlFor="email" wide>
+            <Label text={texts.emailLabel} htmlFor="email" wide required>
               <input
                 id="email"
                 type="email"
@@ -563,7 +563,7 @@ export function ReservationForm({
               >
                 polityką prywatności
               </a>
-              .
+              .<Required />
             </span>
           </label>
 
@@ -575,11 +575,14 @@ export function ReservationForm({
               className="mt-1 size-4 shrink-0 accent-gold"
             />
             <span>
-              <span className="text-cream/90">Chcę też zapisać się do newslettera</span> (nieobowiązkowe) – nowości,
-              wypieki sezonowe, promocje i ważne informacje na podany adres e-mail. Wyślemy link do potwierdzenia
-              zapisu; zgodę możesz wycofać w każdej chwili linkiem w każdej wiadomości.
+              Zapisz mnie do newslettera – nowości, wypieki sezonowe i promocje raz na jakiś czas. Potwierdzisz zapis
+              linkiem z e-maila, a wypisać się możesz w każdej chwili.
             </span>
           </label>
+
+          <p className="mt-4 text-xs text-stone">
+            <span className="text-gold">*</span> – pole obowiązkowe
+          </p>
         </Step>
       </div>
 
@@ -698,11 +701,21 @@ function PickupTimeSelect({
   );
 }
 
-function Fieldset({ legend, children }: { legend: string; children: React.ReactNode }) {
+/** Gwiazdka pola obowiązkowego (objaśnienie pod zgodami) */
+function Required() {
+  return (
+    <span aria-hidden className="ml-0.5 text-gold">
+      *
+    </span>
+  );
+}
+
+function Fieldset({ legend, children, required }: { legend: string; children: React.ReactNode; required?: boolean }) {
   return (
     <fieldset>
       <legend className="mb-3 font-display text-[0.7rem] uppercase tracking-[0.25em] text-stone">
         {legend}
+        {required && <Required />}
       </legend>
       {children}
     </fieldset>
@@ -713,11 +726,14 @@ function Label({
   text,
   htmlFor,
   wide,
+  required,
   children,
 }: {
   text: string;
   htmlFor: string;
   wide?: boolean;
+  /** pole obowiązkowe – gwiazdka */
+  required?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -727,6 +743,7 @@ function Label({
         className="mb-2 block font-display text-[0.7rem] uppercase tracking-[0.25em] text-stone"
       >
         {text}
+        {required && <Required />}
       </label>
       {children}
     </div>
