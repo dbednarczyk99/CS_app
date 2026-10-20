@@ -63,7 +63,8 @@ export function useNavHistory() {
   useEffect(() => {
     const idx = currentIdx();
     const entries = parse(read());
-    if (navigationType === 'PUSH') entries.length = idx;
+    // inny adres na tej pozycji (np. wpisany ręcznie albo nowa karta) – też nowy ekran
+    if (navigationType === 'PUSH' || (entries[idx] && entries[idx].path !== path)) entries.length = idx;
     entries[idx] = { path, title: entries[idx]?.path === path ? entries[idx].title : titleText() };
     write(entries);
   }, [path, navigationType]);
