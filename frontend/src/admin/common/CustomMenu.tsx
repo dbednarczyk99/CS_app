@@ -22,6 +22,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import WebIcon from '@mui/icons-material/Web';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import GavelIcon from '@mui/icons-material/Gavel';
+import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 
 /** Nagłówek grupy w menu (widoczny przy rozwiniętym menu) */
 const Section = ({ title }: { title: string }) => {
@@ -116,6 +117,7 @@ export const CustomMenu = () => {
       />
 
       <Divider sx={{ my: 1 }} />
+      {isOwner && <Menu.Item to="/ustawienia/uslugi" primaryText="Usługi i koszty" leftIcon={<PowerSettingsNewIcon />} />}
       {isOwner && <Menu.Item to="/users" primaryText="Konta" leftIcon={<GroupIcon />} />}
       <Menu.Item to="/help" primaryText="Pomoc" leftIcon={<HelpIcon />} />
     </Menu>

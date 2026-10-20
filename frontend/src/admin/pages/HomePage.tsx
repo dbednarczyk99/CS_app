@@ -3,7 +3,7 @@ import { Title, useGetIdentity, usePermissions } from 'react-admin';
 import { useSubscriberCount } from '../common/useSubscriberCount';
 import { DashboardPanel } from '../common/PanelVisibility';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, CardActionArea, CircularProgress, Paper, Typography } from '@mui/material';
+import { Alert, Box, Button, CardActionArea, CircularProgress, Paper, Typography } from '@mui/material';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import BoltIcon from '@mui/icons-material/Bolt';
 import ChecklistIcon from '@mui/icons-material/Checklist';
@@ -78,6 +78,39 @@ const StatTile = ({
   </Paper>
 );
 
+/** Administrator: ostrzeżenie, gdy płatna usługa jest wyłączona albo wykorzystała limit dzienny */
+function ServicesAlert() {
+  const navigate = useNavigate();
+  const [blocked, setBlocked] = useState<string[]>([]);
+  useEffect(() => {
+    const names = { emails: 'e-maile', maps: 'Mapa Google', ratings: 'oceny Google' } as const;
+    fetch(`${apiUrl}/settings/services`, { headers: { Authorization: `Bearer ${localStorage.getItem('token') ?? ''}` } })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((d: { state: Record<keyof typeof names, { available: boolean; reason: string | null }> }) =>
+        setBlocked(
+          (Object.keys(names) as (keyof typeof names)[])
+            .filter((k) => !d.state[k].available)
+            .map((k) => `${names[k]} (${d.state[k].reason === 'off' ? 'wyłączone' : 'limit dzienny'})`),
+        ),
+      )
+      .catch(() => undefined);
+  }, []);
+  if (!blocked.length) return null;
+  return (
+    <Alert
+      severity="warning"
+      sx={{ mt: 3 }}
+      action={
+        <Button color="inherit" size="small" onClick={() => navigate('/ustawienia/uslugi')}>
+          Usługi i koszty
+        </Button>
+      }
+    >
+      Nie działa: {blocked.join(', ')}. Strona pokazuje zamienniki.
+    </Alert>
+  );
+}
+
 /** Napis i ikona każdej szybkiej akcji (kolejność i dobór – quick-actions.ts) */
 const ACTION_VIEW: Record<QuickActionId, { label: string; icon: ReactNode }> = {
   'product-new': { label: 'Dodaj produkt', icon: <AddIcon /> },
@@ -138,6 +171,7 @@ const HomePage = () => {
       <Typography color="text.secondary" sx={{ mt: 1, '&::first-letter': { textTransform: 'uppercase' } }}>
         {todayLabel}
       </Typography>
+      {isOwner && <ServicesAlert />}
 
       {/* panele w dwóch kolumnach: na górze liczniki (rezerwacje widzi tylko administrator) i szybkie akcje,
           pod nimi marketing – co trwa i co jest zaplanowane */}
