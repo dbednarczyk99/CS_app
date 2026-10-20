@@ -1,58 +1,44 @@
 import { useTheme } from 'react-admin';
-import { useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Box, Button, IconButton, Tooltip } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
-import { useNavHistory } from './nav-history';
+import { parentScreen } from './parent-screen';
 
 /**
- * Strzałki w górnym pasku: „← tytuł poprzedniego ekranu” i „→” (następny – z podpowiedzią). Działają jak
- * strzałki przeglądarki; na telefonie sama ikona z podpowiedzią.
+ * Strzałka w górnym pasku do ekranu nadrzędnego, np. w edycji produktu „← Produkty”. Na ekranach głównych
+ * z menu jej nie ma. Na telefonie sama strzałka (nazwa w podpowiedzi).
  */
-export function NavArrows() {
-  const navigate = useNavigate();
-  const { back, forward } = useNavHistory();
-  if (!back && !forward) return null;
+export function ParentLink() {
+  const { pathname } = useLocation();
+  const parent = parentScreen(pathname);
+  if (!parent) return null;
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', mr: 2, minWidth: 0 }}>
-      {back && (
-        <Tooltip title={`Wróć do: ${back}`}>
-          <Button
-            color="inherit"
-            size="small"
-            onClick={() => navigate(-1)}
-            startIcon={<ArrowBackIcon />}
-            sx={{
-              minWidth: 0,
-              maxWidth: { xs: 40, md: 260 },
-              textTransform: 'none',
-              letterSpacing: 0,
-              fontFamily: 'inherit',
-              opacity: 0.85,
-              '&:hover': { opacity: 1 },
-              '& .MuiButton-startIcon': { mr: { xs: 0, md: 0.75 } },
-            }}
-            aria-label={`Wróć do: ${back}`}
-          >
-            <Box
-              component="span"
-              sx={{ display: { xs: 'none', md: 'block' }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-            >
-              {back}
-            </Box>
-          </Button>
-        </Tooltip>
-      )}
-      {forward && (
-        <Tooltip title={`Dalej do: ${forward}`}>
-          <IconButton color="inherit" size="small" onClick={() => navigate(1)} aria-label={`Dalej do: ${forward}`} sx={{ opacity: 0.85 }}>
-            <ArrowForwardIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      )}
-    </Box>
+    <Tooltip title={`Wróć do: ${parent.label}`}>
+      <Button
+        component={Link}
+        to={parent.to}
+        color="inherit"
+        size="small"
+        startIcon={<ArrowBackIcon />}
+        aria-label={`Wróć do: ${parent.label}`}
+        sx={{
+          mr: 2,
+          minWidth: 0,
+          flexShrink: 0,
+          textTransform: 'none',
+          letterSpacing: 0,
+          opacity: 0.85,
+          '&:hover': { opacity: 1 },
+          '& .MuiButton-startIcon': { mr: { xs: 0, md: 0.75 } },
+        }}
+      >
+        <Box component="span" sx={{ display: { xs: 'none', md: 'inline' }, whiteSpace: 'nowrap' }}>
+          {parent.label}
+        </Box>
+      </Button>
+    </Tooltip>
   );
 }
 

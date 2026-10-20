@@ -120,8 +120,8 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
         a: 'Kliknij ikonę oka w nagłówku panelu – zwinie się do paska z samym nagłówkiem i przekreślonym okiem. Kliknięcie paska pokazuje panel z powrotem. Ustawienie zapamiętuje przeglądarka, osobno dla każdego konta (zostaje po wylogowaniu; na innym komputerze lub w innej przeglądarce panele są widoczne).',
       },
       {
-        q: 'Jak wrócić do poprzedniego ekranu?',
-        a: 'Strzałka w lewo w górnym pasku z nazwą poprzedniego ekranu (np. „← Produkty”) – działa jak „Wstecz” w przeglądarce. Po cofnięciu pojawia się strzałka w prawo do ekranu, z którego wróciłeś (nazwa w podpowiedzi).',
+        q: 'Jak wrócić z edycji do listy?',
+        a: 'Strzałka w lewo w górnym pasku z nazwą listy, np. w edycji produktu „← Produkty”, w szczegółach rezerwacji „← Rezerwacje”. Na ekranach otwieranych z menu strzałki nie ma – przejdź wtedy przez menu po lewej.',
       },
       {
         q: 'Jak przełączyć tryb jasny i ciemny?',

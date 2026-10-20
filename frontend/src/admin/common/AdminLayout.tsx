@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Box, ListItemIcon, ListItemText, MenuItem } from '@mui/material';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import { CustomMenu } from './CustomMenu';
-import { NavArrows, ThemeToggle } from './AppBarControls';
+import { ParentLink, ThemeToggle } from './AppBarControls';
 import { COLORS } from '../../theme';
 
 /** „Moje konto” w menu konta (prawy górny róg) – dla każdego zalogowanego */
@@ -22,7 +22,7 @@ const AccountMenuItem = forwardRef<HTMLAnchorElement>((props, ref) => {
 
 /**
  * Górny pasek (zawsze widoczny, nie chowa się przy przewijaniu): logo piekarni (w obu trybach pasek jest ciemny),
- * strzałki do poprzedniego / następnego ekranu, tytuł bieżącej strony, przełącznik trybu, menu konta
+ * strzałka do ekranu nadrzędnego (np. z edycji produktu do listy), tytuł bieżącej strony, przełącznik trybu, menu konta
  */
 const AdminAppBar = () => (
   <AppBar
@@ -48,7 +48,7 @@ const AdminAppBar = () => (
       sx={{ height: 22, mr: 2.5, display: { xs: 'none', sm: 'block' } }}
     />
     <Box sx={{ width: '1px', height: 22, bgcolor: COLORS.line, mr: 2.5, display: { xs: 'none', sm: 'block' } }} />
-    <NavArrows />
+    <ParentLink />
     <TitlePortal
       sx={{
         fontFamily: '"Oswald", sans-serif',
