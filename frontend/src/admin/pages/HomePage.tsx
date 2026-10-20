@@ -1,9 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Title, useGetIdentity, usePermissions } from 'react-admin';
 import { useSubscriberCount } from '../common/useSubscriberCount';
-import { HideableSection } from '../common/PanelVisibility';
+import { DashboardPanel } from '../common/PanelVisibility';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, Card, CardActionArea, CardContent, CircularProgress, Stack, Typography } from '@mui/material';
+import { Box, Button, CardActionArea, CircularProgress, Paper, Typography } from '@mui/material';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import BoltIcon from '@mui/icons-material/Bolt';
 import AddIcon from '@mui/icons-material/Add';
 import ArticleIcon from '@mui/icons-material/Article';
 import CampaignIcon from '@mui/icons-material/Campaign';
@@ -42,7 +44,8 @@ function useReservationCount(date: string, enabled: boolean) {
   return count;
 }
 
-const StatCard = ({
+/** Licznik w panelu „Rezerwacje i newsletter” – kliknięcie prowadzi do szczegółów */
+const StatTile = ({
   label,
   value,
   hint,
@@ -53,25 +56,23 @@ const StatCard = ({
   hint: string;
   onClick: () => void;
 }) => (
-  <Card variant="outlined" sx={{ flex: 1, minWidth: 220, borderTop: (t) => `2px solid ${t.palette.primary.main}` }}>
-    <CardActionArea onClick={onClick} sx={{ height: '100%', display: 'flex', alignItems: 'flex-start' }}>
-      <CardContent sx={{ p: 3, width: '100%' }}>
-        <Typography variant="overline" color="primary">
-          {label}
-        </Typography>
-        <Typography variant="h3" sx={{ my: 1, fontWeight: 400 }}>
-          {value === undefined ? <CircularProgress size={28} /> : value === null ? '—' : value}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {hint}
-        </Typography>
-      </CardContent>
+  <Paper variant="outlined" sx={{ borderTop: (t) => `2px solid ${t.palette.primary.main}` }}>
+    <CardActionArea onClick={onClick} sx={{ p: 1.5, height: '100%' }}>
+      <Typography variant="overline" color="primary" sx={{ lineHeight: 1.6 }}>
+        {label}
+      </Typography>
+      <Typography variant="h4" sx={{ my: 0.5, fontWeight: 400 }}>
+        {value === undefined ? <CircularProgress size={22} /> : value === null ? '—' : value}
+      </Typography>
+      <Typography variant="caption" color="text.secondary">
+        {hint}
+      </Typography>
     </CardActionArea>
-  </Card>
+  </Paper>
 );
 
 const Action = ({ icon, label, onClick }: { icon: ReactNode; label: string; onClick: () => void }) => (
-  <Button variant="outlined" startIcon={icon} onClick={onClick} sx={{ justifyContent: 'flex-start' }}>
+  <Button variant="outlined" size="small" startIcon={icon} onClick={onClick} sx={{ justifyContent: 'flex-start' }}>
     {label}
   </Button>
 );
@@ -114,64 +115,68 @@ const HomePage = () => {
         {todayLabel}
       </Typography>
 
-      {/* administrator: najpierw rezerwacje (dziś, jutro) i newsletter; konto marketingowe – od razu marketing */}
-      {isOwner && (
-        <HideableSection id="pulpit:Rezerwacje i newsletter" title="Rezerwacje i newsletter" sx={{ mt: 4 }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-          <>
-            <StatCard
-              label="Rezerwacje na dziś"
-              value={todayCount}
-              hint="Zobacz listę rezerwacji na dziś"
-              onClick={() =>
-                navigate(`/reservations?filter=${encodeURIComponent(JSON.stringify({ pickupDate: today }))}`)
-              }
-            />
-            <StatCard
-              label="Rezerwacje na jutro"
-              value={tomorrowCount}
-              hint="Do przygotowania – zestawienie, wydruk, e-mail"
-              onClick={() => navigate('/przygotowanie')}
-            />
-          </>
-          <StatCard
-            label="Newsletter"
-            value={confirmed}
-            hint="Potwierdzeni subskrybenci"
-            onClick={() => navigate('/newsletter')}
-          />
-        </Stack>
-        </HideableSection>
-      )}
-
-      <Typography variant="h6" sx={{ mt: isOwner ? 5 : 4, mb: 2 }}>
-        Marketing – co trwa i co jest zaplanowane
-      </Typography>
-      <MarketingOverview />
-
-      <HideableSection id="pulpit:Szybkie akcje" title="Szybkie akcje" sx={{ mt: 5 }}>
-      <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' } }}>
-        <Action icon={<AddIcon />} label="Dodaj produkt" onClick={() => navigate('/products/create')} />
-        <Action icon={<ArticleIcon />} label="Nowy wpis / newsletter" onClick={() => navigate('/blog/create')} />
-        <Action icon={<CampaignIcon />} label="Baner informacyjny" onClick={() => navigate('/announcements')} />
-        <Action icon={<EditCalendarIcon />} label="Trasa chlebowozu" onClick={() => navigate('/bread-van/locations')} />
-        <Action
-          icon={<InsightsIcon />}
-          label={isOwner ? 'Statystyki i koszty' : 'Statystyki odwiedzin'}
-          onClick={() => navigate('/statystyki')}
+      {/* panele w dwóch kolumnach: na górze liczniki (rezerwacje widzi tylko administrator) i szybkie akcje,
+          pod nimi marketing – co trwa i co jest zaplanowane */}
+      <Box sx={{ mt: 4 }}>
+        <MarketingOverview
+          left={[
+            <DashboardPanel key="counts" title={isOwner ? 'Rezerwacje i newsletter' : 'Newsletter'} icon={<ReceiptLongIcon />}>
+              <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', sm: isOwner ? 'repeat(3, 1fr)' : '1fr' } }}>
+                {isOwner && (
+                  <StatTile
+                    label="Na dziś"
+                    value={todayCount}
+                    hint="Lista rezerwacji"
+                    onClick={() =>
+                      navigate(`/reservations?filter=${encodeURIComponent(JSON.stringify({ pickupDate: today }))}`)
+                    }
+                  />
+                )}
+                {isOwner && (
+                  <StatTile
+                    label="Na jutro"
+                    value={tomorrowCount}
+                    hint="Do przygotowania"
+                    onClick={() => navigate('/przygotowanie')}
+                  />
+                )}
+                <StatTile
+                  label="Subskrybenci"
+                  value={confirmed}
+                  hint="Potwierdzeni"
+                  onClick={() => navigate('/newsletter')}
+                />
+              </Box>
+            </DashboardPanel>,
+          ]}
+          right={[
+            <DashboardPanel key="actions" title="Szybkie akcje" icon={<BoltIcon />}>
+              <Box sx={{ display: 'grid', gap: 1, gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' } }}>
+                <Action icon={<AddIcon />} label="Dodaj produkt" onClick={() => navigate('/products/create')} />
+                <Action icon={<ArticleIcon />} label="Nowy wpis" onClick={() => navigate('/blog/create')} />
+                <Action icon={<CampaignIcon />} label="Baner" onClick={() => navigate('/announcements')} />
+                <Action icon={<EditCalendarIcon />} label="Trasa chlebowozu" onClick={() => navigate('/bread-van/locations')} />
+                <Action
+                  icon={<InsightsIcon />}
+                  label={isOwner ? 'Statystyki i koszty' : 'Statystyki'}
+                  onClick={() => navigate('/statystyki')}
+                />
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<OpenInNewIcon />}
+                  href={webUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  sx={{ justifyContent: 'flex-start' }}
+                >
+                  Strona piekarni
+                </Button>
+              </Box>
+            </DashboardPanel>,
+          ]}
         />
-        <Button
-          variant="outlined"
-          startIcon={<OpenInNewIcon />}
-          href={webUrl}
-          target="_blank"
-          rel="noreferrer"
-          sx={{ justifyContent: 'flex-start' }}
-        >
-          Otwórz stronę piekarni
-        </Button>
       </Box>
-      </HideableSection>
 
       <Typography variant="body2" color="text.secondary" sx={{ mt: 5 }}>
         Zmiany zapisane w panelu pojawiają się na stronie po kilku sekundach. Odpowiedzi na najczęstsze pytania

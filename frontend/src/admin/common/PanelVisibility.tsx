@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Box, IconButton, Paper, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, IconButton, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import { usePanelHidden } from './panel-visibility';
@@ -49,33 +49,39 @@ export function HiddenPanelBar({ title, icon, onShow }: { title: string; icon?: 
 }
 
 /**
- * Sekcja pulpitu z nagłówkiem (bez karty) – np. „Szybkie akcje”: oko obok nagłówka, ukryta = pasek.
+ * Karta pulpitu: ikona, nagłówek, opcjonalny link (np. „Produkty”) i oko – ukryta zwija się do paska
+ * (zapamiętane, id = „pulpit:<nagłówek>”).
  */
-export function HideableSection({
-  id,
+export function DashboardPanel({
   title,
+  icon,
+  action,
   children,
-  sx,
 }: {
-  id: string;
   title: string;
+  icon: ReactNode;
+  action?: { label: string; onClick: () => void };
   children: ReactNode;
-  sx?: object;
 }) {
-  const [hidden, toggle] = usePanelHidden(id);
-  if (hidden)
-    return (
-      <Box sx={sx}>
-        <HiddenPanelBar title={title} onShow={toggle} />
-      </Box>
-    );
+  const [hidden, toggle] = usePanelHidden(`pulpit:${title}`);
+  if (hidden) return <HiddenPanelBar title={title} icon={icon} onShow={toggle} />;
   return (
-    <Box sx={sx}>
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-        <Typography variant="h6">{title}</Typography>
-        <HidePanelButton onClick={toggle} />
-      </Stack>
-      {children}
-    </Box>
+    <Card variant="outlined">
+      <CardContent sx={{ p: 2.5 }}>
+        <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.5 }}>
+          <Box sx={{ color: 'primary.main', display: 'flex' }}>{icon}</Box>
+          <Typography variant="h6" sx={{ flex: 1, fontSize: '1.05rem' }}>
+            {title}
+          </Typography>
+          {action && (
+            <Button size="small" onClick={action.onClick}>
+              {action.label}
+            </Button>
+          )}
+          <HidePanelButton onClick={toggle} />
+        </Stack>
+        {children}
+      </CardContent>
+    </Card>
   );
 }

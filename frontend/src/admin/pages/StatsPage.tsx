@@ -8,11 +8,6 @@ import {
   Chip,
   CircularProgress,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
@@ -28,6 +23,7 @@ import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import { HiddenPanelBar, HidePanelButton } from '../common/PanelVisibility';
 import { usePanelHidden } from '../common/panel-visibility';
+import { PanelColumns } from '../common/PanelColumns';
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -303,7 +299,7 @@ function DailyChart({ series, metric }: { series: Stats['series']; metric: Serie
         sx={{
           display: 'flex',
           alignItems: 'flex-end',
-          gap: '3px',
+          gap: series.length > 45 ? '1px' : '3px',
           height: 160,
           borderBottom: 1,
           borderColor: 'divider',
@@ -408,9 +404,11 @@ export default function StatsPage() {
 
       {stats && (
         <>
-          {/* 1. LIMITY I KOSZTY – tylko administrator */}
-          {isOwner && (
-            <Box sx={{ display: 'grid', gap: 2, mt: 4, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
+          {/* panele w dwóch kolumnach (zwinięty panel – kolejny w kolumnie podjeżdża w górę) */}
+          <PanelColumns
+            sx={{ mt: 4 }}
+            left={[
+              isOwner && (
               <Section title="Wysyłka e-maili" icon={<MailIcon />}>
                 <LimitBar
                   label="Dziś"
@@ -452,52 +450,13 @@ export default function StatsPage() {
                   </Alert>
                 )}
               </Section>
-
-              <Section title="Mapa Google" icon={<MapIcon />}>
-                <LimitBar
-                  label="Wczytania mapy w tym miesiącu"
-                  value={stats.month.maps}
-                  limit={stats.limits.mapsMonthlyFree}
-                  forecast={stats.month.forecast.maps}
-                  hint={`Darmowa pula Google: ${fmt(stats.limits.mapsMonthlyFree)} miesięcznie. Prognoza na koniec miesiąca: ok. ${fmt(stats.month.forecast.maps)}`}
-                />
-                <Stack direction="row" spacing={4} sx={{ mt: 2.5 }}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Dziś
-                    </Typography>
-                    <Typography sx={{ fontSize: '1.25rem', fontWeight: 700 }}>{fmt(stats.todayTotals.maps)}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Szacowany koszt w tym miesiącu
-                    </Typography>
-                    <Typography sx={{ fontSize: '1.25rem', fontWeight: 700 }}>
-                      {money(stats.month.mapsCostPln)}
-                    </Typography>
-                  </Box>
-                </Stack>
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 2 }}>
-                  {stats.mapsBySource.map((m) => (
-                    <Chip
-                      key={m.key}
-                      size="small"
-                      variant="outlined"
-                      label={`${MAP_LABELS[m.key] ?? m.key}: ${fmt(m.count)}`}
-                    />
-                  ))}
-                </Stack>
-              </Section>
-            </Box>
-          )}
-
-          {/* 2. ODWIEDZINY */}
-          {visitsHidden ? (
-            <Box sx={{ mt: 2 }}>
+              ),
+              visitsHidden ? (
+            <Box>
               <HiddenPanelBar title="Odwiedziny strony" icon={<VisibilityIcon />} onShow={toggleVisits} />
             </Box>
           ) : (
-          <Card variant="outlined" sx={{ mt: 2 }}>
+          <Card variant="outlined">
             <CardContent sx={{ p: 3 }}>
               <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={2}>
                 <Stack direction="row" spacing={1.25} alignItems="center">
@@ -548,50 +507,15 @@ export default function StatsPage() {
               <DailyChart series={stats.series} metric={metric} />
             </CardContent>
           </Card>
-          )}
-
-          {/* 3. SZCZEGÓŁY */}
-          <Box sx={{ display: 'grid', gap: 2, mt: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
-            <Section title="Skąd przychodzą odwiedzający" icon={<TravelExploreIcon />}>
-              <Typography variant="caption" color="text.secondary">
-                Wejścia na stronę w ostatnich {days} dniach: {fmt(stats.sources.reduce((s, i) => s + i.count, 0))}
-              </Typography>
-              <RankList items={stats.sources} labels={SOURCE_LABELS} empty="Brak wejść w tym okresie." />
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
-                Aplikacja Instagrama często nie przekazuje, skąd ktoś przyszedł – takie wejścia trafiają do
-                „Bezpośrednio”. Link w bio z dopiskiem <strong>?utm_source=instagram</strong> (np.
-                chlebasmak.pl/?utm_source=instagram) pozwala je policzyć dokładnie. Linki w newsletterze mają taki
-                dopisek automatycznie.
-              </Typography>
-            </Section>
-
-            <Section title="Najczęściej odwiedzane" icon={<VisibilityIcon />}>
+          ),
+              <Section title="Najczęściej odwiedzane" icon={<VisibilityIcon />}>
               <Typography variant="caption" color="text.secondary">
                 Ostatnie {days} dni
               </Typography>
               <RankList items={stats.pages} labels={PAGE_LABELS} empty="Brak odsłon w tym okresie." />
-            </Section>
-
-            <Section title="Najczęściej oglądane produkty" icon={<BakeryDiningIcon />}>
-              <Typography variant="caption" color="text.secondary">
-                Wejścia na stronę produktu w ostatnich {days} dniach
-              </Typography>
-              <RankList
-                items={(stats.products ?? []).map((p) => ({ key: p.id, count: p.count }))}
-                labels={Object.fromEntries(
-                  (stats.products ?? []).map((p) => [p.id, p.active ? p.name : `${p.name} (ukryty na stronie)`]),
-                )}
-                empty="Nikt jeszcze nie oglądał stron produktów w tym okresie."
-              />
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
-                Pokazuje, co najbardziej ciekawi odwiedzających – warto porównać z najczęściej rezerwowanymi
-                produktami. Liczone bez danych osobowych.
-              </Typography>
-            </Section>
-
-            {isOwner && (
-              <>
-                <Section title="Rezerwacje" icon={<ReceiptLongIcon />}>
+            </Section>,
+              isOwner && (
+              <Section title="Rezerwacje" icon={<ReceiptLongIcon />}>
                   <Typography variant="caption" color="text.secondary">
                     Złożone w ostatnich {days} dniach
                   </Typography>
@@ -642,8 +566,77 @@ export default function StatsPage() {
                     </>
                   )}
                 </Section>
-
-                <Section title="E-maile według rodzaju" icon={<MailIcon />}>
+              ),
+              <NewslettersSection items={stats.newsletters ?? []} />,
+            ]}
+            right={[
+              isOwner && (
+              <Section title="Mapa Google" icon={<MapIcon />}>
+                <LimitBar
+                  label="Wczytania mapy w tym miesiącu"
+                  value={stats.month.maps}
+                  limit={stats.limits.mapsMonthlyFree}
+                  forecast={stats.month.forecast.maps}
+                  hint={`Darmowa pula Google: ${fmt(stats.limits.mapsMonthlyFree)} miesięcznie. Prognoza na koniec miesiąca: ok. ${fmt(stats.month.forecast.maps)}`}
+                />
+                <Stack direction="row" spacing={4} sx={{ mt: 2.5 }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Dziś
+                    </Typography>
+                    <Typography sx={{ fontSize: '1.25rem', fontWeight: 700 }}>{fmt(stats.todayTotals.maps)}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Szacowany koszt w tym miesiącu
+                    </Typography>
+                    <Typography sx={{ fontSize: '1.25rem', fontWeight: 700 }}>
+                      {money(stats.month.mapsCostPln)}
+                    </Typography>
+                  </Box>
+                </Stack>
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 2 }}>
+                  {stats.mapsBySource.map((m) => (
+                    <Chip
+                      key={m.key}
+                      size="small"
+                      variant="outlined"
+                      label={`${MAP_LABELS[m.key] ?? m.key}: ${fmt(m.count)}`}
+                    />
+                  ))}
+                </Stack>
+              </Section>
+              ),
+              <Section title="Skąd przychodzą odwiedzający" icon={<TravelExploreIcon />}>
+              <Typography variant="caption" color="text.secondary">
+                Wejścia na stronę w ostatnich {days} dniach: {fmt(stats.sources.reduce((s, i) => s + i.count, 0))}
+              </Typography>
+              <RankList items={stats.sources} labels={SOURCE_LABELS} empty="Brak wejść w tym okresie." />
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
+                Aplikacja Instagrama często nie przekazuje, skąd ktoś przyszedł – takie wejścia trafiają do
+                „Bezpośrednio”. Link w bio z dopiskiem <strong>?utm_source=instagram</strong> (np.
+                chlebasmak.pl/?utm_source=instagram) pozwala je policzyć dokładnie. Linki w newsletterze mają taki
+                dopisek automatycznie.
+              </Typography>
+            </Section>,
+              <Section title="Najczęściej oglądane produkty" icon={<BakeryDiningIcon />}>
+              <Typography variant="caption" color="text.secondary">
+                Wejścia na stronę produktu w ostatnich {days} dniach
+              </Typography>
+              <RankList
+                items={(stats.products ?? []).map((p) => ({ key: p.id, count: p.count }))}
+                labels={Object.fromEntries(
+                  (stats.products ?? []).map((p) => [p.id, p.active ? p.name : `${p.name} (ukryty na stronie)`]),
+                )}
+                empty="Nikt jeszcze nie oglądał stron produktów w tym okresie."
+              />
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
+                Pokazuje, co najbardziej ciekawi odwiedzających – warto porównać z najczęściej rezerwowanymi
+                produktami. Liczone bez danych osobowych.
+              </Typography>
+            </Section>,
+              isOwner && (
+              <Section title="E-maile według rodzaju" icon={<MailIcon />}>
                   <Typography variant="caption" color="text.secondary">
                     Wysłane w tym miesiącu
                   </Typography>
@@ -653,12 +646,10 @@ export default function StatsPage() {
                     empty="W tym miesiącu nie wysłano jeszcze e-maili."
                   />
                 </Section>
-              </>
-            )}
-          </Box>
-
-          <NewslettersSection items={stats.newsletters ?? []} />
-          <PromotionsSection items={stats.promotions ?? []} />
+              ),
+              <PromotionsSection items={stats.promotions ?? []} />,
+            ]}
+          />
 
           <Typography variant="body2" color="text.secondary" sx={{ mt: 4 }}>
             Statystyki są anonimowe: strona liczy tylko odsłony i wczytania mapy – bez plików cookies, bez zapisywania
@@ -699,7 +690,7 @@ function Change({ before, during }: { before: number; during: number }) {
 /** Newslettery: do ilu osób, ile wejść na stronę z e-maila, które produkty z kafelków klikano */
 function NewslettersSection({ items }: { items: NonNullable<Stats['newsletters']> }) {
   return (
-    <Section title="Newslettery" icon={<MarkEmailReadIcon />} sx={{ mt: 2, height: 'auto' }}>
+    <Section title="Newslettery" icon={<MarkEmailReadIcon />} sx={{ height: 'auto' }}>
       <Typography variant="caption" color="text.secondary">
         Ostatnie wysyłki – wejścia na stronę z linków w e-mailu (od wysyłki do dziś; jedna osoba może wejść kilka razy,
         np. z przekazanego dalej e-maila). Liczone bez pikseli śledzących, więc samo otwarcie e-maila nie jest widoczne.
@@ -709,39 +700,28 @@ function NewslettersSection({ items }: { items: NonNullable<Stats['newsletters']
           Nie wysłano jeszcze newslettera z licznikiem wejść.
         </Typography>
       ) : (
-        <Box sx={{ overflowX: 'auto', mt: 1 }}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Wpis</TableCell>
-                <TableCell>Wysłano</TableCell>
-                <TableCell align="right">Odbiorcy</TableCell>
-                <TableCell align="right">Wejścia</TableCell>
-                <TableCell>Kliknięte produkty</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {items.map((n) => (
-                <TableRow key={n.id}>
-                  <TableCell sx={{ maxWidth: 280 }}>{n.title}</TableCell>
-                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{new Date(n.sentAt).toLocaleDateString('pl-PL')}</TableCell>
-                  <TableCell align="right">{fmt(n.recipients)}</TableCell>
-                  <TableCell align="right">
-                    <strong>{fmt(n.visits)}</strong>
-                    {/* wejścia to kliknięcia (ta sama osoba może wejść kilka razy) – bez procentu odbiorców */}
-                    {n.articleVisits > 0 && n.articleVisits !== n.visits && (
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                        w tym do wpisu: {fmt(n.articleVisits)}
-                      </Typography>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {n.products.length === 0 ? '—' : n.products.map((p) => `${p.name} (${fmt(p.count)})`).join(', ')}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <Box sx={{ mt: 1 }}>
+          {items.map((n) => (
+            <Box key={n.id} sx={{ py: 1.25, borderTop: 1, borderColor: 'divider', '&:first-of-type': { borderTop: 0 } }}>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {n.title}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {new Date(n.sentAt).toLocaleDateString('pl-PL')} · do {fmt(n.recipients)} os. ·{' '}
+                <Box component="strong" sx={{ color: 'text.primary' }}>
+                  {fmt(n.visits)}
+                </Box>{' '}
+                wejść
+                {/* wejścia to kliknięcia (ta sama osoba może wejść kilka razy) – bez procentu odbiorców */}
+                {n.articleVisits > 0 && n.articleVisits !== n.visits && ` (w tym do wpisu: ${fmt(n.articleVisits)})`}
+              </Typography>
+              {n.products.length > 0 && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                  Kliknięte produkty: {n.products.map((p) => `${p.name} (${fmt(p.count)})`).join(', ')}
+                </Typography>
+              )}
+            </Box>
+          ))}
         </Box>
       )}
     </Section>
@@ -751,7 +731,7 @@ function NewslettersSection({ items }: { items: NonNullable<Stats['newsletters']
 /** Skuteczność promocji: rezerwacje i wyświetlenia w czasie promocji vs tak samo długi okres tuż przed nią */
 function PromotionsSection({ items }: { items: NonNullable<Stats['promotions']> }) {
   return (
-    <Section title="Skuteczność promocji" icon={<LocalOfferIcon />} sx={{ mt: 2, height: 'auto' }}>
+    <Section title="Skuteczność promocji" icon={<LocalOfferIcon />} sx={{ height: 'auto' }}>
       <Typography variant="caption" color="text.secondary">
         Porównanie z tak samo długim okresem tuż przed promocją. Rezerwacje – zarezerwowane sztuki według dnia odbioru,
         bez anulowanych; sprzedaży w sklepie bez rezerwacji strona nie widzi.
@@ -761,55 +741,42 @@ function PromotionsSection({ items }: { items: NonNullable<Stats['promotions']> 
           Nie było jeszcze promocji.
         </Typography>
       ) : (
-        <Box sx={{ overflowX: 'auto', mt: 1 }}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Produkt</TableCell>
-                <TableCell>Cena</TableCell>
-                <TableCell>Okres</TableCell>
-                <TableCell>Rezerwacje (szt.)</TableCell>
-                <TableCell>Wyświetlenia produktu</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {items.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell>
-                    {p.name}
-                    <Chip
-                      size="small"
-                      label={p.status === 'active' ? 'trwa' : 'zakończona'}
-                      color={p.status === 'active' ? 'success' : 'default'}
-                      sx={{ ml: 1 }}
-                    />
-                  </TableCell>
-                  <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                    {p.promoPrice != null ? (
-                      <>
-                        <s>{money(p.price)}</s> {money(p.promoPrice)}
-                      </>
-                    ) : (
-                      'tylko etykieta'
-                    )}
-                  </TableCell>
-                  <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                    {dayMonth(p.from)} – {p.to ? dayMonth(p.to) : 'bez końca'}
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                      {p.status === 'active' ? 'do dziś: ' : ''}
-                      {p.days} {p.days === 1 ? 'dzień' : 'dni'}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Change before={p.before.quantity} during={p.during.quantity} />
-                  </TableCell>
-                  <TableCell>
-                    <Change before={p.before.views} during={p.during.views} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <Box sx={{ mt: 1 }}>
+          {items.map((p) => (
+            <Box key={p.id} sx={{ py: 1.25, borderTop: 1, borderColor: 'divider', '&:first-of-type': { borderTop: 0 } }}>
+              <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {p.name}
+                </Typography>
+                <Chip
+                  size="small"
+                  label={p.status === 'active' ? 'trwa' : 'zakończona'}
+                  color={p.status === 'active' ? 'success' : 'default'}
+                />
+              </Stack>
+              <Typography variant="body2" color="text.secondary">
+                {p.promoPrice != null ? (
+                  <>
+                    <s>{money(p.price)}</s> {money(p.promoPrice)}
+                  </>
+                ) : (
+                  'tylko etykieta'
+                )}{' '}
+                · {dayMonth(p.from)} – {p.to ? dayMonth(p.to) : 'bez końca'} ({p.status === 'active' ? 'do dziś: ' : ''}
+                {p.days} {p.days === 1 ? 'dzień' : 'dni'})
+              </Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', columnGap: 1.5, rowGap: 0.25, mt: 0.75 }}>
+                <Typography variant="caption" color="text.secondary">
+                  Rezerwacje (szt.)
+                </Typography>
+                <Change before={p.before.quantity} during={p.during.quantity} />
+                <Typography variant="caption" color="text.secondary">
+                  Wyświetlenia
+                </Typography>
+                <Change before={p.before.views} during={p.during.views} />
+              </Box>
+            </Box>
+          ))}
         </Box>
       )}
     </Section>
