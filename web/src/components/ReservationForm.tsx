@@ -576,7 +576,11 @@ export function ReservationForm({
             />
             <span>
               Zapisz mnie do newslettera – nowości, wypieki sezonowe i promocje raz na jakiś czas. Potwierdzisz zapis
-              linkiem z e-maila, a wypisać się możesz w każdej chwili.
+              linkiem z e-maila, a wypisać się możesz w każdej chwili. Więcej w{' '}
+              <a href="/polityka-prywatnosci" target="_blank" className="text-gold underline-offset-2 hover:underline">
+                polityce prywatności
+              </a>
+              .
             </span>
           </label>
 
