@@ -9,11 +9,19 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
     items: [
       {
         q: 'Gdzie zobaczę, co przygotować na jutro?',
-        a: '„Do przygotowania” pokazuje zestawienie na wybrany dzień (domyślnie jutro): ile czego przygotować w sumie i w każdym punkcie oraz listę rezerwacji. Zestawienie można wydrukować albo wysłać e-mailem.',
+        a: '„Do przygotowania” pokazuje zestawienie na wybrany dzień (domyślnie jutro): ile czego przygotować w sumie i w każdym punkcie oraz listę rezerwacji. Zestawienie można wydrukować albo wysłać e-mailem. Codzienną automatyczną wysyłkę (godzina i adresy) włączasz w „Ustawienia → Zasady rezerwacji”.',
       },
       {
         q: 'Czy mogę zmienić status rezerwacji?',
-        a: 'Nie – rezerwacje są tylko do podglądu. Status zmienia wyłącznie klient (anulowanie linkiem z e-maila, do 18:00 dnia poprzedniego).',
+        a: 'Nie – rezerwacje są tylko do podglądu. Status zmienia wyłącznie klient (anulowanie linkiem z e-maila, do godziny zamknięcia dnia poprzedniego – domyślnie 18:00).',
+      },
+      {
+        q: 'Jak zmienić godzinę zamykania rezerwacji, liczbę dni albo limit na telefon?',
+        a: '„Ustawienia” → „Zasady rezerwacji” (tylko właściciel): godzina, do której przyjmujemy rezerwacje i anulowania na następny dzień, ile dni do przodu można rezerwować i ile aktywnych rezerwacji może mieć jeden numer telefonu. Przykład pod polami pokazuje, co zobaczy klient. Zmiana działa od razu – w formularzu, komunikatach, e-mailach, na stronach produktów i w regulaminie (tam liczby wstawiają się same w miejscu znaczników {godzina}, {dni}, {limit}). Zasady są częścią regulaminu: przy istotnej zmianie zaktualizuj datę „Obowiązuje od” i poinformuj klientów. „Wcześniejsze wersje” i „Przywróć stan domyślny” działają jak w treściach strony.',
+      },
+      {
+        q: 'Jak zmienić regulamin albo politykę prywatności?',
+        a: '„Ustawienia” → „Dokumenty prawne” (tylko właściciel): po lewej treść, po prawej podgląd jak na stronie. Składnia: # tytuł, ## rozdział, **pogrubienie**, „1.” albo „-” na początku linii – lista, pusta linia – nowy akapit. Pola w podwójnych nawiasach [[…]] to miejsca do uzupełnienia (np. nazwa firmy, NIP) – panel ostrzega, ile ich zostało. „Zapisz i opublikuj” od razu zmienia dokument na stronie; poprzednie wersje zostają w historii w całości. Wersja startowa to projekt – przed uruchomieniem strony powinien go sprawdzić prawnik.',
       },
       {
         q: 'Klient prosi o usunięcie swoich danych',
