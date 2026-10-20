@@ -575,8 +575,9 @@ export function ReservationForm({
               className="mt-1 size-4 shrink-0 accent-gold"
             />
             <span>
-              Zapisz mnie do newslettera – nowości, wypieki sezonowe i promocje raz na jakiś czas. Potwierdzisz zapis
-              linkiem z e-maila, a wypisać się możesz w każdej chwili. Więcej w{' '}
+              {/* ta sama treść zgody co w okienku zapisu do newslettera */}
+              Chcę otrzymywać newsletter Chleba Smak na podany adres e-mail. Zgodę mogę wycofać w każdej chwili – link
+              do wypisania jest w każdej wiadomości. Więcej w{' '}
               <a href="/polityka-prywatnosci" target="_blank" className="text-gold underline-offset-2 hover:underline">
                 polityce prywatności
               </a>
