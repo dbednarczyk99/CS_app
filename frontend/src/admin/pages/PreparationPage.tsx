@@ -165,7 +165,35 @@ export default function PreparationPage() {
                         <Typography variant="subtitle2" gutterBottom>
                           Rezerwacje ({point.reservations.length})
                         </Typography>
-                        <Table size="small">
+                        {/* telefon: lista zamiast tabeli (5 kolumn się nie mieści); wydruk – zawsze tabela */}
+                        <Box sx={{ display: { xs: 'block', md: 'none' }, '@media print': { display: 'none' } }}>
+                          {point.reservations.map((r) => (
+                            <Box key={r.id} sx={{ py: 1.25, borderTop: 1, borderColor: 'divider' }}>
+                              <Stack direction="row" alignItems="center" spacing={1}>
+                                <Typography sx={{ fontWeight: 700, color: 'primary.main' }}>{r.pickupTime}</Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
+                                  {r.number}
+                                </Typography>
+                                <StatusChip status={r.status} />
+                              </Stack>
+                              <Typography variant="body2" sx={{ mt: 0.5 }}>
+                                {r.customerName} ·{' '}
+                                <Box component="a" href={`tel:${r.customerPhone}`} sx={{ color: 'text.secondary' }}>
+                                  {formatPhone(r.customerPhone)}
+                                </Box>
+                              </Typography>
+                              <Typography variant="body2" sx={{ mt: 0.25 }}>
+                                {r.items.map((i) => `${i.productName} ×${i.quantity}`).join(', ')}
+                              </Typography>
+                              {r.notes && (
+                                <Typography variant="caption" display="block" color="warning.main">
+                                  Uwagi: {r.notes}
+                                </Typography>
+                              )}
+                            </Box>
+                          ))}
+                        </Box>
+                        <Table size="small" sx={{ display: { xs: 'none', md: 'table' }, '@media print': { display: 'table' } }}>
                           <TableHead>
                             <TableRow>
                               <TableCell>Godz.</TableCell>
