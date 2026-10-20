@@ -173,6 +173,13 @@ export interface Announcement {
   updatedAt: string;
 }
 
+/** Które płatne usługi działają teraz (panel: Usługi i koszty) – przy wyłączonej strona pokazuje zamiennik */
+export interface ServiceStatus {
+  emails: boolean;
+  maps: boolean;
+  ratings: boolean;
+}
+
 /** Zasady rezerwacji z panelu (Rezerwacje → Zasady rezerwacji) */
 export interface ReservationRules {
   /** rezerwacja i anulowanie do tej godziny dnia poprzedzającego odbiór, „HH:MM” */
@@ -218,6 +225,8 @@ export interface ReservationOptions {
 
 /** Rezerwacja widoczna dla klienta (potwierdzenie, anulowanie) */
 export interface PublicReservation {
+  /** tylko po złożeniu: czy wyszło potwierdzenie e-mailem (wyłącznik e-maili w panelu) */
+  confirmationEmail?: boolean;
   number: string;
   status: 'NEW' | 'CANCELLED';
   pickupType: 'STORE' | 'VAN';
@@ -275,6 +284,8 @@ export const api = {
   content: () => get<Partial<SiteContent>>('/content'),
   heroSlides: () => get<HeroSlideData[]>('/content/hero'),
   reservationRules: () => get<ReservationRules>('/settings/reservations/public'),
+  // wyłączniki kosztów z panelu (Usługi i koszty): czy działają e-maile, mapa, odświeżanie ocen
+  serviceStatus: () => get<ServiceStatus>('/settings/services/public'),
   legal: (doc: string) => get<LegalDocumentData>(`/settings/legal/${encodeURIComponent(doc)}`),
 };
 

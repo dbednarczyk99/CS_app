@@ -58,8 +58,11 @@ export function PickupPointPicker({
   onChange,
   heading,
   rememberedKey,
+  mapEnabled = true,
 }: {
   points: PickupPoint[];
+  /** false – mapa wyłączona w panelu (zostaje sama lista punktów) */
+  mapEnabled?: boolean;
   value: string | null;
   onChange: (key: string) => void;
   /** np. „W piątek: 4 piekarnie i 1 postój chlebowozu” */
@@ -126,7 +129,7 @@ export function PickupPointPicker({
         </p>
       )}
 
-      {API_KEY && onMap.length > 0 && (
+      {API_KEY && mapEnabled && onMap.length > 0 && (
         <div className="relative h-[220px] overflow-hidden border border-line bg-coal sm:h-[300px]">
           <APIProvider apiKey={API_KEY} language="pl" region="PL">
             <GoogleMap

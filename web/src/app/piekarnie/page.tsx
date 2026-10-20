@@ -7,6 +7,8 @@ import { StoresMap } from '@/components/StoresMap';
 import { api, orFallback } from '@/lib/api';
 import { plural } from '@/lib/format';
 import { fill, getContent, seoMetadata } from '@/lib/content';
+import { getServiceStatus } from '@/lib/services';
+import { MapFallback } from '@/components/MapFallback';
 import { JsonLd } from '@/components/JsonLd';
 import { bakeryLd } from '@/lib/structured-data';
 
@@ -14,10 +16,11 @@ export const generateMetadata = () => seoMetadata('seo.locations', { path: '/pie
 
 /** Teksty i zdjęcia – z panelu (Strona → Podstrony → Piekarnie) */
 export default async function LocationsPage() {
-  const [locations, stops, content] = await Promise.all([
+  const [locations, stops, content, services] = await Promise.all([
     orFallback(api.locations(), []),
     orFallback(api.breadVanStops(), []),
     getContent(),
+    getServiceStatus(),
   ]);
   const header = content['locations.header'];
   const onsite = content['locations.onsite'];
@@ -25,7 +28,8 @@ export default async function LocationsPage() {
   // „{miejsca} w Krakowie…” → „4 miejsca w Krakowie…”; bez piekarni (awaria API) – „Miejsca w Krakowie…”
   const count = `${locations.length} ${plural(locations.length, ['miejsce', 'miejsca', 'miejsc'])}`;
   const intro = fill(header.text, { miejsca: locations.length > 0 ? count : 'miejsca' });
-  const hasMap = locations.some((l) => l.lat != null);
+  // mapa: są współrzędne i usługa działa (wyłącznik / limit dzienny w panelu – wtedy lista z linkami)
+  const hasMap = locations.some((l) => l.lat != null) && services.maps;
   // ten sam adres może być przystankiem w kilka dni tygodnia
   const vanPlaces = new Set(stops.map((s) => s.address)).size;
 
@@ -52,6 +56,14 @@ export default async function LocationsPage() {
             <h2 className="heading mb-6 text-2xl">Piekarnie na mapie</h2>
             {/* ta sama mapa co na /chlebowoz – tu domyślnie z filtrem „Piekarnie” */}
             <StoresMap locations={locations} stops={stops} initialFilter="stores" />
+          </section>
+        )}
+        {!services.maps && locations.length > 0 && (
+          <section className="mt-20">
+            <h2 className="heading mb-6 text-2xl">Piekarnie na mapie</h2>
+            <MapFallback
+              places={locations.map((l) => ({ key: l.id, label: l.address, detail: l.phone ?? undefined, href: l.googleMapsUrl }))}
+            />
           </section>
         )}
 

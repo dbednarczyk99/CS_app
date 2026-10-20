@@ -5,16 +5,20 @@ import { StoresMap } from '@/components/StoresMap';
 import { VanSchedule } from '@/components/VanSchedule';
 import { api, orFallback } from '@/lib/api';
 import { fill, getContent, seoMetadata } from '@/lib/content';
+import { getServiceStatus } from '@/lib/services';
+import { MapFallback } from '@/components/MapFallback';
+import { WEEKDAYS } from '@/lib/format';
 
 export const generateMetadata = () => seoMetadata('seo.van', { path: '/chlebowoz' });
 
 /** Nagłówki i ramka – z panelu (Strona → Podstrony → Chlebowóz); opis i trasa – Piekarnie → Chlebowóz */
 export default async function BreadVanPage() {
-  const [description, stops, locations, content] = await Promise.all([
+  const [description, stops, locations, content, services] = await Promise.all([
     orFallback(api.breadVanDescription(), null),
     orFallback(api.breadVanStops(), []),
     orFallback(api.locations(), []),
     getContent(),
+    getServiceStatus(),
   ]);
   const header = content['van.header'];
   const schedule = content['van.schedule'];
@@ -47,7 +51,21 @@ export default async function BreadVanPage() {
         </div>
       </div>
 
-      {stops.some((s) => s.lat != null) && (
+      {/* mapa wyłączona w panelu / po dziennym limicie – lista przystanków z linkami do Map Google */}
+      {!services.maps && stops.length > 0 && (
+        <section className="mx-auto max-w-7xl px-5 pb-24 sm:px-8">
+          <h2 className="heading mb-6 text-2xl">{schedule.mapTitle}</h2>
+          <MapFallback
+            places={stops.map((s) => ({
+              key: s.id,
+              label: s.address,
+              detail: `${WEEKDAYS.find((d) => d.key === s.dayOfTheWeek)?.label ?? ''}, ${s.startTime}–${s.endTime}`,
+              href: s.googleMapsUrl,
+            }))}
+          />
+        </section>
+      )}
+      {services.maps && stops.some((s) => s.lat != null) && (
         <section className="mx-auto max-w-7xl px-5 pb-24 sm:px-8">
           <h2 className="heading mb-6 text-2xl">{schedule.mapTitle}</h2>
           {/* ta sama mapa co na /piekarnie – tu domyślnie z filtrem „Chlebowóz” */}

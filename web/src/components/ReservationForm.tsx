@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaCheck, FaTrash } from 'react-icons/fa6';
-import type { PublicReservation, ReservationOptions } from '@/lib/api';
+import type { PublicReservation, ReservationOptions, ServiceStatus } from '@/lib/api';
 import type { ReservationFormTexts } from '@/lib/content';
 import { formatDay, formatDayMonth, formatPrice, plural } from '@/lib/format';
 import { inPromoWindow, priceOn, type PromoWindow } from '@/lib/products';
@@ -157,9 +157,12 @@ export function ReservationForm({
   options,
   reservable,
   texts,
+  services = { emails: true, maps: true, ratings: true },
 }: {
   options: ReservationOptions;
   reservable: ReservableProduct[];
+  /** wyłączniki z panelu: bez e-maili – bez potwierdzenia i zapisu do newslettera, bez mapy – sama lista */
+  services?: ServiceStatus;
   /** teksty z panelu (Strona → Podstrony → Rezerwacja → Formularz rezerwacji) */
   texts: ReservationFormTexts;
 }) {
@@ -293,7 +296,7 @@ export function ReservationForm({
           customerEmail: email,
           notes: notes || undefined,
           consent,
-          newsletter,
+          newsletter: services.emails && newsletter,
           website: website || undefined,
           items: cart.items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
         }),
@@ -449,6 +452,7 @@ export function ReservationForm({
                     </p>
                   )}
                   <PickupPointPicker
+                    mapEnabled={services.maps}
                     points={points}
                     value={pointKey}
                     onChange={pickPoint}
@@ -567,23 +571,25 @@ export function ReservationForm({
             </span>
           </label>
 
-          <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-stone">
-            <input
-              type="checkbox"
-              checked={newsletter}
-              onChange={(e) => setNewsletter(e.target.checked)}
-              className="mt-1 size-4 shrink-0 accent-gold"
-            />
-            <span>
-              {/* ta sama treść zgody co w okienku zapisu do newslettera */}
-              Chcę otrzymywać newsletter Chleba Smak na podany adres e-mail. Zgodę mogę wycofać w każdej chwili – link
-              do wypisania jest w każdej wiadomości. Więcej w{' '}
-              <a href="/polityka-prywatnosci" target="_blank" className="text-gold underline-offset-2 hover:underline">
-                polityce prywatności
-              </a>
-              .
-            </span>
-          </label>
+          {services.emails && (
+            <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-stone">
+              <input
+                type="checkbox"
+                checked={newsletter}
+                onChange={(e) => setNewsletter(e.target.checked)}
+                className="mt-1 size-4 shrink-0 accent-gold"
+              />
+              <span>
+                {/* ta sama treść zgody co w okienku zapisu do newslettera */}
+                Chcę otrzymywać newsletter Chleba Smak na podany adres e-mail. Zgodę mogę wycofać w każdej chwili – link
+                do wypisania jest w każdej wiadomości. Więcej w{' '}
+                <a href="/polityka-prywatnosci" target="_blank" className="text-gold underline-offset-2 hover:underline">
+                  polityce prywatności
+                </a>
+                .
+              </span>
+            </label>
+          )}
 
           <p className="mt-4 text-xs text-stone">
             <span className="text-gold">*</span> – pole obowiązkowe
@@ -772,8 +778,17 @@ function ReservationSuccess({
       </span>
       <h2 className="heading mt-6 text-3xl">{title}</h2>
       <p className="mt-3 text-stone">
-        Dziękujemy, {r.customerName.split(' ')[0]}! Potwierdzenie wysłaliśmy na{' '}
-        <strong className="text-cream">{r.customerEmail}</strong>.
+        {r.confirmationEmail === false ? (
+          <>
+            Dziękujemy, {r.customerName.split(' ')[0]}! Potwierdzenie e-mailem jest chwilowo niedostępne – zapisz albo
+            zrób zdjęcie numeru rezerwacji poniżej i podaj go przy odbiorze.
+          </>
+        ) : (
+          <>
+            Dziękujemy, {r.customerName.split(' ')[0]}! Potwierdzenie wysłaliśmy na{' '}
+            <strong className="text-cream">{r.customerEmail}</strong>.
+          </>
+        )}
       </p>
       <p className="mt-8 text-sm text-stone">Numer rezerwacji</p>
       <p className="font-display text-3xl tracking-[0.2em] text-gold">{r.number}</p>

@@ -2,6 +2,7 @@ import { ReservationForm } from '@/components/ReservationForm';
 import { api, orFallback } from '@/lib/api';
 import { isAvailable, promoWindow } from '@/lib/products';
 import { getContent, seoMetadata } from '@/lib/content';
+import { getServiceStatus } from '@/lib/services';
 
 export const generateMetadata = () => seoMetadata('seo.reservation', { path: '/rezerwacja', noindex: true });
 
@@ -9,10 +10,11 @@ export const generateMetadata = () => seoMetadata('seo.reservation', { path: '/r
 export const dynamic = 'force-dynamic';
 
 export default async function ReservationPage() {
-  const [options, products, content] = await Promise.all([
+  const [options, products, content, services] = await Promise.all([
     orFallback(api.reservationOptions(), null),
     orFallback(api.products(), []),
     getContent(),
+    getServiceStatus(),
   ]);
   // nagłówek – z panelu (Strona → Podstrony → Rezerwacja)
   const header = content['reservation.header'];
@@ -29,7 +31,7 @@ export default async function ReservationPage() {
       {header.text && <p className="mt-4 max-w-2xl text-lg leading-relaxed text-stone">{header.text}</p>}
       <div className="mt-12">
         {options ? (
-          <ReservationForm options={options} reservable={reservable} texts={content['reservation.form']} />
+          <ReservationForm options={options} reservable={reservable} texts={content['reservation.form']} services={services} />
         ) : (
           <p className="border border-line bg-coal p-6 text-stone">{header.unavailable}</p>
         )}
