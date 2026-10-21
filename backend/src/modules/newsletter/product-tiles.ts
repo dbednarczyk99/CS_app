@@ -1,4 +1,5 @@
 import { BODY, C, esc, HEADING } from '../reservations/reservation-emails';
+import { variantUrl } from '../upload/image-variants.controller';
 
 /**
  * Kafelek produktu w treści wpisu: osobny akapit „[produkt:<id> Nazwa]” (nazwa tylko dla czytelności w panelu).
@@ -62,8 +63,10 @@ export function productTileHtml(p: TileProduct, href: string) {
     p.description.length > 140
       ? `${p.description.slice(0, 137).trimEnd()}…`
       : p.description;
+  // gotowy kadr 4:5 z serwera – programy pocztowe nie przycinają zdjęć (brak object-fit), więc poziome zdjęcie
+  // zostawiałoby pusty pasek; zdjęcie wypełnia całą wysokość kafelka
   const image = p.imageUrl
-    ? `<td width="150" valign="middle" style="width:150px;padding:0;background:${C.graphite}"><a href="${href}"><img src="${esc(p.imageUrl)}" width="150" alt="${esc(p.name)}" style="display:block;width:150px;height:auto;border:0"></a></td>`
+    ? `<td width="150" valign="top" style="width:150px;padding:0;background:${C.graphite}"><a href="${href}"><img src="${esc(variantUrl(p.imageUrl, 'kafelek'))}" width="150" height="188" alt="${esc(p.name)}" style="display:block;width:150px;height:188px;border:0"></a></td>`
     : '';
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0 0;border:1px solid ${C.line};background:${C.coal}"><tr>
 ${image}
