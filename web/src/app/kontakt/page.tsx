@@ -2,6 +2,7 @@ import { FaEnvelope, FaInstagram, FaLocationArrow, FaPhone } from 'react-icons/f
 import { ContactForm } from '@/components/ContactForm';
 import { NewsletterButton } from '@/components/Newsletter';
 import { PageHeader } from '@/components/PageHeader';
+import { InstagramFeed } from '@/components/InstagramFeed';
 import { SocialLinks } from '@/components/SocialLinks';
 import { api, orFallback } from '@/lib/api';
 import { instagramProfile, telHref } from '@/lib/format';
@@ -139,6 +140,9 @@ export default async function ContactPage() {
           )}
         </aside>
       </div>
+
+      {/* ostatnie posty z Instagrama; znika sama, gdy połączenie z Instagramem nie działa */}
+      <InstagramFeed limit={8} />
     </>
   );
 }

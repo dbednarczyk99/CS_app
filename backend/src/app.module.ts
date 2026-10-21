@@ -7,6 +7,7 @@ import { join } from 'path';
 import { DebugController } from './debug.controller';
 import { UploadController } from './modules/upload/upload.controller';
 import { ImageVariantsController } from './modules/upload/image-variants.controller';
+import { InstagramModule } from './modules/instagram/instagram.module';
 import { ProductsModule } from './modules/products/products.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BlogModule } from './modules/blog/blog.module';
@@ -57,6 +58,7 @@ import { StatsModule } from './modules/stats/stats.module';
     StatsModule,
     ReservationsModule,
     RevalidateModule,
+    InstagramModule,
     ContactMessagesModule,
     AnnouncementsModule,
     ContentModule,

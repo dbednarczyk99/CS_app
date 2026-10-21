@@ -15,6 +15,7 @@ import HelpIcon from '@mui/icons-material/Help';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import CampaignIcon from '@mui/icons-material/Campaign';
+import InstagramIcon from '@mui/icons-material/Instagram';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import GroupIcon from '@mui/icons-material/Group';
 import InsightsIcon from '@mui/icons-material/Insights';
@@ -87,6 +88,7 @@ export const CustomMenu = () => {
       <Menu.Item to="/blog" primaryText="Aktualności i newsletter" leftIcon={<ArticleIcon />} />
       <Menu.Item to="/marketing/zaplanowane" primaryText="Zaplanowane" leftIcon={<EventIcon />} />
       <Menu.Item to="/announcements" primaryText="Baner informacyjny" leftIcon={<CampaignIcon />} />
+      <Menu.Item to="/marketing/instagram" primaryText="Instagram" leftIcon={<InstagramIcon />} />
       <Menu.Item to="/newsletter" primaryText="Subskrybenci" leftIcon={<MarkEmailReadIcon />} />
 
       {/* treści strony („domowy WordPress”) */}

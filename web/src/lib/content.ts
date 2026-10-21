@@ -108,6 +108,7 @@ export interface SiteContent {
 
   'seo.default': { image: ContentImage };
   'common.footer': { about: string; newsletterText: string; newsletterButton: string; copyright: string };
+  'common.instagram': { eyebrow: string; title: string; buttonLabel: string };
   'common.newsletter': {
     eyebrow: string;
     title: string;

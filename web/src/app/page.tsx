@@ -4,6 +4,7 @@ import { FaArrowRight, FaInstagram } from 'react-icons/fa6';
 import { LoopCarousel } from '@/components/LoopCarousel';
 import { HeroCarousel } from '@/components/HeroCarousel';
 import { HomeLocations } from '@/components/HomeLocations';
+import { InstagramFeed } from '@/components/InstagramFeed';
 import { ProductCard } from '@/components/ProductCard';
 import { GoogleRatingBand } from '@/components/GoogleRatingBand';
 import { JsonLd } from '@/components/JsonLd';
@@ -284,6 +285,9 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+
+      {/* INSTAGRAM – ostatnie posty; znika sama, gdy połączenie z Instagramem nie działa */}
+      <InstagramFeed limit={8} />
     </>
   );
 }

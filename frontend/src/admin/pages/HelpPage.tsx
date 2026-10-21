@@ -198,6 +198,10 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
         a: '„Statystyki” → „Newslettery”: dla każdej wysyłki liczba odbiorców, wejść na stronę z linków w e-mailu i kliknięte produkty z kafelków. Bez pikseli śledzących – samo otwarcie e-maila nie jest liczone.',
       },
       {
+        q: 'Jak pokazać posty z Instagrama na stronie?',
+        a: '„Marketing” → „Instagram”: jednorazowo wklej klucz dostępu z konta piekarni (instrukcja krok po kroku jest na tym ekranie) i kliknij „Zapisz i połącz”. Ostatnie posty pojawią się na stronie głównej i w kontakcie; strona sprawdza nowe co 3 godziny, a klucz odnawia sama. Gdy połączenie przestanie działać (np. zmiana hasła do Instagrama), sekcja na stronie sama się ukryje, a na tym ekranie zobaczysz, co się stało. Tytuł i napis przycisku – „Podstrony” → „Elementy wspólne”.',
+      },
+      {
         q: 'Jak dodać komunikat na pasku pod menu strony?',
         a: '„Baner informacyjny” → „Dodaj”: krótka treść, opcjonalnie przycisk z linkiem (np. do wpisu lub okienka zapisu do newslettera) i okres wyświetlania. Po dacie „Do” komunikat znika sam.',
       },

@@ -283,6 +283,7 @@ export const api = {
   // treści edytowane w panelu („Strona”) – typy i wartości awaryjne w lib/content.ts
   content: () => get<Partial<SiteContent>>('/content'),
   heroSlides: () => get<HeroSlideData[]>('/content/hero'),
+  instagram: () => get<InstagramFeed>('/instagram'),
   reservationRules: () => get<ReservationRules>('/settings/reservations/public'),
   // wyłączniki kosztów z panelu (Usługi i koszty): czy działają e-maile, mapa, odświeżanie ocen
   serviceStatus: () => get<ServiceStatus>('/settings/services/public'),
@@ -290,6 +291,17 @@ export const api = {
 };
 
 // Strona ma się wyświetlić nawet wtedy, gdy część API nie odpowiada
+/** Ostatnie posty z Instagrama; visible: false – coś nie działa (sekcji nie pokazujemy) */
+export type InstagramFeed =
+  | { visible: false }
+  | {
+      visible: true;
+      username: string;
+      profileUrl: string;
+      /** image – ścieżka w API (/uploads/instagram/…) */
+      posts: { id: string; permalink: string; image: string; caption: string; takenAt: string }[];
+    };
+
 export async function orFallback<T>(promise: Promise<T>, fallback: T): Promise<T> {
   try {
     return await promise;
