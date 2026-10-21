@@ -16,7 +16,6 @@ import {
   TextInput,
   Toolbar,
   maxLength,
-  minLength,
   email,
   regex,
   required,
@@ -24,6 +23,9 @@ import {
   useRecordContext,
 } from 'react-admin';
 import { Alert, Box, Chip } from '@mui/material';
+import { useWatch } from 'react-hook-form';
+import { PasswordChecklist } from '../common/PasswordChecklist';
+import { strongPassword } from '../common/password-rules';
 
 /* Konta panelu – tylko administrator. Dwie role: administrator (wszystko) i marketing (bez rezerwacji i ustawień). */
 
@@ -43,7 +45,13 @@ interface UserRecord {
   createdAt: string;
 }
 
-const passwordRules = [minLength(10, 'Co najmniej 10 znaków')];
+const passwordRules = [strongPassword];
+
+/** Wymagania hasła odhaczane na bieżąco pod polem (tylko gdy coś wpisano) */
+const PasswordHint = ({ text }: { text: string }) => {
+  const value = (useWatch({ name: 'password' }) as string | undefined) ?? '';
+  return value ? <PasswordChecklist password={value} /> : <>{text}</>;
+};
 
 const EmailInput = () => (
   <TextInput
@@ -138,7 +146,7 @@ export const UserCreate = () => (
         label="Hasło startowe"
         autoComplete="new-password"
         validate={[required(), ...passwordRules]}
-        helperText="Co najmniej 10 znaków. Przekaż je osobie osobiście – po zalogowaniu zmieni je w „Moje konto”."
+        helperText={<PasswordHint text="Min. 10 znaków, mała i wielka litera, cyfra, znak specjalny. Przekaż je osobie osobiście – po zalogowaniu zmieni je w „Moje konto”." />}
       />
     </SimpleForm>
   </Create>
@@ -190,7 +198,7 @@ export const UserEdit = () => (
         label="Nowe hasło"
         autoComplete="new-password"
         validate={passwordRules}
-        helperText="Zostaw puste, aby nie zmieniać. Po ustawieniu nowego hasła osoba zostanie wylogowana na wszystkich urządzeniach."
+        helperText={<PasswordHint text="Zostaw puste, aby nie zmieniać. Po ustawieniu nowego hasła osoba zostanie wylogowana na wszystkich urządzeniach." />}
       />
     </SimpleForm>
   </Edit>

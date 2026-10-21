@@ -1,4 +1,6 @@
 import { UnsavedChangesDialog } from '../common/UnsavedChanges';
+import { PasswordChecklist } from '../common/PasswordChecklist';
+import { isStrongPassword } from '../common/password-rules';
 import { useState } from 'react';
 import { Title, useGetIdentity, useNotify, usePermissions } from 'react-admin';
 import { Alert, Box, Button, Card, CardContent, Link, Stack, TextField, Typography } from '@mui/material';
@@ -18,11 +20,11 @@ export default function AccountPage() {
   const [busy, setBusy] = useState(false);
 
   const mismatch = repeat.length > 0 && next !== repeat;
-  const tooShort = next.length > 0 && next.length < 10;
+  const weak = next.length > 0 && !isStrongPassword(next);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!current || next.length < 10 || next !== repeat) return;
+    if (!current || !isStrongPassword(next) || next !== repeat) return;
     setBusy(true);
     setError(null);
     try {
@@ -107,8 +109,9 @@ export default function AccountPage() {
               value={next}
               onChange={(e) => setNext(e.target.value)}
               autoComplete="new-password"
-              error={tooShort}
-              helperText="Co najmniej 10 znaków – najlepiej kilka słów, łatwych do zapamiętania"
+              error={weak}
+              helperText={<PasswordChecklist password={next} />}
+              FormHelperTextProps={{ component: 'div' }}
               required
             />
             <TextField
@@ -131,7 +134,7 @@ export default function AccountPage() {
             type="submit"
             variant="contained"
             sx={{ mt: 2 }}
-            disabled={busy || !current || next.length < 10 || next !== repeat}
+            disabled={busy || !current || !isStrongPassword(next) || next !== repeat}
           >
             {busy ? 'Zapisywanie…' : 'Zmień hasło'}
           </Button>

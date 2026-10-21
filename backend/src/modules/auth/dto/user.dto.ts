@@ -1,4 +1,5 @@
 import { Role } from '@prisma/client';
+import { StrongPassword } from '../password-policy';
 import {
   IsEmail,
   IsIn,
@@ -6,14 +7,11 @@ import {
   IsString,
   Matches,
   MaxLength,
-  MinLength,
   ValidateIf,
 } from 'class-validator';
 
 // panel proponuje tylko dwie role: właściciel i treści strony
 const PANEL_ROLES = [Role.ADMIN, Role.EDITOR];
-const PASSWORD_MIN = 10;
-const PASSWORD_MSG = `Hasło musi mieć co najmniej ${PASSWORD_MIN} znaków`;
 const EMAIL_MSG = 'Podaj poprawny adres e-mail';
 // pusty napis – usunięcie adresu
 const hasEmail = (o: { email?: string }) => !!o.email;
@@ -42,7 +40,7 @@ export class CreateUserDto {
   email?: string;
 
   @IsString()
-  @MinLength(PASSWORD_MIN, { message: PASSWORD_MSG })
+  @StrongPassword()
   password: string;
 }
 
@@ -66,7 +64,7 @@ export class UpdateUserDto {
   /** nowe hasło ustawione przez właściciela (np. gdy ktoś zapomniał) */
   @IsOptional()
   @IsString()
-  @MinLength(PASSWORD_MIN, { message: PASSWORD_MSG })
+  @StrongPassword()
   password?: string;
 }
 
@@ -84,7 +82,7 @@ export class ResetPasswordDto {
   token: string;
 
   @IsString()
-  @MinLength(PASSWORD_MIN, { message: PASSWORD_MSG })
+  @StrongPassword()
   password: string;
 }
 
@@ -93,6 +91,6 @@ export class ChangePasswordDto {
   currentPassword: string;
 
   @IsString()
-  @MinLength(PASSWORD_MIN, { message: PASSWORD_MSG })
+  @StrongPassword()
   newPassword: string;
 }

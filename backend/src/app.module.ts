@@ -6,6 +6,7 @@ import { join } from 'path';
 
 import { DebugController } from './debug.controller';
 import { UploadController } from './modules/upload/upload.controller';
+import { ImageVariantsController } from './modules/upload/image-variants.controller';
 import { ProductsModule } from './modules/products/products.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BlogModule } from './modules/blog/blog.module';
@@ -62,6 +63,6 @@ import { StatsModule } from './modules/stats/stats.module';
     SettingsModule,
     NewsletterModule,
   ],
-  controllers: [UploadController, DebugController],
+  controllers: [UploadController, ImageVariantsController, DebugController],
 })
 export class AppModule {}
