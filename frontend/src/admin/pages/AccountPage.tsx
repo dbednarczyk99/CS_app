@@ -1,7 +1,8 @@
 import { UnsavedChangesDialog } from '../common/UnsavedChanges';
 import { useState } from 'react';
 import { Title, useGetIdentity, useNotify, usePermissions } from 'react-admin';
-import { Alert, Box, Button, Card, CardContent, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Link, Stack, TextField, Typography } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -66,6 +67,25 @@ export default function AccountPage() {
           ? 'Administrator – pełny dostęp do panelu'
           : 'Marketing: produkty, piekarnie, chlebowóz, treści strony, aktualności i newsletter, subskrybenci, baner i media społecznościowe'}
       </Typography>
+
+      {/* adres do „Nie pamiętam hasła” – ustawia administrator w Konta */}
+      {identity &&
+        (identity.email ? (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            E-mail do odzyskiwania hasła: <strong>{identity.email}</strong>
+          </Typography>
+        ) : (
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            To konto nie ma adresu e-mail – jeśli zapomnisz hasła, nie odzyskasz go sam.{' '}
+            {permissions === 'ADMIN' ? (
+              <Link component={RouterLink} to={`/users/${identity.id}`}>
+                Dodaj adres w „Konta”
+              </Link>
+            ) : (
+              'Poproś administratora o dodanie adresu.'
+            )}
+          </Alert>
+        ))}
 
       <Card variant="outlined" sx={{ mt: 4 }}>
         <CardContent component="form" onSubmit={submit} sx={{ p: 3 }}>

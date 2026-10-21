@@ -1,5 +1,6 @@
-import { Body, Controller, Headers, Ip, Post } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { Public } from '../../auth/auth.decorators';
+import { ClientIp } from '../../auth/client-ip';
 import { ContactMessageDto } from './dto/contact-message.dto';
 import { ContactMessagesService } from './contact-messages.service';
 
@@ -9,13 +10,8 @@ export class ContactMessagesController {
 
   @Public()
   @Post()
-  send(
-    @Body() dto: ContactMessageDto,
-    @Ip() ip: string,
-    // strona przekazuje formularz przez swój serwer – adres klienta w X-Forwarded-For
-    @Headers('x-forwarded-for') forwardedFor?: string,
-  ) {
-    const clientIp = forwardedFor?.split(',')[0]?.trim() || ip;
-    return this.service.send(dto, clientIp);
+  // strona przekazuje formularz przez swój serwer – adres klienta potwierdzony sekretem (ClientIp)
+  send(@Body() dto: ContactMessageDto, @ClientIp() ip: string) {
+    return this.service.send(dto, ip);
   }
 }

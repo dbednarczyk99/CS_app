@@ -11,7 +11,11 @@ export const authProvider: AuthProvider = {
     });
 
     return fetch(request)
-      .then((response) => {
+      .then(async (response) => {
+        if (response.status === 429) {
+          const body = (await response.json().catch(() => ({}))) as { message?: string };
+          throw new Error(body.message ?? 'Zbyt wiele nieudanych prób logowania – spróbuj ponownie za 15 minut');
+        }
         if (response.status < 200 || response.status >= 300) {
           throw new Error(
             response.status === 401 || response.status === 400
@@ -55,8 +59,8 @@ export const authProvider: AuthProvider = {
       headers: { Authorization: `Bearer ${localStorage.getItem('token') ?? ''}` },
     });
     if (!res.ok) throw new Error('Nie udało się pobrać danych konta');
-    const me = (await res.json()) as { id: string; login: string; name: string | null };
-    return { id: me.id, fullName: me.name || me.login };
+    const me = (await res.json()) as { id: string; login: string; name: string | null; email: string | null };
+    return { id: me.id, fullName: me.name || me.login, email: me.email };
   },
 };
 

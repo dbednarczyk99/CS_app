@@ -2,6 +2,8 @@ import { randomBytes } from 'crypto';
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -37,6 +39,12 @@ import {
 
 // statusy: przyjęta (NEW) i anulowana przez klienta (CANCELLED) – obsługa ich nie zmienia
 const ACTIVE: ReservationStatus[] = [ReservationStatus.NEW];
+
+// ochrona przed zalewem fałszywych rezerwacji (np. bot z losowymi numerami telefonu)
+const PER_IP_LIMIT = 5; // rezerwacji z jednego adresu IP w ciągu godziny
+const PER_IP_WINDOW_MS = 60 * 60 * 1000;
+const GLOBAL_LIMIT = 60; // wszystkich rezerwacji w ciągu 15 min
+const GLOBAL_WINDOW_MS = 15 * 60 * 1000;
 const withItems = { items: true } satisfies Prisma.ReservationInclude;
 
 export interface ReservationOptions {
@@ -72,6 +80,9 @@ export interface ReservationOptions {
 
 @Injectable()
 export class ReservationsService {
+  /** złożone rezerwacje (adres, czas) – tylko w pamięci, do limitów */
+  private readonly recent: { ip: string; at: number }[] = [];
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly mail: MailService,
@@ -133,9 +144,26 @@ export class ReservationsService {
 
   /* ---------- strona: utworzenie rezerwacji ---------- */
 
+  private checkRateLimit(ip: string) {
+    const now = Date.now();
+    while (this.recent.length && now - this.recent[0].at > PER_IP_WINDOW_MS)
+      this.recent.shift();
+    const fromIp = this.recent.filter((r) => r.ip === ip).length;
+    const global = this.recent.filter(
+      (r) => now - r.at <= GLOBAL_WINDOW_MS,
+    ).length;
+    if (fromIp >= PER_IP_LIMIT || global >= GLOBAL_LIMIT) {
+      throw new HttpException(
+        'Zbyt wiele rezerwacji w krótkim czasie – spróbuj ponownie później albo zadzwoń do piekarni',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+  }
+
   async create(dto: CreateReservationDto, ip = '') {
     if (dto.website)
       throw new BadRequestException('Nie udało się złożyć rezerwacji');
+    this.checkRateLimit(ip);
 
     const phone = normalizePhone(dto.customerPhone);
     if (!phone)
@@ -262,6 +290,7 @@ export class ReservationsService {
         );
 
     // czy potwierdzenie wyjdzie (Usługi i koszty) – strona pokaże wtedy „zapisz numer rezerwacji”
+    this.recent.push({ ip, at: Date.now() }); // do limitu liczą się tylko złożone rezerwacje
     const confirmationEmail = await this.mail.available();
 
     void this.sendEmail(

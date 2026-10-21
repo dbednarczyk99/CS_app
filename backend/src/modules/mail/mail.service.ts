@@ -11,7 +11,8 @@ export type MailCategory =
   | 'zestawienie'
   | 'kontakt'
   | 'newsletter'
-  | 'newsletter-zapis';
+  | 'newsletter-zapis'
+  | 'konto';
 
 export interface MailMessage {
   /** rodzaj wiadomości (statystyki); nie trafia do samego e-maila */
@@ -78,6 +79,14 @@ export class MailService {
       if (allowed) this.deliver(message);
       else this.stats.increment('mail_blocked', message.category ?? 'inne');
     });
+  }
+
+  /**
+   * Wiadomości o koncie (reset hasła) wychodzą także przy wyłączonych e-mailach i po limicie dziennym –
+   * inaczej właściciel nie odzyskałby dostępu do panelu, w którym e-maile się włącza. Własne limity ma AuthService.
+   */
+  sendAccount(message: MailMessage): void {
+    this.deliver(message);
   }
 
   private deliver(message: MailMessage): void {

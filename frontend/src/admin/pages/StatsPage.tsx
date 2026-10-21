@@ -116,6 +116,7 @@ const MAIL_LABELS: Record<string, string> = {
   kontakt: 'Wiadomości z formularza kontaktowego',
   newsletter: 'Newsletter',
   'newsletter-zapis': 'Potwierdzenia zapisu do newslettera',
+  konto: 'Konta panelu (reset hasła)',
   inne: 'Inne',
 };
 const SOURCE_LABELS: Record<string, string> = {

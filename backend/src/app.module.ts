@@ -30,6 +30,19 @@ import { StatsModule } from './modules/stats/stats.module';
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'uploads'),
       serveRoot: '/uploads',
+      serveStaticOptions: {
+        index: false,
+        dotfiles: 'deny',
+        // pliki z /uploads to tylko zdjęcia: przeglądarka nie zgaduje typu i nie uruchomi w nich żadnego skryptu
+        setHeaders: (res) => {
+          res.setHeader('X-Content-Type-Options', 'nosniff');
+          res.setHeader(
+            'Content-Security-Policy',
+            "default-src 'none'; sandbox",
+          );
+          res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+        },
+      },
     }),
 
     ProductsModule,

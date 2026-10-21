@@ -3,13 +3,12 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   HttpCode,
-  Ip,
   Param,
   Post,
 } from '@nestjs/common';
 import { CONTENT_ROLES, Public, Roles } from '../auth/auth.decorators';
+import { ClientIp } from '../auth/client-ip';
 import {
   NewsletterPreviewDto,
   SubscribeDto,
@@ -26,16 +25,9 @@ export class NewsletterController {
 
   @Public()
   @Post('subscribe')
-  subscribe(
-    @Body() dto: SubscribeDto,
-    @Ip() ip: string,
-    // strona przekazuje zapis przez swój serwer – adres klienta w X-Forwarded-For
-    @Headers('x-forwarded-for') forwardedFor?: string,
-  ) {
-    return this.service.subscribe(
-      dto,
-      forwardedFor?.split(',')[0]?.trim() || ip,
-    );
+  // strona przekazuje zapis przez swój serwer – adres klienta potwierdzony sekretem (ClientIp)
+  subscribe(@Body() dto: SubscribeDto, @ClientIp() ip: string) {
+    return this.service.subscribe(dto, ip);
   }
 
   // POST (przycisk na stronie), nie GET – skanery poczty otwierają linki i potwierdzałyby zapis same
