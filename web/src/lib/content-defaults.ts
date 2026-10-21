@@ -384,6 +384,11 @@ export const CONTENT_DEFAULTS = {
     "newsletterButton": "Zapisz się",
     "copyright": "Piekarnia Rzemieślnicza · Kraków"
   },
+  "common.instagram": {
+    "eyebrow": "Instagram",
+    "title": "Z życia piekarni",
+    "buttonLabel": "Obserwuj {profil}"
+  },
   "common.newsletter": {
     "eyebrow": "Newsletter",
     "title": "Bądź na bieżąco",

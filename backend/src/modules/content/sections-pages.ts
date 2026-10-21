@@ -565,6 +565,25 @@ export const PAGE_SECTIONS: Section[] = [
     },
   },
   {
+    key: 'common.instagram',
+    page: 'common',
+    title: 'Instagram – ostatnie posty',
+    description:
+      'Sekcja z ostatnimi zdjęciami z Instagrama na stronie głównej i w kontakcie. Posty i połączenie z kontem: „Marketing” → „Instagram”. Gdy połączenie nie działa, sekcja sama się ukrywa.',
+    fields: [
+      EYEBROW,
+      text('title', 'Tytuł', 50),
+      text('buttonLabel', 'Napis przycisku', 40, {
+        help: '{profil} – nazwa profilu, np. @chlebasmak',
+      }),
+    ],
+    defaults: {
+      eyebrow: 'Instagram',
+      title: 'Z życia piekarni',
+      buttonLabel: 'Obserwuj {profil}',
+    },
+  },
+  {
     key: 'common.newsletter',
     page: 'common',
     title: 'Okienko zapisu do newslettera',
