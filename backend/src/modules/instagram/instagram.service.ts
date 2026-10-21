@@ -17,8 +17,8 @@ const GRAPH = 'https://graph.instagram.com';
 const POSTS = 12;
 // zdjęcia zapisywane u nas – strona nie łączy się z Instagramem (szybkość, RODO)
 const DIR = join(process.cwd(), 'uploads', 'instagram');
-// sekcja znika, gdy ostatnie pobranie się nie udało albo dane są starsze niż doba (+ zapas na jedno pobranie)
-const MAX_AGE_MS = 27 * 60 * 60 * 1000;
+// sekcja znika, gdy ostatnie pobranie się nie udało albo od tygodnia nie było udanego pobrania
+const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const MIN_POSTS = 3;
 // klucz ważny 60 dni – odnawiamy co tydzień (Instagram pozwala dopiero, gdy klucz ma co najmniej dobę)
 const REFRESH_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
@@ -29,6 +29,8 @@ const CDN = /(^|\.)(cdninstagram\.com|fbcdn\.net)$/i;
 
 interface Settings {
   enabled: boolean;
+  /** tryb pokazowy: przykładowe posty bez połączenia z Instagramem (npm run instagram:demo) – do pokazania klientowi */
+  demo?: boolean;
   token: string | null;
   tokenUpdatedAt: string | null;
   tokenExpiresAt: string | null;
@@ -104,6 +106,13 @@ export class InstagramService implements OnApplicationBootstrap {
   /** Dla strony: posty tylko wtedy, gdy wszystko działa – inaczej `visible: false` i sekcji nie ma */
   async publicFeed() {
     const [settings, feed] = await Promise.all([this.settings(), this.feed()]);
+    if (
+      settings.demo &&
+      settings.enabled &&
+      feed.username &&
+      feed.posts.length >= MIN_POSTS
+    )
+      return this.visibleFeed(feed);
     const fresh =
       !!feed.fetchedAt &&
       Date.now() - new Date(feed.fetchedAt).getTime() < MAX_AGE_MS;
@@ -115,6 +124,10 @@ export class InstagramService implements OnApplicationBootstrap {
       !!feed.username &&
       feed.posts.length >= MIN_POSTS;
     if (!visible) return { visible: false as const };
+    return this.visibleFeed(feed);
+  }
+
+  private visibleFeed(feed: Feed) {
     return {
       visible: true as const,
       username: feed.username,
@@ -139,6 +152,7 @@ export class InstagramService implements OnApplicationBootstrap {
     ]);
     return {
       enabled: settings.enabled,
+      demo: !!settings.demo,
       hasToken: !!settings.token,
       tokenUpdatedAt: settings.tokenUpdatedAt,
       tokenExpiresAt: settings.tokenExpiresAt,
@@ -162,6 +176,8 @@ export class InstagramService implements OnApplicationBootstrap {
           'To nie wygląda na klucz dostępu Instagrama – skopiuj go jeszcze raz w całości',
         );
       next.token = token || null;
+      // prawdziwy klucz albo odłączenie kończy tryb pokazowy
+      next.demo = false;
       next.tokenUpdatedAt = token ? new Date().toISOString() : null;
       next.tokenExpiresAt = token
         ? new Date(Date.now() + TOKEN_DAYS * 86400_000).toISOString()
@@ -169,7 +185,10 @@ export class InstagramService implements OnApplicationBootstrap {
     }
     await this.store(SETTINGS_KEY, next);
     if (next.enabled && next.token && dto.token) await this.refresh();
-    if (!next.token) await this.store(FEED_KEY, EMPTY_FEED);
+    if (!next.token && !next.demo) {
+      await this.store(FEED_KEY, EMPTY_FEED);
+      await this.removeUnused([]);
+    }
     return this.adminState();
   }
 

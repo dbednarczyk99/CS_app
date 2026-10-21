@@ -32,6 +32,8 @@ interface Post {
 }
 interface State {
   enabled: boolean;
+  /** przykładowe posty (npm run instagram:demo) – do pokazania, zanim połączymy prawdziwe konto */
+  demo: boolean;
   hasToken: boolean;
   tokenUpdatedAt: string | null;
   tokenExpiresAt: string | null;
@@ -94,7 +96,9 @@ export default function InstagramPage() {
     });
   };
 
-  const status = !state.hasToken
+  const status = state.demo
+    ? { label: state.enabled ? 'Tryb pokazowy – przykładowe posty' : 'Tryb pokazowy – sekcja ukryta', color: 'info' as const }
+    : !state.hasToken
     ? { label: 'Nie połączono', color: 'default' as const }
     : !state.enabled
       ? { label: 'Wyłączone – sekcja ukryta', color: 'default' as const }
@@ -121,6 +125,20 @@ export default function InstagramPage() {
       </Typography>
 
       <Stack spacing={2}>
+        {state.demo && (
+          <Alert
+            severity="info"
+            action={
+              <Button color="inherit" size="small" disabled={!!busy} onClick={() => void call('save', '', 'PUT', { token: '', enabled: false })}>
+                Usuń przykładowe
+              </Button>
+            }
+          >
+            Na stronie są <strong>przykładowe posty</strong> (zdjęcia z naszej bazy), żeby było widać, jak sekcja wygląda.
+            Po wklejeniu prawdziwego klucza zostaną same zastąpione postami z Instagrama piekarni.
+          </Alert>
+        )}
+
         <Paper variant="outlined" sx={{ p: 3 }}>
           <Typography variant="h6">Połączenie</Typography>
           {state.hasToken ? (
@@ -154,7 +172,7 @@ export default function InstagramPage() {
               control={
                 <Switch
                   checked={state.enabled}
-                  disabled={!state.hasToken || !!busy}
+                  disabled={(!state.hasToken && !state.demo) || !!busy}
                   onChange={(e) => void call('save', '', 'PUT', { enabled: e.target.checked })}
                 />
               }
