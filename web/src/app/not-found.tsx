@@ -1,5 +1,9 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { getContent } from '@/lib/content';
+
+// osobny tytuł karty przeglądarki; strony błędu nie indeksujemy
+export const metadata: Metadata = { title: 'Nie znaleziono strony', robots: { index: false } };
 
 /** Teksty – z panelu (Strona → Podstrony → Elementy wspólne → Strona 404) */
 export default async function NotFound() {

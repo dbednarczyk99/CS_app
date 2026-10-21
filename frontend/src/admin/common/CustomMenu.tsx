@@ -29,15 +29,13 @@ import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 const Section = ({ title }: { title: string }) => {
   const [open] = useSidebarState();
   if (!open) return <Divider sx={{ my: 1 }} />;
+  // jeden element (nie fragment) – lista menu MUI nie przyjmuje fragmentów
   return (
-    <>
-      <Divider sx={{ my: 1 }} />
-      <Box sx={{ px: 2, pt: 1, pb: 0.5 }}>
-        <Typography variant="overline" color="primary" sx={{ lineHeight: 1.4, display: 'block' }}>
-          {title}
-        </Typography>
-      </Box>
-    </>
+    <Box sx={{ px: 2, pt: 1, pb: 0.5, mt: 1, borderTop: 1, borderColor: 'divider' }}>
+      <Typography variant="overline" color="primary" sx={{ lineHeight: 1.4, display: 'block', pt: 1 }}>
+        {title}
+      </Typography>
+    </Box>
   );
 };
 
@@ -60,14 +58,13 @@ export const CustomMenu = () => {
       <Menu.Item to="/" primaryText="Pulpit" leftIcon={<DashboardIcon />} />
       <Menu.Item to="/statystyki" primaryText="Statystyki" leftIcon={<InsightsIcon />} />
 
-      {isOwner && (
-        <>
-          <Section title="Rezerwacje" />
-          <Menu.Item to="/reservations" primaryText="Rezerwacje" leftIcon={<ReceiptLongIcon />} />
-          <Menu.Item to="/przygotowanie" primaryText="Do przygotowania" leftIcon={<ChecklistIcon />} />
-          <Menu.Item to="/ustawienia/rezerwacje" primaryText="Zasady rezerwacji" leftIcon={<EventNoteIcon />} />
-        </>
-      )}
+      {/* tablica zamiast <>…</> – lista menu (MUI) nie przyjmuje fragmentów jako dzieci */}
+      {isOwner && [
+        <Section key="sekcja" title="Rezerwacje" />,
+        <Menu.Item key="rezerwacje" to="/reservations" primaryText="Rezerwacje" leftIcon={<ReceiptLongIcon />} />,
+        <Menu.Item key="przygotowanie" to="/przygotowanie" primaryText="Do przygotowania" leftIcon={<ChecklistIcon />} />,
+        <Menu.Item key="zasady" to="/ustawienia/rezerwacje" primaryText="Zasady rezerwacji" leftIcon={<EventNoteIcon />} />,
+      ]}
 
       <Section title="Oferta" />
       <Menu.Item
