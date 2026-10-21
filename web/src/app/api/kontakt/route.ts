@@ -1,13 +1,13 @@
 import { API_BASE_URL } from '@/lib/api';
+import { clientHeaders } from '@/lib/proxy';
 
-/** Pośrednik formularza kontaktowego: przeglądarka → strona → API (adres klienta w X-Forwarded-For do limitu wysyłek) */
+/** Pośrednik formularza kontaktowego: przeglądarka → strona → API (adres klienta potwierdzony sekretem do limitu wysyłek) */
 export async function POST(request: Request) {
-  const forwardedFor = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? '';
   const res = await fetch(`${API_BASE_URL}/contact/messages`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(forwardedFor ? { 'X-Forwarded-For': forwardedFor } : {}),
+      ...clientHeaders(request),
     },
     body: await request.text(),
     cache: 'no-store',

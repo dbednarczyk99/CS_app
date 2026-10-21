@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Ip, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/user.dto';
 import { Public } from './auth.decorators';
+import { ClientIp } from './client-ip';
 import type { StaffRequest } from './auth.guard';
 
 @Controller('auth')
@@ -11,8 +12,8 @@ export class AuthController {
 
   @Public()
   @Post('login')
-  // limit prób liczony po adresie połączenia (nie po X-Forwarded-For, który klient może podać sam)
-  login(@Body() body: LoginDto, @Ip() ip: string) {
+  // limit prób liczony po adresie połączenia (nagłówkom adresu ufamy tylko z sekretem – ClientIp)
+  login(@Body() body: LoginDto, @ClientIp() ip: string) {
     return this.service.login(body, ip);
   }
 

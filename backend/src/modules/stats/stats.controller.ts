@@ -4,13 +4,13 @@ import {
   Get,
   Headers,
   HttpCode,
-  Ip,
   Post,
   Query,
   Req,
 } from '@nestjs/common';
 import { IsIn, IsString, MaxLength } from 'class-validator';
 import { CONTENT_ROLES, Public, Roles } from '../auth/auth.decorators';
+import { ClientIp } from '../auth/client-ip';
 import type { StaffRequest } from '../auth/auth.guard';
 import {
   MAP_KEYS,
@@ -54,8 +54,7 @@ export class StatsController {
   @HttpCode(204)
   event(
     @Body() dto: StatEventDto,
-    @Ip() ip: string,
-    @Headers('x-forwarded-for') forwardedFor?: string,
+    @ClientIp() client: string,
     @Headers('user-agent') userAgent = '',
   ) {
     if (BOT.test(userAgent)) return;
@@ -71,7 +70,6 @@ export class StatsController {
       if (!allowed.includes(dto.key)) return;
     }
 
-    const client = forwardedFor?.split(',')[0]?.trim() || ip;
     const now = Date.now();
     while (this.hits.length && now - this.hits[0].at > WINDOW_MS)
       this.hits.shift();

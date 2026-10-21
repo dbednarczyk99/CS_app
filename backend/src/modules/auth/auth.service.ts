@@ -16,6 +16,13 @@ import type { StaffJwtPayload } from './auth.guard';
 // ochrona przed zgadywaniem haseł: nieudane logowania z jednego adresu IP w oknie 15 min
 const FAILED_LIMIT = 10;
 const WINDOW_MS = 15 * 60 * 1000;
+// ochrona konta przed zgadywaniem z wielu adresów naraz: po 5 błędach rosnąca przerwa
+// (30 s, 1, 2, 4, 8 min… maks. 15 min); reset hasła e-mailem zdejmuje blokadę
+const ACCOUNT_FREE_ATTEMPTS = 5;
+const ACCOUNT_BASE_DELAY_MS = 30 * 1000;
+const ACCOUNT_MAX_DELAY_MS = 15 * 60 * 1000;
+// porównanie z tym hashem, gdy konta nie ma – odpowiedź trwa tyle samo (nie zdradza, czy login istnieje)
+const DUMMY_HASH = bcrypt.hashSync('brak-takiego-konta', 10);
 
 export const hashPassword = (password: string) => bcrypt.hash(password, 10);
 
@@ -31,6 +38,10 @@ export const publicUser = {
 @Injectable()
 export class AuthService {
   private readonly failed: { ip: string; at: number }[] = [];
+  private readonly accountFailures = new Map<
+    string,
+    { count: number; last: number }
+  >();
 
   constructor(
     private prisma: PrismaService,
@@ -58,16 +69,53 @@ export class AuthService {
       );
     }
 
-    const user = await this.prisma.user.findUnique({
-      where: { login: data.login.trim().toLowerCase() },
-    });
-    const ok = !!user && (await bcrypt.compare(data.password, user.password));
+    const login = data.login.trim().toLowerCase();
+    const wait = this.accountWait(login, now);
+    if (wait > 0) {
+      throw new HttpException(
+        `Zbyt wiele nieudanych prób logowania na to konto – spróbuj za ${Math.ceil(wait / 60000)} min albo użyj „Nie pamiętam hasła”`,
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { login } });
+    const ok = await bcrypt.compare(
+      data.password,
+      user?.password ?? DUMMY_HASH,
+    );
     if (!user || !ok) {
       this.failed.push({ ip, at: now });
+      const entry = this.accountFailures.get(login);
+      this.accountFailures.set(login, {
+        count: (entry?.count ?? 0) + 1,
+        last: now,
+      });
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    this.accountFailures.delete(login);
     return { access_token: this.token(user) };
+  }
+
+  /** Ile jeszcze trzeba poczekać z kolejną próbą na to konto (0 – można próbować) */
+  private accountWait(login: string, now: number) {
+    const entry = this.accountFailures.get(login);
+    if (!entry) return 0;
+    if (now - entry.last > 2 * ACCOUNT_MAX_DELAY_MS) {
+      this.accountFailures.delete(login);
+      return 0;
+    }
+    if (entry.count < ACCOUNT_FREE_ATTEMPTS) return 0;
+    const delay = Math.min(
+      ACCOUNT_BASE_DELAY_MS * 2 ** (entry.count - ACCOUNT_FREE_ATTEMPTS),
+      ACCOUNT_MAX_DELAY_MS,
+    );
+    return Math.max(0, entry.last + delay - now);
+  }
+
+  /** Po ustawieniu nowego hasła (reset e-mailem) – zdjęcie blokady konta */
+  clearAccountFailures(login: string) {
+    this.accountFailures.delete(login.toLowerCase());
   }
 
   me(userId: string) {
