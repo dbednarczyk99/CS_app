@@ -17,6 +17,7 @@ import {
   Toolbar,
   maxLength,
   minLength,
+  email,
   regex,
   required,
   useGetIdentity,
@@ -37,11 +38,24 @@ interface UserRecord {
   id: string;
   login: string;
   name: string | null;
+  email: string | null;
   role: string;
   createdAt: string;
 }
 
 const passwordRules = [minLength(10, 'Co najmniej 10 znaków')];
+
+const EmailInput = () => (
+  <TextInput
+    source="email"
+    label="E-mail do odzyskiwania hasła"
+    type="email"
+    validate={[email('Podaj poprawny adres e-mail'), maxLength(160)]}
+    parse={(v: string) => v ?? ''}
+    helperText="Na ten adres przyjdzie link „Nie pamiętam hasła”. Dla administratora – np. Gmail piekarni (ten od Map Google)."
+    fullWidth
+  />
+);
 
 const RolesInfo = () => (
   <Alert severity="info" variant="outlined" sx={{ mb: 2, width: '100%' }}>
@@ -73,6 +87,12 @@ export const UserList = () => {
           )}
         />
         <TextField source="login" label="Login" />
+        <FunctionField
+          label="E-mail (odzyskiwanie hasła)"
+          render={(u: UserRecord) =>
+            u.email || <Chip size="small" color="warning" variant="outlined" label="brak – nie odzyska hasła sam" />
+          }
+        />
         <FunctionField
           label="Rola"
           render={(u: UserRecord) => (
@@ -112,6 +132,7 @@ export const UserCreate = () => (
         helperText="Np. imię – widoczna w panelu"
       />
       <SelectInput source="role" label="Rola" choices={ROLE_CHOICES} defaultValue="EDITOR" validate={required()} />
+      <EmailInput />
       <PasswordInput
         source="password"
         label="Hasło startowe"
@@ -163,6 +184,7 @@ export const UserEdit = () => (
       <TextInput source="login" label="Login" disabled helperText="Loginu nie można zmienić" />
       <TextInput source="name" label="Nazwa wyświetlana" validate={maxLength(60)} />
       <RoleInput />
+      <EmailInput />
       <PasswordInput
         source="password"
         label="Nowe hasło"

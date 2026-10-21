@@ -10,8 +10,8 @@ import { hashPassword, publicUser } from './auth.service';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 
 /** Adres e-mail z formularza: małe litery; pusty – brak adresu */
-const normalizeEmail = (email: string | undefined) =>
-  email === undefined ? undefined : email.trim().toLowerCase() || null;
+const normalizeEmail = (email: string | null | undefined) =>
+  email === undefined ? undefined : (email ?? '').trim().toLowerCase() || null;
 
 /** Konta panelu – zarządza nimi tylko właściciel (rola ADMIN) */
 @Injectable()

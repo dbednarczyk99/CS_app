@@ -36,7 +36,7 @@ import { HeroSlideCreate, HeroSlideEdit, HeroSlideList } from './admin/content/h
 import { UserCreate, UserEdit, UserList } from './admin/components/users';
 import { ReservationList, ReservationShow } from './admin/components/reservations';
 import { AdminLayout } from './admin/common/AdminLayout';
-import { LoginPage } from './admin/common/LoginPage';
+import { ForgotPasswordPage, LoginPage, ResetPasswordPage } from './admin/common/LoginPage';
 import { BlogCreate, BlogEdit, BlogList } from './admin/components/blog';
 import { AnnouncementCreate, AnnouncementEdit, AnnouncementList } from './admin/components/announcements';
 import { NewsletterList } from './admin/components/newsletter';
@@ -61,6 +61,11 @@ function App() {
         const isOwner = permissions === 'ADMIN';
         return (
           <>
+            {/* bez logowania: odzyskiwanie hasła */}
+            <CustomRoutes noLayout>
+              <Route path="/nie-pamietam-hasla" element={<ForgotPasswordPage />} />
+              <Route path="/nowe-haslo" element={<ResetPasswordPage />} />
+            </CustomRoutes>
             <CustomRoutes>
               <Route path="/help" element={<HelpPage />} />
               <Route path="/konto" element={<AccountPage />} />
