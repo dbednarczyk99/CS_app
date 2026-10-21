@@ -22,15 +22,20 @@ enum Role {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  role         Role
-  login        String   @unique
+  id                String    @id @default(uuid())
+  role              Role
+  login             String    @unique
   // nazwa wyświetlana w panelu, np. „Właściciel”
-  name         String?  @db.VarChar(60)
-  password     String
+  name              String?   @db.VarChar(60)
+  password          String
   // zwiększana przy zmianie hasła – wcześniejsze tokeny (sesje) przestają działać
-  tokenVersion Int      @default(0)
-  createdAt    DateTime @default(now())
+  tokenVersion      Int       @default(0)
+  // adres do odzyskiwania hasła („Nie pamiętam hasła” w panelu), np. Gmail piekarni
+  email             String?   @unique @db.VarChar(160)
+  // jednorazowy link do ustawienia nowego hasła: skrót SHA-256 tokenu i termin ważności
+  resetTokenHash    String?   @unique @db.VarChar(64)
+  resetTokenExpires DateTime?
+  createdAt         DateTime  @default(now())
 }
 
 // PRODUCTS

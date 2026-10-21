@@ -9,6 +9,10 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { hashPassword, publicUser } from './auth.service';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 
+/** Adres e-mail z formularza: małe litery; pusty – brak adresu */
+const normalizeEmail = (email: string | undefined) =>
+  email === undefined ? undefined : email.trim().toLowerCase() || null;
+
 /** Konta panelu – zarządza nimi tylko właściciel (rola ADMIN) */
 @Injectable()
 export class UsersService {
@@ -35,11 +39,14 @@ export class UsersService {
     if (await this.prisma.user.findUnique({ where: { login } })) {
       throw new ConflictException('Konto o tym loginie już istnieje');
     }
+    const email = normalizeEmail(dto.email);
+    await this.ensureEmailFree(email);
     return this.prisma.user.create({
       select: publicUser,
       data: {
         login,
         name: dto.name?.trim() || null,
+        email,
         role: dto.role,
         password: await hashPassword(dto.password),
       },
@@ -54,21 +61,35 @@ export class UsersService {
     if (dto.role && dto.role !== Role.ADMIN && user.role === Role.ADMIN) {
       await this.ensureAnotherAdmin(id);
     }
+    const email = normalizeEmail(dto.email);
+    await this.ensureEmailFree(email, id);
     return this.prisma.user.update({
       where: { id },
       select: publicUser,
       data: {
         name: dto.name === undefined ? undefined : dto.name?.trim() || null,
+        email,
         role: dto.role,
         // nowe hasło ustawione przez właściciela – sesje tego konta wygasają
         ...(dto.password
           ? {
               password: await hashPassword(dto.password),
               tokenVersion: { increment: 1 },
+              resetTokenHash: null,
+              resetTokenExpires: null,
             }
           : {}),
       },
     });
+  }
+
+  /** Jeden adres e-mail – jedno konto (link resetu musi jednoznacznie wskazać konto) */
+  private async ensureEmailFree(email: string | null | undefined, id?: string) {
+    if (!email) return;
+    const other = await this.prisma.user.findUnique({ where: { email } });
+    if (other && other.id !== id) {
+      throw new ConflictException('Ten adres e-mail ma już inne konto');
+    }
   }
 
   async remove(id: string, currentUserId: string) {
