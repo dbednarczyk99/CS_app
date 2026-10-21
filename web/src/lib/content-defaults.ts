@@ -384,6 +384,18 @@ export const CONTENT_DEFAULTS = {
     "newsletterButton": "Zapisz się",
     "copyright": "Piekarnia Rzemieślnicza · Kraków"
   },
+  "common.cookies": {
+    "visible": true,
+    "requireMapConsent": true,
+    "title": "Pliki cookie",
+    "text": "Zapisujemy w Twojej przeglądarce tylko to, co potrzebne do działania strony – np. zawartość koszyka rezerwacji. Mapa z naszymi piekarniami i trasą chlebowozu pochodzi z Google Maps i może zapisywać pliki cookie Google – pokażemy ją po Twojej zgodzie.",
+    "acceptLabel": "Akceptuję",
+    "rejectLabel": "Tylko niezbędne",
+    "policyLabel": "Polityka prywatności",
+    "settingsLabel": "Ustawienia plików cookie",
+    "mapNotice": "Mapa pochodzi z Google Maps i zapisuje pliki cookie Google. Pokażemy ją po Twojej zgodzie.",
+    "mapButton": "Pokaż mapę"
+  },
   "common.instagram": {
     "eyebrow": "Instagram",
     "title": "Z życia piekarni",

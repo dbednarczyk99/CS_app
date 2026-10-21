@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Lato, Oswald } from 'next/font/google';
 import { Footer } from '@/components/Footer';
+import { CookieBanner } from '@/components/CookieBanner';
 import { NewsletterDialog } from '@/components/Newsletter';
 import { PageViewTracker } from '@/components/PageViewTracker';
 import { Header } from '@/components/Header';
@@ -78,6 +79,8 @@ export default async function RootLayout({
           <Footer />
           {/* okienko zapisu do newslettera – jedno dla całej strony */}
           <NewsletterDialog texts={content['common.newsletter']} />
+          {/* pliki cookie – baner przy pierwszej wizycie (panel: Elementy wspólne → Pliki cookie) */}
+          <CookieBanner texts={content['common.cookies']} />
           <PageViewTracker />
         </ReservationCartProvider>
       </body>

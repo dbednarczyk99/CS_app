@@ -9,6 +9,7 @@ import { plural } from '@/lib/format';
 import { fill, getContent, seoMetadata } from '@/lib/content';
 import { getServiceStatus } from '@/lib/services';
 import { MapFallback } from '@/components/MapFallback';
+import { MapConsentGate } from '@/components/MapConsentGate';
 import { JsonLd } from '@/components/JsonLd';
 import { bakeryLd } from '@/lib/structured-data';
 
@@ -25,6 +26,7 @@ export default async function LocationsPage() {
   const header = content['locations.header'];
   const onsite = content['locations.onsite'];
   const promo = content['locations.van'];
+  const cookies = content['common.cookies'];
   // „{miejsca} w Krakowie…” → „4 miejsca w Krakowie…”; bez piekarni (awaria API) – „Miejsca w Krakowie…”
   const count = `${locations.length} ${plural(locations.length, ['miejsce', 'miejsca', 'miejsc'])}`;
   const intro = fill(header.text, { miejsca: locations.length > 0 ? count : 'miejsca' });
@@ -55,7 +57,19 @@ export default async function LocationsPage() {
           <section className="mt-20">
             <h2 className="heading mb-6 text-2xl">Piekarnie na mapie</h2>
             {/* ta sama mapa co na /chlebowoz – tu domyślnie z filtrem „Piekarnie” */}
-            <StoresMap locations={locations} stops={stops} initialFilter="stores" />
+            <MapConsentGate
+              required={cookies.requireMapConsent}
+              notice={cookies.mapNotice}
+              button={cookies.mapButton}
+              fallback={
+                <MapFallback
+                  note="Bez mapy: każde miejsce otworzysz w Mapach Google."
+                  places={locations.map((l) => ({ key: l.id, label: l.address, detail: l.phone ?? undefined, href: l.googleMapsUrl }))}
+                />
+              }
+            >
+              <StoresMap locations={locations} stops={stops} initialFilter="stores" />
+            </MapConsentGate>
           </section>
         )}
         {!services.maps && locations.length > 0 && (

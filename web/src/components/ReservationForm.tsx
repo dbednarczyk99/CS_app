@@ -158,11 +158,14 @@ export function ReservationForm({
   reservable,
   texts,
   services = { emails: true, maps: true, ratings: true },
+  mapConsent,
 }: {
   options: ReservationOptions;
   reservable: ReservableProduct[];
   /** wyłączniki z panelu: bez e-maili – bez potwierdzenia i zapisu do newslettera, bez mapy – sama lista */
   services?: ServiceStatus;
+  /** zgoda na mapę Google (baner cookies) */
+  mapConsent?: { required: boolean; notice: string; button: string };
   /** teksty z panelu (Strona → Podstrony → Rezerwacja → Formularz rezerwacji) */
   texts: ReservationFormTexts;
 }) {
@@ -453,6 +456,7 @@ export function ReservationForm({
                   )}
                   <PickupPointPicker
                     mapEnabled={services.maps}
+                    mapConsent={mapConsent}
                     points={points}
                     value={pointKey}
                     onChange={pickPoint}

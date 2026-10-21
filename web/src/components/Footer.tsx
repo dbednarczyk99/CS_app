@@ -5,6 +5,7 @@ import { api, orFallback } from '@/lib/api';
 import { telHref } from '@/lib/format';
 import { ratingFormat, ratingSummary } from '@/lib/google';
 import { getContent } from '@/lib/content';
+import { CookieSettingsLink } from './CookieBanner';
 import { NAV } from '@/lib/nav';
 import { NewsletterButton } from './Newsletter';
 import { SocialLinks } from './SocialLinks';
@@ -125,13 +126,16 @@ export async function Footer() {
           <p>
             © {new Date().getFullYear()} Chleba Smak{texts.copyright ? ` · ${texts.copyright}` : ''}
           </p>
-          <nav aria-label="Dokumenty" className="flex gap-5">
+          <nav aria-label="Dokumenty" className="flex flex-wrap gap-x-5 gap-y-2">
             <Link href="/regulamin" className="transition-colors hover:text-gold">
               Regulamin rezerwacji
             </Link>
             <Link href="/polityka-prywatnosci" className="transition-colors hover:text-gold">
               Polityka prywatności
             </Link>
+            {content['common.cookies'].visible && (
+              <CookieSettingsLink label={content['common.cookies'].settingsLabel} className="transition-colors hover:text-gold" />
+            )}
           </nav>
         </div>
       </div>

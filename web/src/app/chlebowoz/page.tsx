@@ -7,6 +7,7 @@ import { api, orFallback } from '@/lib/api';
 import { fill, getContent, seoMetadata } from '@/lib/content';
 import { getServiceStatus } from '@/lib/services';
 import { MapFallback } from '@/components/MapFallback';
+import { MapConsentGate } from '@/components/MapConsentGate';
 import { WEEKDAYS } from '@/lib/format';
 
 export const generateMetadata = () => seoMetadata('seo.van', { path: '/chlebowoz' });
@@ -23,6 +24,7 @@ export default async function BreadVanPage() {
   const header = content['van.header'];
   const schedule = content['van.schedule'];
   const promo = content['van.locations'];
+  const cookies = content['common.cookies'];
 
   return (
     <>
@@ -69,7 +71,24 @@ export default async function BreadVanPage() {
         <section className="mx-auto max-w-7xl px-5 pb-24 sm:px-8">
           <h2 className="heading mb-6 text-2xl">{schedule.mapTitle}</h2>
           {/* ta sama mapa co na /piekarnie – tu domyślnie z filtrem „Chlebowóz” */}
-          <StoresMap locations={locations} stops={stops} initialFilter="van" />
+          <MapConsentGate
+            required={cookies.requireMapConsent}
+            notice={cookies.mapNotice}
+            button={cookies.mapButton}
+            fallback={
+              <MapFallback
+                note="Bez mapy: każde miejsce otworzysz w Mapach Google."
+                places={stops.map((s) => ({
+                  key: s.id,
+                  label: s.address,
+                  detail: `${WEEKDAYS.find((d) => d.key === s.dayOfTheWeek)?.label ?? ''}, ${s.startTime}–${s.endTime}`,
+                  href: s.googleMapsUrl,
+                }))}
+              />
+            }
+          >
+            <StoresMap locations={locations} stops={stops} initialFilter="van" />
+          </MapConsentGate>
         </section>
       )}
 

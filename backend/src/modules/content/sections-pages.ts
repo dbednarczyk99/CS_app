@@ -565,6 +565,49 @@ export const PAGE_SECTIONS: Section[] = [
     },
   },
   {
+    key: 'common.cookies',
+    page: 'common',
+    title: 'Pliki cookie – baner i zgoda na mapę',
+    description:
+      'Baner na dole strony przy pierwszej wizycie i link „Ustawienia plików cookie” w stopce. Treść i sposób działania warto ustalić z prawnikiem.',
+    fields: [
+      { name: 'visible', label: 'Pokazuj baner', type: 'toggle' },
+      {
+        name: 'requireMapConsent',
+        label: 'Mapa Google dopiero po zgodzie',
+        type: 'toggle',
+        help: 'Włączone: dopóki odwiedzający nie zaakceptuje, zamiast mapy widzi listę adresów z przyciskiem „Pokaż mapę”, a baner ma dwa przyciski (akceptuję / tylko niezbędne). Wyłączone: mapa od razu, baner tylko informuje (jeden przycisk) – zmień wtedy też tekst banera i przycisk zgody na „Rozumiem”.',
+      },
+      text('title', 'Tytuł', 40),
+      area('text', 'Tekst', 400, { rows: 4 }),
+      text(
+        'acceptLabel',
+        'Przycisk zgody („Akceptuję”, przy samej informacji – „Rozumiem”)',
+        30,
+      ),
+      text('rejectLabel', 'Przycisk „Tylko niezbędne”', 30),
+      text('policyLabel', 'Link do polityki prywatności', 40),
+      text('settingsLabel', 'Link w stopce', 40),
+      area('mapNotice', 'Mapa bez zgody – tekst w miejscu mapy', 200, {
+        rows: 2,
+      }),
+      text('mapButton', 'Mapa bez zgody – przycisk', 30),
+    ],
+    defaults: {
+      visible: true,
+      requireMapConsent: true,
+      title: 'Pliki cookie',
+      text: 'Zapisujemy w Twojej przeglądarce tylko to, co potrzebne do działania strony – np. zawartość koszyka rezerwacji. Mapa z naszymi piekarniami i trasą chlebowozu pochodzi z Google Maps i może zapisywać pliki cookie Google – pokażemy ją po Twojej zgodzie.',
+      acceptLabel: 'Akceptuję',
+      rejectLabel: 'Tylko niezbędne',
+      policyLabel: 'Polityka prywatności',
+      settingsLabel: 'Ustawienia plików cookie',
+      mapNotice:
+        'Mapa pochodzi z Google Maps i zapisuje pliki cookie Google. Pokażemy ją po Twojej zgodzie.',
+      mapButton: 'Pokaż mapę',
+    },
+  },
+  {
     key: 'common.instagram',
     page: 'common',
     title: 'Instagram – ostatnie posty',
