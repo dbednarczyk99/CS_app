@@ -62,7 +62,7 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Kolejność zdjęć',
-        a: 'Zdjęcia przeciągnij myszką – pierwsze (oznaczone „Główne”) widać na karcie produktu na stronie.',
+        a: 'Zdjęcia przeciągnij myszką – pierwsze (oznaczone „Główne”) widać na karcie produktu na stronie. Każde nowe zdjęcie przed dodaniem przytniesz do proporcji 4:5 (patrz „Jak przyciąć zdjęcie?” w „Treści strony”).',
       },
     ],
   },
@@ -91,7 +91,11 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Jakie zdjęcia wgrywać?',
-        a: 'Najlepiej duże (karuzela: ok. 2400 px szerokości) i w proporcjach podanych przy polu (np. pionowe 4:5, poziome 3:2). Przy zdjęciach w karuzeli wybierz „Kadr” – którą część zdjęcia zawsze pokazywać. Opis zdjęcia pomaga osobom niewidomym i Google; zdjęcie czysto ozdobne może zostać bez opisu. Zdjęcie do udostępniania (podgląd linku): poziome 1200 × 630 px, z ważnymi elementami na środku.',
+        a: 'Duże, prosto z aparatu lub telefonu – nie zdjęcia zapisane z komunikatora (są zmniejszone i zostaną odrzucone jako za małe). Pod każdym polem zdjęcia widać minimalny rozmiar, np. „min. 800 × 1000 px”. Panel przyjmuje JPG, PNG i WebP do 30 MB; zbyt duże zdjęcia sam zmniejsza i zapisuje jako JPG, więc strona i e-maile ładują się szybko. Opis zdjęcia pomaga osobom niewidomym i Google; zdjęcie czysto ozdobne może zostać bez opisu.',
+      },
+      {
+        q: 'Jak przyciąć zdjęcie?',
+        a: 'Po wybraniu zdjęcia otwiera się okno kadrowania z ramką w proporcjach, w jakich zdjęcie pokaże się na stronie: produkt 4:5, wpis 4:3, slajd karuzeli 16:9 (na telefon 3:4), podgląd linku na Facebooku 1200 × 630, zdjęcia w treściach stron – jak przy polu. Przesuń zdjęcie i ustaw suwakiem powiększenie, aż w ramce będzie to, co ma być widać, i kliknij „Przytnij i wgraj”. Pod zdjęciem widać rozmiar wyniku. Gdy zdjęcie jest za małe, panel to napisze i nie pozwoli go wgrać. Zdjęcia piekarni i chlebowozu nie są przycinane (strona pokazuje je w różnych kadrach) – panel tylko pilnuje rozmiaru. Przy zdjęciach w karuzeli dodatkowo wybierz „Kadr” – którą część zdjęcia zawsze pokazywać na różnych ekranach.',
       },
     ],
   },
@@ -128,6 +132,10 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
         a: 'Strzałka w lewo w górnym pasku z nazwą listy, np. w edycji produktu „← Produkty”, w szczegółach rezerwacji „← Rezerwacje”. Na ekranach otwieranych z menu strzałki nie ma – przejdź wtedy przez menu po lewej.',
       },
       {
+        q: 'Wyskoczyło okienko „Niezapisane zmiany” – co to znaczy?',
+        a: 'Zmieniłeś coś w formularzu i próbujesz przejść gdzie indziej (menu, strzałka, inna zakładka) bez kliknięcia „Zapisz”. „Zostań i zapisz” wraca do formularza ze zmianami – wtedy kliknij „Zapisz”. „Wyjdź bez zapisywania” porzuca zmiany. Przeglądarka zapyta też przy zamykaniu lub odświeżaniu karty. Po zapisaniu okienko się nie pojawia.',
+      },
+      {
         q: 'Skąd się biorą „Szybkie akcje” na pulpicie?',
         a: 'Panel zapamiętuje (w przeglądarce, osobno dla każdego konta), które ekrany otwierasz najczęściej – z pulpitu albo z menu – i pokazuje 5 z nich jako szybkie akcje, plus link do strony piekarni. Na początku to zestaw domyślny; z czasem dopasowuje się sam.',
       },
@@ -153,8 +161,16 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
         a: 'Kliknij ikonę konta w prawym górnym rogu → „Moje konto”. Nowe hasło musi mieć co najmniej 10 znaków; po zmianie inne urządzenia zostaną wylogowane.',
       },
       {
-        q: 'Ktoś zapomniał hasła',
-        a: 'Administrator ustawia nowe hasło w „Konta” → wybierz osobę → „Nowe hasło”. Gdy hasła zapomni administrator, osoba opiekująca się serwerem może je zresetować poleceniem awaryjnym.',
+        q: 'Nie pamiętam hasła',
+        a: 'Na ekranie logowania kliknij „Nie pamiętam hasła” i wpisz login albo adres e-mail konta. Na adres przypisany do konta przyjdzie link do ustawienia nowego hasła – działa 30 minut i tylko raz (sprawdź też „Spam”). Po zmianie wszystkie wcześniejsze logowania wygasają, a na skrzynkę przychodzi potwierdzenie. Działa tylko, gdy konto ma wpisany e-mail – inaczej administrator ustawia nowe hasło w „Konta” → wybierz osobę → „Nowe hasło”. Gdy administrator nie ma dostępu do swojej skrzynki, osoba opiekująca się serwerem może zresetować hasło poleceniem awaryjnym.',
+      },
+      {
+        q: 'Jak ustawić e-mail do odzyskiwania hasła?',
+        a: 'Administrator: „Konta” → wybierz osobę → pole „E-mail do odzyskiwania hasła” → „Zapisz”. Dla konta administratora najlepiej Gmail piekarni (ten, na którym jest wizytówka w Mapach Google). Lista kont pokazuje, kto nie ma adresu, a „Moje konto” ostrzega, gdy Twoje konto go nie ma. Jeden adres może być przypisany tylko do jednego konta.',
+      },
+      {
+        q: 'Zbyt wiele nieudanych prób logowania',
+        a: 'Po kilku błędnych hasłach logowanie na to konto blokuje się na chwilę (od 30 sekund do 15 minut) – to ochrona przed zgadywaniem hasła. Poczekaj albo użyj „Nie pamiętam hasła”: ustawienie nowego hasła od razu zdejmuje blokadę.',
       },
     ],
   },
