@@ -56,3 +56,10 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 /generated/prisma
+
+# wygenerowany klient Prismy (stara lokalizacja) – nie trzymać w repozytorium
+/prisma/node_modules
+
+# wgrane pliki i warianty zdjęć to dane serwera, nie kod – w repozytorium tylko zdjęcia przykładowe
+/uploads/*
+!/uploads/seed/
