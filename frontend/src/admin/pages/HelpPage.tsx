@@ -1,9 +1,67 @@
+import { useState } from 'react';
 import { Title } from 'react-admin';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Typography } from '@mui/material';
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
+  InputAdornment,
+  Link,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import SearchIcon from '@mui/icons-material/Search';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+
+/** Kontakt do pomocy technicznej (wykonawca strony) – ustawiany przy wdrożeniu w frontend/.env (VITE_SUPPORT_*) */
+const SUPPORT = {
+  name: import.meta.env.VITE_SUPPORT_NAME as string | undefined,
+  phone: import.meta.env.VITE_SUPPORT_PHONE as string | undefined,
+  email: import.meta.env.VITE_SUPPORT_EMAIL as string | undefined,
+};
 
 /** Pomoc: krótkie instrukcje do najczęstszych czynności w panelu */
 const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
+  {
+    section: 'Gdy coś nie działa',
+    items: [
+      {
+        q: 'Zmieniłem coś w panelu, a na stronie tego nie widać',
+        a: 'Zmiany pojawiają się na stronie po kilku sekundach. Odśwież stronę w przeglądarce (F5, na telefonie – przeciągnij w dół). Jeśli nadal widać starą wersję: sprawdź, czy zmiana została zapisana (po zapisie pojawia się zielony komunikat), czy sekcja albo produkt są włączone („Pokazuj na stronie”, „Aktywny”) i czy nie ustawiono daty „Dostępny od” w przyszłości. Gdy to nie pomoże – skontaktuj się z pomocą techniczną (na górze tej strony).',
+      },
+      {
+        q: 'Na pulpicie jest ostrzeżenie o usłudze – co to znaczy?',
+        a: 'Któraś płatna usługa (e-maile, mapa Google, ocena Google) jest wyłączona albo przekroczyła limit dzienny. Strona działa dalej, tylko pokazuje zamiennik: zamiast mapy – listę adresów, bez e-maili – klient dostaje numer rezerwacji tylko na ekranie. Limit dzienny sam się odnawia o północy. Szczegóły i przełączniki: „Usługi i koszty” (administrator).',
+      },
+      {
+        q: 'Klient nie dostał e-maila z potwierdzeniem rezerwacji',
+        a: 'Poproś klienta o sprawdzenie folderu „Spam” / „Oferty”. W szczegółach rezerwacji sprawdź, czy adres e-mail jest wpisany poprawnie. Jeśli na pulpicie jest ostrzeżenie o e-mailach, wysyłka jest wstrzymana (wyłącznik albo limit dzienny – „Usługi i koszty”). Rezerwacja jest ważna także bez e-maila – liczy się numer, który klient zobaczył na ekranie i który widać w panelu.',
+      },
+      {
+        q: 'Klient dzwoni, że chce anulować albo zmienić rezerwację',
+        a: 'W panelu rezerwacji nie da się anulować ani zmieniać. Najprościej: klient anuluje ją sam linkiem z e-maila (do godziny zamykania rezerwacji dnia poprzedniego) i składa nową. Jeśli nie może – przyjmijcie informację telefonicznie i po prostu nie przygotowujcie tej rezerwacji; w panelu zostanie jako „przyjęta”.',
+      },
+      {
+        q: 'Klient nie odebrał rezerwacji',
+        a: 'Panel nie rejestruje odbiorów – nic nie trzeba w nim robić. Zasady postępowania z nieodebranymi rezerwacjami opisuje regulamin (np. do kiedy rezerwacja czeka na odbiór).',
+      },
+      {
+        q: 'Piekarnia jest nieczynna w święto lub z powodu remontu',
+        a: 'Godziny otwarcia ustawia się na każdy dzień tygodnia („Piekarnie” → wybierz lokal → przełącznik „Czynne / Nieczynne”). Na pojedyncze zamknięcie: na czas zamknięcia ustaw ten dzień tygodnia jako nieczynny (rezerwacje na ten dzień w tym lokalu nie będą możliwe), dodaj komunikat na „Banerze informacyjnym” i po zamknięciu przywróć godziny. Zamknięcie w konkretną datę bez zmiany godzin tygodniowych to możliwe rozszerzenie panelu.',
+      },
+      {
+        q: 'Jak dodać nową piekarnię albo zamknąć lokal?',
+        a: '„Piekarnie” → „Dodaj”: adres, telefon, kod do numerów rezerwacji (np. „WIL”), położenie na mapie („Uzupełnij z adresu”), godziny i zdjęcia. Strona sama przeliczy liczbę piekarni w tekstach i na mapie. Zamykany lokal usuń z listy – wcześniejsze rezerwacje zostają w historii.',
+      },
+      {
+        q: 'Ktoś zapisał się do newslettera, a nie ma go na liście',
+        a: 'Zapis trzeba potwierdzić linkiem z e-maila – do tego czasu osoba ma status „czeka na potwierdzenie” (sprawdź filtr statusu w „Subskrybenci”). Niepotwierdzone zapisy są usuwane automatycznie po 7 dniach. Osobę usuniesz z listy przyciskiem kosza przy jej adresie, a całą listę pobierzesz przyciskiem eksportu.',
+      },
+    ],
+  },
   {
     section: 'Rezerwacje',
     items: [
@@ -213,42 +271,127 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
   },
 ];
 
-const HelpPage = () => (
-  <Box sx={{ maxWidth: 900, mx: 'auto', py: { xs: 2, md: 4 } }}>
-    <Title title="Pomoc" />
-    <Typography variant="overline" color="primary">
-      Pomoc
-    </Typography>
-    <Typography variant="h4" sx={{ mt: 0.5, mb: 1 }}>
-      Jak korzystać z panelu
-    </Typography>
-    <Typography color="text.secondary" sx={{ mb: 4 }}>
-      Zmiany zapisane w panelu pojawiają się na stronie po kilku sekundach. Po zapisaniu przez ok. 5 sekund możesz je cofnąć
-      przyciskiem „Cofnij”.
-    </Typography>
+// wyszukiwanie bez rozróżniania wielkości liter i polskich znaków
+const normalize = (text: string) =>
+  text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ł/g, 'l');
 
-    {TOPICS.map(({ section, items }) => (
-      <Box key={section} sx={{ mb: 4 }}>
-        <Typography variant="h6" sx={{ mb: 1.5 }}>
-          {section}
+/** Karta „Pomoc techniczna” – kontakt do wykonawcy strony */
+const SupportCard = () => {
+  const filled = SUPPORT.name || SUPPORT.phone || SUPPORT.email;
+  return (
+    <Paper variant="outlined" sx={{ p: 2.5, mb: 3, display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+      <SupportAgentIcon color="primary" sx={{ mt: 0.25 }} />
+      <Box>
+        <Typography fontWeight={700}>Pomoc techniczna</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          Gdy coś nie działa albo nie znajdziesz odpowiedzi poniżej – skontaktuj się z osobą, która opiekuje się stroną.
         </Typography>
-        {items.map(({ q, a }) => (
-          <Accordion key={q} disableGutters variant="outlined">
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography fontWeight={700}>{q}</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Typography color="text.secondary">{a}</Typography>
-            </AccordionDetails>
-          </Accordion>
-        ))}
+        {filled ? (
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 0.5, sm: 3 }} sx={{ mt: 1.25 }}>
+            {SUPPORT.name && <Typography variant="body2">{SUPPORT.name}</Typography>}
+            {SUPPORT.phone && (
+              <Link href={`tel:${SUPPORT.phone.replace(/\s/g, '')}`} variant="body2">
+                {SUPPORT.phone}
+              </Link>
+            )}
+            {SUPPORT.email && (
+              <Link href={`mailto:${SUPPORT.email}`} variant="body2">
+                {SUPPORT.email}
+              </Link>
+            )}
+          </Stack>
+        ) : (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1.25, fontStyle: 'italic' }}>
+            Dane kontaktowe zostaną uzupełnione przy uruchomieniu strony.
+          </Typography>
+        )}
       </Box>
-    ))}
+    </Paper>
+  );
+};
 
-    <Typography variant="body2" color="text.secondary">
-      Brak odpowiedzi na Twoje pytanie? Skontaktuj się z osobą, która administruje stroną.
-    </Typography>
-  </Box>
-);
+const HelpPage = () => {
+  const [query, setQuery] = useState('');
+  // dłuższe słowa bez ostatniej litery – „haslo” znajdzie też „hasła”, „zdjecie” – „zdjęcia”
+  const words = normalize(query)
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => (w.length >= 5 ? w.slice(0, -1) : w));
+  const matches = (q: string, a: string) => {
+    const text = normalize(`${q} ${a}`);
+    return words.every((w) => text.includes(w));
+  };
+  const visible = TOPICS.map(({ section, items }) => ({
+    section,
+    items: items.filter(({ q, a }) => matches(q, a)),
+  })).filter(({ items }) => items.length > 0);
+
+  return (
+    <Box sx={{ maxWidth: 900, mx: 'auto', py: { xs: 2, md: 4 } }}>
+      <Title title="Pomoc" />
+      <Typography variant="overline" color="primary">
+        Pomoc
+      </Typography>
+      <Typography variant="h4" sx={{ mt: 0.5, mb: 1 }}>
+        Jak korzystać z panelu
+      </Typography>
+      <Typography color="text.secondary" sx={{ mb: 4 }}>
+        Zmiany zapisane w panelu pojawiają się na stronie po kilku sekundach. Po zapisaniu przez ok. 5 sekund możesz je
+        cofnąć przyciskiem „Cofnij”.
+      </Typography>
+
+      <SupportCard />
+
+      <TextField
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Szukaj w pomocy, np. hasło, zdjęcie, newsletter"
+        fullWidth
+        size="small"
+        sx={{ mb: 3 }}
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" />
+              </InputAdornment>
+            ),
+          },
+        }}
+      />
+      {visible.length === 0 && (
+        <Typography color="text.secondary" sx={{ mb: 4 }}>
+          Nic nie znaleziono – spróbuj innego słowa albo skontaktuj się z pomocą techniczną.
+        </Typography>
+      )}
+
+      {visible.map(({ section, items }) => (
+        <Box key={section} sx={{ mb: 4 }}>
+          <Typography variant="h6" sx={{ mb: 1.5 }}>
+            {section}
+          </Typography>
+          {items.map(({ q, a }) => (
+            <Accordion key={q} disableGutters variant="outlined">
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography fontWeight={700}>{q}</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Typography color="text.secondary">{a}</Typography>
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </Box>
+      ))}
+
+      <Typography variant="body2" color="text.secondary">
+        Brak odpowiedzi na Twoje pytanie? Skontaktuj się z pomocą techniczną (na górze tej strony).
+      </Typography>
+    </Box>
+  );
+};
 
 export default HelpPage;
