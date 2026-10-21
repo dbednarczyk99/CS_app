@@ -47,7 +47,9 @@ Prowadzimy także anonimowe statystyki: liczymy, ile razy dziennie wyświetlono 
 
 ### 2.4. Mapy Google
 
-Na podstronach „Piekarnie” i „Chlebowóz” oraz w formularzu rezerwacji (przy wyborze punktu odbioru) wyświetlamy mapę z lokalizacjami naszych piekarni i przystanków Chlebowozu, korzystając z usługi Google Maps. Wyświetlenie mapy powoduje połączenie Twojej przeglądarki z serwerami Google i przekazanie Google m.in. Twojego adresu IP oraz informacji o przeglądanej podstronie. Korzystamy z mapy na podstawie naszego prawnie uzasadnionego interesu, polegającego na czytelnym przedstawieniu lokalizacji punktów sprzedaży (art. 6 ust. 1 lit. f RODO).
+Na podstronach „Piekarnie” i „Chlebowóz” oraz w formularzu rezerwacji (przy wyborze punktu odbioru) wyświetlamy mapę z lokalizacjami naszych piekarni i przystanków Chlebowozu, korzystając z usługi Google Maps. Wyświetlenie mapy powoduje połączenie Twojej przeglądarki z serwerami Google i przekazanie Google m.in. Twojego adresu IP oraz informacji o przeglądanej podstronie, a Google może zapisać w Twojej przeglądarce własne pliki cookies.
+
+Mapę wyświetlamy **dopiero po Twojej zgodzie** – przycisk „Akceptuję” w okienku o plikach cookies albo „Pokaż mapę” w miejscu mapy. Bez zgody zamiast mapy widzisz listę adresów z odnośnikami do Map Google. Podstawą jest Twoja zgoda (art. 6 ust. 1 lit. a RODO oraz art. 399 ustawy z dnia 12 lipca 2024 r. – Prawo komunikacji elektronicznej). Zgodę możesz w każdej chwili zmienić lub wycofać odnośnikiem „Ustawienia plików cookie” w stopce strony; wycofanie zgody nie wpływa na zgodność z prawem wcześniejszego wyświetlania mapy. [[DO WERYFIKACJI PRZEZ PRAWNIKA – zob. notatka dla prawnika; jeśli zgoda nie będzie wymagana, panel pozwala wyświetlać mapę od razu i wtedy ten akapit należy zastąpić podstawą z art. 6 ust. 1 lit. f RODO]]
 
 W formularzu rezerwacji możesz skorzystać z przycisku „Najbliżej mnie”. Wtedy – po udzieleniu zgody w oknie przeglądarki – Twoja lokalizacja jest używana wyłącznie w przeglądarce, aby posortować punkty odbioru według odległości i pokazać je na mapie. Nie zapisujemy jej i nie przesyłamy na nasz serwer; fragment mapy wokół Twojej lokalizacji jest pobierany z serwerów Google. Zgodę możesz w każdej chwili cofnąć w ustawieniach przeglądarki. [[DO WERYFIKACJI PRZEZ PRAWNIKA]]
 
@@ -55,7 +57,7 @@ Dostawcą usługi jest [[DO WERYFIKACJI: Google Ireland Limited, Gordon House, B
 
 ### 2.5. Odnośniki do mediów społecznościowych
 
-W Serwisie umieszczamy wyłącznie odnośniki (linki) do naszych profili w serwisach Instagram i Facebook. Nie stosujemy wtyczek tych serwisów – do czasu kliknięcia w link żadne dane nie są im przekazywane. Po przejściu na profil zastosowanie mają polityki prywatności tych serwisów. Wiadomości wysyłane do nas przez Instagram lub Facebook są przesyłane za pośrednictwem Meta Platforms Ireland Limited, która przetwarza je zgodnie z własną polityką prywatności: https://privacycenter.instagram.com/policy. [[DO WERYFIKACJI PRZEZ PRAWNIKA: rola Meta i ewentualne współadministrowanie – zob. notatka dla prawnika]]
+W Serwisie umieszczamy wyłącznie odnośniki (linki) do naszych profili w serwisach Instagram i Facebook. Nie stosujemy wtyczek tych serwisów – do czasu kliknięcia w link żadne dane nie są im przekazywane. Na stronie głównej i w zakładce „Kontakt” pokazujemy ostatnie zdjęcia z naszego profilu na Instagramie – są to kopie zapisane na naszym serwerze, więc ich wyświetlenie nie łączy Twojej przeglądarki z serwerami Meta; dopiero kliknięcie zdjęcia otwiera post w serwisie Instagram. Po przejściu na profil zastosowanie mają polityki prywatności tych serwisów. Wiadomości wysyłane do nas przez Instagram lub Facebook są przesyłane za pośrednictwem Meta Platforms Ireland Limited, która przetwarza je zgodnie z własną polityką prywatności: https://privacycenter.instagram.com/policy. [[DO WERYFIKACJI PRZEZ PRAWNIKA: rola Meta i ewentualne współadministrowanie – zob. notatka dla prawnika]]
 
 ### 2.6. Newsletter
 
@@ -70,11 +72,12 @@ Jeżeli zapiszesz się do newslettera, przetwarzamy Twój **adres e-mail** oraz 
 1. Serwis zapisuje w pamięci Twojej przeglądarki wyłącznie:
    - listę produktów wybranych do rezerwacji („koszyk rezerwacji”, localStorage), aby nie zniknęła po odświeżeniu strony,
    - punkt odbioru wybrany w ostatniej rezerwacji (localStorage), aby przy kolejnej rezerwacji był od razu zaznaczony,
-   - informację, że zamknięto komunikat na pasku pod menu strony (sessionStorage – usuwana automatycznie po zamknięciu karty przeglądarki), aby nie wyświetlał się ponownie w trakcie tej samej wizyty.
+   - informację, że zamknięto komunikat na pasku pod menu strony (sessionStorage – usuwana automatycznie po zamknięciu karty przeglądarki), aby nie wyświetlał się ponownie w trakcie tej samej wizyty,
+   - Twoją decyzję w okienku o plikach cookies (localStorage), aby nie pytać ponownie przy każdej wizycie.
 
    Jest to niezbędne do świadczenia usługi, o którą prosisz, dlatego nie wymaga zgody (art. 399 ust. 3 ustawy z dnia 12 lipca 2024 r. – Prawo komunikacji elektronicznej). Te dane nie są przesyłane na nasz serwer; możesz je w każdej chwili usunąć, czyszcząc dane witryny w przeglądarce.
 2. Serwis nie wykorzystuje plików cookies ani innych technologii w celach analitycznych lub marketingowych. [[JEŚLI W PRZYSZŁOŚCI ZOSTANIE DODANA ANALITYKA (np. Google Analytics) LUB PIKSELE REKLAMOWE: wymagany baner zgody i aktualizacja tego punktu]]
-3. Mapa Google (pkt 2.4) może zapisywać w Twojej przeglądarce własne pliki cookies Google, zgodnie z polityką Google.
+3. Mapa Google (pkt 2.4) może zapisywać w Twojej przeglądarce własne pliki cookies Google, zgodnie z polityką Google – dlatego wyświetlamy ją dopiero po Twojej zgodzie. Decyzję możesz zmienić w każdej chwili odnośnikiem „Ustawienia plików cookie” w stopce strony albo usunąć, czyszcząc dane witryny w przeglądarce.
 
 ## 4. Odbiorcy danych
 

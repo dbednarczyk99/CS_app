@@ -109,6 +109,18 @@ export interface SiteContent {
   'seo.default': { image: ContentImage };
   'common.footer': { about: string; newsletterText: string; newsletterButton: string; copyright: string };
   'common.instagram': { eyebrow: string; title: string; buttonLabel: string };
+  'common.cookies': {
+    visible: boolean;
+    requireMapConsent: boolean;
+    title: string;
+    text: string;
+    acceptLabel: string;
+    rejectLabel: string;
+    policyLabel: string;
+    settingsLabel: string;
+    mapNotice: string;
+    mapButton: string;
+  };
   'common.newsletter': {
     eyebrow: string;
     title: string;

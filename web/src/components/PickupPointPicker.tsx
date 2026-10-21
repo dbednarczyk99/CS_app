@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FaLocationCrosshairs, FaShop, FaTruck } from 'react-icons/fa6';
 import { Pin } from './StoresMap';
 import { MapLoadCounter } from './MapLoadCounter';
+import { MapConsentGate } from './MapConsentGate';
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? '';
 const MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID';
@@ -59,10 +60,13 @@ export function PickupPointPicker({
   heading,
   rememberedKey,
   mapEnabled = true,
+  mapConsent,
 }: {
   points: PickupPoint[];
   /** false – mapa wyłączona w panelu (zostaje sama lista punktów) */
   mapEnabled?: boolean;
+  /** mapa Google dopiero po zgodzie na pliki cookie (panel: Elementy wspólne → Pliki cookie) */
+  mapConsent?: { required: boolean; notice: string; button: string };
   value: string | null;
   onChange: (key: string) => void;
   /** np. „W piątek: 4 piekarnie i 1 postój chlebowozu” */
@@ -130,40 +134,47 @@ export function PickupPointPicker({
       )}
 
       {API_KEY && mapEnabled && onMap.length > 0 && (
-        <div className="relative h-[220px] overflow-hidden border border-line bg-coal sm:h-[300px]">
-          <APIProvider apiKey={API_KEY} language="pl" region="PL">
-            <GoogleMap
-              mapId={MAP_ID}
-              colorScheme={MAP_ID === 'DEMO_MAP_ID' ? 'DARK' : 'LIGHT'}
-              defaultCenter={KRAKOW}
-              defaultZoom={12}
-              gestureHandling="cooperative"
-              disableDefaultUI
-              zoomControl
-              clickableIcons={false}
-              className="size-full"
-            >
-              <FitBounds points={framed} />
-              <MapLoadCounter source="rezerwacja" />
-              {onMap.map((point) => (
-                <AdvancedMarker
-                  key={point.key}
-                  position={point}
-                  onClick={() => onChange(point.key)}
-                  zIndex={point.key === value ? 1000 : point.kind === 'STORE' ? 100 : 90}
-                  title={`${point.kind === 'STORE' ? 'Piekarnia' : 'Chlebowóz'}: ${point.address}`}
-                >
-                  <PointPin point={point} active={point.key === value} />
-                </AdvancedMarker>
-              ))}
-              {me && (
-                <AdvancedMarker position={me} zIndex={50} title="Twoja lokalizacja">
-                  <span className="block size-4 rounded-full border-2 border-ink bg-cream shadow-[0_0_0_6px_rgb(201_163_106/0.35)]" />
-                </AdvancedMarker>
-              )}
-            </GoogleMap>
-          </APIProvider>
-        </div>
+        <MapConsentGate
+          required={mapConsent?.required ?? false}
+          notice={mapConsent?.notice ?? ''}
+          button={mapConsent?.button ?? ''}
+          compact
+        >
+          <div className="relative h-[220px] overflow-hidden border border-line bg-coal sm:h-[300px]">
+            <APIProvider apiKey={API_KEY} language="pl" region="PL">
+              <GoogleMap
+                mapId={MAP_ID}
+                colorScheme={MAP_ID === 'DEMO_MAP_ID' ? 'DARK' : 'LIGHT'}
+                defaultCenter={KRAKOW}
+                defaultZoom={12}
+                gestureHandling="cooperative"
+                disableDefaultUI
+                zoomControl
+                clickableIcons={false}
+                className="size-full"
+              >
+                <FitBounds points={framed} />
+                <MapLoadCounter source="rezerwacja" />
+                {onMap.map((point) => (
+                  <AdvancedMarker
+                    key={point.key}
+                    position={point}
+                    onClick={() => onChange(point.key)}
+                    zIndex={point.key === value ? 1000 : point.kind === 'STORE' ? 100 : 90}
+                    title={`${point.kind === 'STORE' ? 'Piekarnia' : 'Chlebowóz'}: ${point.address}`}
+                  >
+                    <PointPin point={point} active={point.key === value} />
+                  </AdvancedMarker>
+                ))}
+                {me && (
+                  <AdvancedMarker position={me} zIndex={50} title="Twoja lokalizacja">
+                    <span className="block size-4 rounded-full border-2 border-ink bg-cream shadow-[0_0_0_6px_rgb(201_163_106/0.35)]" />
+                  </AdvancedMarker>
+                )}
+              </GoogleMap>
+            </APIProvider>
+          </div>
+        </MapConsentGate>
       )}
 
       <div role="radiogroup" aria-label="Punkt odbioru" className="mt-3 grid gap-2">

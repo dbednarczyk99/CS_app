@@ -4,12 +4,18 @@ import { FaLocationArrow, FaMapLocationDot } from 'react-icons/fa6';
  * Zamiast interaktywnej Mapy Google (wyłączonej w panelu albo po dziennym limicie wczytań): lista miejsc
  * z linkami do Map Google – działa bez kosztów po naszej stronie.
  */
-export function MapFallback({ places }: { places: { key: string; label: string; detail?: string; href: string }[] }) {
+export function MapFallback({
+  places,
+  note = 'Mapa jest chwilowo niedostępna – każde miejsce otworzysz w Mapach Google.',
+}: {
+  places: { key: string; label: string; detail?: string; href: string }[];
+  /** zdanie nad listą (inne, gdy mapa czeka na zgodę na pliki cookie) */
+  note?: string;
+}) {
   return (
     <div className="border border-line bg-coal p-6 sm:p-8">
       <p className="flex items-center gap-3 text-stone">
-        <FaMapLocationDot aria-hidden className="shrink-0 text-gold" /> Mapa jest chwilowo niedostępna – każde miejsce
-        otworzysz w Mapach Google.
+        <FaMapLocationDot aria-hidden className="shrink-0 text-gold" /> {note}
       </p>
       <ul className="mt-6 grid gap-3 sm:grid-cols-2">
         {places.map((p) => (

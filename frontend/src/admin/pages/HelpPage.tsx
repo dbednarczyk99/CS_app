@@ -86,6 +86,10 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
         a: 'Pierwsza sekcja każdej strony to „Wyszukiwarka i udostępnianie (SEO)”: tytuł i opis w wynikach Google oraz zdjęcie w podglądzie linku (Facebook, Messenger, WhatsApp). Podgląd nad polami pokazuje, jak to będzie wyglądać. Google pokazuje ok. 60 znaków tytułu i ok. 155 znaków opisu – licznik ostrzega, gdy tekst jest dłuższy (dłuższy nie szkodzi, tylko zostanie obcięty). Najważniejsze słowa (np. „chleb na zakwasie Kraków”) dawaj na początek, a każda strona powinna mieć inny tytuł i opis. Bez własnego zdjęcia podgląd linku pokazuje domyślne zdjęcie z „Elementy wspólne”; produkty pokazują swoje zdjęcie, a wpis – okładkę albo zdjęcie z pola „Zdjęcie przy udostępnianiu”. Google odświeża wyniki samo, zwykle w ciągu kilku dni.',
       },
       {
+        q: 'Baner o plikach cookie i zgoda na mapę',
+        a: '„Podstrony” → „Elementy wspólne” → „Pliki cookie”: włącznik banera, teksty i przyciski. Gdy włączone jest „Mapa Google dopiero po zgodzie”, odwiedzający bez zgody zamiast mapy widzi listę adresów z przyciskiem „Pokaż mapę”, a baner ma przyciski „Akceptuję” i „Tylko niezbędne”. Decyzję można zmienić linkiem „Ustawienia plików cookie” w stopce. Treść banera i to, czy zgoda jest potrzebna, warto ustalić z prawnikiem (razem z polityką prywatności).',
+      },
+      {
         q: 'Zmieniłem zdjęcie, a Facebook pokazuje stary podgląd linku – co zrobić?',
         a: 'Facebook zapamiętuje podgląd linku na kilka dni. Wejdź na developers.facebook.com/tools/debug (Sharing Debugger, trzeba być zalogowanym na Facebooku), wklej adres strony, np. chlebasmak.pl/o-nas, i kliknij „Scrape Again” (Pobierz ponownie). Po chwili zobaczysz nowy podgląd, a kolejne udostępnienia będą już z nowym zdjęciem. Messenger i WhatsApp korzystają z tej samej pamięci lub odświeżają się same po kilku dniach.',
       },
