@@ -158,7 +158,7 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Jak zmienić swoje hasło?',
-        a: 'Kliknij ikonę konta w prawym górnym rogu → „Moje konto”. Nowe hasło musi mieć co najmniej 10 znaków; po zmianie inne urządzenia zostaną wylogowane.',
+        a: 'Kliknij ikonę konta w prawym górnym rogu → „Moje konto”. Nowe hasło musi mieć co najmniej 10 znaków, małą i wielką literę, cyfrę i znak specjalny (np. „Chleb-na-zakwasie7!”) – pod polem widać, które wymagania są już spełnione. Po zmianie inne urządzenia zostaną wylogowane. Wymagania dotyczą nowych haseł; dotychczasowe działają do pierwszej zmiany.',
       },
       {
         q: 'Nie pamiętam hasła',

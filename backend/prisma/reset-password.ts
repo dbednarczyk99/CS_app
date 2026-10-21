@@ -2,7 +2,7 @@
  * Awaryjny reset hasła do panelu – uruchamia osoba z dostępem do serwera:
  *
  *   npm run haslo -- <login>                  → nowe losowe hasło (wypisane w konsoli)
- *   npm run haslo -- <login> "<nowe hasło>"   → wskazane hasło (min. 10 znaków)
+ *   npm run haslo -- <login> "<nowe hasło>"   → wskazane hasło (min. 10 znaków, mała i wielka litera, cyfra, znak specjalny)
  *
  * Gdy konta nie ma, zakłada je jako konto właściciela (ADMIN). Dotychczasowe sesje konta wygasają.
  */
@@ -10,8 +10,19 @@ import 'dotenv/config';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { PrismaClient, Role } from '@prisma/client';
+import { passwordProblems } from '../src/modules/auth/password-policy';
 
 const prisma = new PrismaClient();
+
+/** Losowe hasło spełniające wymagania: bez znaków łatwych do pomylenia (0/O, 1/l/I), z cyfrą i znakiem specjalnym */
+function randomPassword(): string {
+  const alphabet = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  for (;;) {
+    const core = Array.from(randomBytes(13), (b) => alphabet[b % alphabet.length]).join('');
+    const candidate = `${core.slice(0, 7)}-${core.slice(7)}!`;
+    if (passwordProblems(candidate).length === 0) return candidate;
+  }
+}
 
 async function main() {
   const [loginArg, passwordArg] = process.argv.slice(2);
@@ -20,12 +31,10 @@ async function main() {
     process.exit(1);
   }
   const login = loginArg.trim().toLowerCase();
-  // bez znaków łatwych do pomylenia (0/O, 1/l/I)
-  const alphabet = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const password =
-    passwordArg ?? Array.from(randomBytes(14), (b) => alphabet[b % alphabet.length]).join('');
-  if (password.length < 10) {
-    console.error('Hasło musi mieć co najmniej 10 znaków.');
+  const password = passwordArg ?? randomPassword();
+  const problems = passwordProblems(password);
+  if (problems.length) {
+    console.error(`Hasło musi zawierać: ${problems.join(', ')}.`);
     process.exit(1);
   }
 

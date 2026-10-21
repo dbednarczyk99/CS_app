@@ -6,6 +6,7 @@
   - blokada 15 min po 10 błędach z jednego adresu;
   - rosnąca przerwa po 5 błędach na jedno konto (30 s → maks. 15 min);
   - ta sama odpowiedź dla istniejących i nieistniejących kont.
+- **Hasła**: nowe hasło – min. 10 znaków, mała i wielka litera, cyfra, znak specjalny (serwer + lista w panelu; także `npm run haslo`).
 - **Sesje**: token 8 h; zmiana hasła, roli albo usunięcie konta działa od razu.
 - **Odzyskiwanie hasła**:
   - „Nie pamiętam hasła” w panelu wysyła jednorazowy link (30 min) na e-mail konta, ustawiany w Konta;

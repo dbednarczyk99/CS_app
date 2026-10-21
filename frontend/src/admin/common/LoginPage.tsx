@@ -3,6 +3,8 @@ import { LoginForm } from 'react-admin';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import { Alert, Box, Button, Card, CardContent, Link, TextField, Typography } from '@mui/material';
 import { COLORS } from '../../theme';
+import { PasswordChecklist } from './PasswordChecklist';
+import { isStrongPassword } from './password-rules';
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -156,7 +158,7 @@ export const ResetPasswordPage = () => {
   const [done, setDone] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const tooShort = password.length > 0 && password.length < 10;
+  const weak = password.length > 0 && !isStrongPassword(password);
   const mismatch = repeat.length > 0 && repeat !== password;
 
   const submit = async (e: FormEvent) => {
@@ -195,8 +197,9 @@ export const ResetPasswordPage = () => {
             autoFocus
             required
             autoComplete="new-password"
-            error={tooShort}
-            helperText="Co najmniej 10 znaków"
+            error={weak}
+            helperText={<PasswordChecklist password={password} />}
+            FormHelperTextProps={{ component: 'div' }}
           />
           <TextField
             label="Powtórz hasło"
@@ -219,7 +222,7 @@ export const ResetPasswordPage = () => {
             type="submit"
             variant="contained"
             fullWidth
-            disabled={busy || password.length < 10 || password !== repeat}
+            disabled={busy || !isStrongPassword(password) || password !== repeat}
             sx={{ mt: 2, py: 1.25 }}
           >
             {busy ? 'Zapisywanie…' : 'Ustaw hasło'}
