@@ -4,7 +4,6 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
 import { join } from 'path';
 
-import { DebugController } from './debug.controller';
 import { UploadController } from './modules/upload/upload.controller';
 import { ImageVariantsController } from './modules/upload/image-variants.controller';
 import { InstagramModule } from './modules/instagram/instagram.module';
@@ -65,6 +64,6 @@ import { StatsModule } from './modules/stats/stats.module';
     SettingsModule,
     NewsletterModule,
   ],
-  controllers: [UploadController, ImageVariantsController, DebugController],
+  controllers: [UploadController, ImageVariantsController],
 })
 export class AppModule {}
