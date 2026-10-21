@@ -26,32 +26,31 @@ export function CookieBanner({ texts }: { texts: SiteContent['common.cookies'] }
   };
 
   return (
+    // pasek na całą szerokość, przyklejony do dołu ekranu; treść w szerokości strony
     <div
       role="region"
       aria-label={texts.title}
-      className="fixed inset-x-0 bottom-0 z-50 p-3 sm:bottom-4 sm:left-4 sm:right-auto sm:max-w-md sm:p-0"
+      className="fixed inset-x-0 bottom-0 z-50 border-t-2 border-gold bg-ink/95 shadow-[0_-12px_40px_rgba(0,0,0,0.45)] backdrop-blur-md"
     >
-      <div className="border border-line border-t-gold bg-ink/95 p-5 shadow-2xl shadow-black/50 backdrop-blur-md sm:p-6">
-        <p className="eyebrow text-[0.7rem]">{texts.title}</p>
-        <p className="mt-3 text-sm leading-relaxed text-stone">
-          {texts.text}{' '}
-          <Link
-            href="/polityka-prywatnosci"
-            className="whitespace-nowrap text-cream underline underline-offset-2 hover:text-gold"
-          >
-            {texts.policyLabel}
-          </Link>
-        </p>
-        <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-          <button type="button" className="btn btn-gold sm:flex-1" onClick={() => choose(true)}>
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-5 sm:px-8 lg:flex-row lg:items-center lg:gap-10">
+        <div className="min-w-0 flex-1">
+          <p className="eyebrow text-[0.7rem]">{texts.title}</p>
+          <p className="mt-2 text-sm leading-relaxed text-stone">
+            {texts.text}{' '}
+            <Link
+              href="/polityka-prywatnosci"
+              className="whitespace-nowrap text-cream underline underline-offset-2 hover:text-gold"
+            >
+              {texts.policyLabel}
+            </Link>
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+          <button type="button" className="btn btn-gold sm:min-w-44" onClick={() => choose(true)}>
             {texts.acceptLabel}
           </button>
           {texts.requireMapConsent && (
-            <button
-              type="button"
-              className="btn btn-outline sm:flex-1"
-              onClick={() => choose(false)}
-            >
+            <button type="button" className="btn btn-outline sm:min-w-44" onClick={() => choose(false)}>
               {texts.rejectLabel}
             </button>
           )}
