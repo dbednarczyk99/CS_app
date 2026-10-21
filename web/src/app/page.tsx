@@ -214,36 +214,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* AKTUALNOŚCI */}
-      {latestArticles.length > 0 && (
-        <section className="mx-auto max-w-7xl px-5 py-24 sm:px-8 md:py-32">
-          <div className="flex flex-wrap items-end justify-between gap-6">
-            <SectionHeading eyebrow={news.eyebrow} title={news.title} />
-            <Link href="/aktualnosci" className="link-arrow inline-flex items-center gap-3">
-              {news.linkLabel} <FaArrowRight aria-hidden />
-            </Link>
-          </div>
-          <div className="mt-14 grid gap-10 md:grid-cols-3 md:gap-6">
-            {latestArticles.map((article, i) => (
-              <Reveal key={article.id} delay={i * 100}>
-                <Link href={articlePath(article)} className="group block border-t border-line pt-6">
-                  <time dateTime={article.publishedAt} className="eyebrow text-[0.7rem] text-stone">
-                    {formatDate(article.publishedAt)}
-                  </time>
-                  <h3 className="heading mt-3 text-xl transition-colors group-hover:text-gold">
-                    {article.title}
-                  </h3>
-                  <p className="mt-3 line-clamp-3 leading-relaxed text-stone">{article.shortDescription}</p>
-                  <span className="link-arrow mt-5 inline-flex items-center gap-2 text-[0.75rem]">
-                    Czytaj <FaArrowRight aria-hidden />
-                  </span>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* GALERIA */}
       {gallery.visible && gallery.images.length > 0 && (
         <section className="border-t border-line pb-24 pt-20 md:pb-32">
@@ -282,6 +252,36 @@ export default async function HomePage() {
                 }))}
               />
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* AKTUALNOŚCI */}
+      {latestArticles.length > 0 && (
+        <section className="mx-auto max-w-7xl px-5 py-24 sm:px-8 md:py-32">
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <SectionHeading eyebrow={news.eyebrow} title={news.title} />
+            <Link href="/aktualnosci" className="link-arrow inline-flex items-center gap-3">
+              {news.linkLabel} <FaArrowRight aria-hidden />
+            </Link>
+          </div>
+          <div className="mt-14 grid gap-10 md:grid-cols-3 md:gap-6">
+            {latestArticles.map((article, i) => (
+              <Reveal key={article.id} delay={i * 100}>
+                <Link href={articlePath(article)} className="group block border-t border-line pt-6">
+                  <time dateTime={article.publishedAt} className="eyebrow text-[0.7rem] text-stone">
+                    {formatDate(article.publishedAt)}
+                  </time>
+                  <h3 className="heading mt-3 text-xl transition-colors group-hover:text-gold">
+                    {article.title}
+                  </h3>
+                  <p className="mt-3 line-clamp-3 leading-relaxed text-stone">{article.shortDescription}</p>
+                  <span className="link-arrow mt-5 inline-flex items-center gap-2 text-[0.75rem]">
+                    Czytaj <FaArrowRight aria-hidden />
+                  </span>
+                </Link>
+              </Reveal>
+            ))}
           </div>
         </section>
       )}
