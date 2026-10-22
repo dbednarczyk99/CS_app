@@ -207,13 +207,18 @@ model BreadVanLocation {
   googleMapsUrl String
   lat           Float?
   lng           Float?
-  dayOfTheWeek  Weekday       @unique
+  // kilka przystanków jednego dnia jest dozwolonych (widoczne nie mogą nakładać się godzinami – pilnuje API)
+  dayOfTheWeek  Weekday
   reservations  Reservation[]
   startTime     String
   endTime       String
+  // ukryty przystanek nie pokazuje się na stronie ani w rezerwacjach, ale zostaje w panelu (trasa może wrócić)
+  isActive      Boolean       @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([dayOfTheWeek])
 }
 
 model BreadVanDescription {

@@ -98,7 +98,7 @@ export class ReservationsService {
     const dates = allowedPickupDates(rules);
     const [locations, stops] = await Promise.all([
       this.prisma.location.findMany({ orderBy: { createdAt: 'asc' } }),
-      this.prisma.breadVanLocation.findMany(),
+      this.prisma.breadVanLocation.findMany({ where: { isActive: true } }),
     ]);
 
     const stores = locations

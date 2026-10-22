@@ -25,11 +25,17 @@ export class BreadVanController {
 
   // ===== LOCATIONS =====
 
-  // wszystkie lokalizacje busa (max 7 – po jednym na dzień tygodnia)
+  // przystanki widoczne na stronie (ukryte pomijamy)
   @Public()
   @Get('locations')
   findAllLocations() {
     return this.service.findAllLocations();
+  }
+
+  // panel: wszystkie przystanki, także ukryte (trasa może wrócić) – trasa stała przed 'locations/:id'
+  @Get('locations/panel')
+  findAllLocationsForPanel() {
+    return this.service.findAllLocations(true);
   }
 
   @Public()

@@ -12,6 +12,7 @@ import {
   IsArray,
   IsInt,
   IsOptional,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Weekday } from '@prisma/client';
@@ -49,6 +50,11 @@ export class CreateBreadVanLocationDto {
     message: 'endTime musi być w formacie HH:MM',
   })
   endTime: string;
+
+  /** false – przystanek ukryty (nie ma go na stronie ani w rezerwacjach), zostaje w panelu */
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }
 
 class BreadVanImageInlineDto {

@@ -106,8 +106,20 @@ export const dataProvider: DataProvider = {
     }
 
     // blog: panel widzi też wpisy nieopublikowane (tylko newsletter)
-    const { json } = await httpClient(resource === 'blog' ? `${apiUrl}/blog/admin/all` : `${apiUrl}/${resource}`);
-    const base = Array.isArray(json) ? json : [json];
+    const { json } = await httpClient(
+      resource === 'blog'
+        ? `${apiUrl}/blog/admin/all`
+        : resource === 'bread-van/locations'
+          ? `${apiUrl}/bread-van/locations/panel` // także ukryte przystanki
+          : `${apiUrl}/${resource}`,
+    );
+    let base = Array.isArray(json) ? json : [json];
+
+    // przystanki chlebowozu: filtr „Widoczność” (na stronie / ukryte)
+    if (resource === 'bread-van/locations' && params?.filter?.isActive !== undefined && params.filter.isActive !== '') {
+      const visible = String(params.filter.isActive) === 'true';
+      base = (base as { isActive?: boolean }[]).filter((s) => (s.isActive !== false) === visible);
+    }
 
     // etykiety do zaznaczenia przy produkcie – bez stałych (np. „Promocja” nadawana przez stronę)
     if (resource === 'products/labels' && params?.filter?.assignable) {

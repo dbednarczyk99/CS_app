@@ -1,3 +1,4 @@
+import type { FC } from 'react';
 import { FormUnsavedChanges } from '../common/UnsavedChanges';
 import { MobileList } from '../common/MobileList';
 // admin/components/breadVan.tsx
@@ -21,9 +22,18 @@ import {
   useRecordContext,
   Create,
   SelectInput,
+  BooleanInput,
+  DeleteWithConfirmButton,
+  SaveButton,
+  Toolbar,
+  useNotify,
+  useRefresh,
+  useUpdate,
   type RaRecord,
 } from 'react-admin';
-import { Alert, Box, Tab, Tabs } from '@mui/material';
+import { Alert, Box, Button, Chip, Tab, Tabs } from '@mui/material';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CoordinatesInput } from '../common/CoordinatesInput';
 import { ImagePreview } from '../common/ImagePreview';
@@ -94,36 +104,131 @@ const WeekdayTextField = ({ source }: { source: string; label?: string }) => {
   return <span>{weekdayName(record[source] as string)}</span>;
 };
 
+type Stop = RaRecord & { isActive?: boolean; address: string };
+/** „label” czyta Datagrid (nagłówek kolumny) */
+type ColumnProps = { label?: string };
+
+/** Przycisk „Ukryj / Pokaż” na liście – zmiana widoczności bez otwierania formularza */
+const VisibilityToggle: FC<ColumnProps> = () => {
+  const record = useRecordContext<Stop>();
+  const [update, { isPending }] = useUpdate();
+  const notify = useNotify();
+  const refresh = useRefresh();
+  if (!record) return null;
+  const visible = record.isActive !== false;
+  return (
+    <Button
+      size="small"
+      color={visible ? 'inherit' : 'primary'}
+      startIcon={visible ? <VisibilityOffIcon /> : <VisibilityIcon />}
+      disabled={isPending}
+      onClick={(e) => {
+        e.stopPropagation();
+        update(
+          'bread-van/locations',
+          { id: record.id, data: { isActive: !visible }, previousData: record },
+          {
+            mutationMode: 'pessimistic',
+            onSuccess: () => {
+              notify(visible ? 'Przystanek ukryty – zniknął ze strony, zostaje na liście' : 'Przystanek znów widoczny na stronie', { type: 'success' });
+              refresh();
+            },
+            onError: (error) => notify((error as Error).message || 'Nie udało się zmienić widoczności', { type: 'error' }),
+          },
+        );
+      }}
+    >
+      {visible ? 'Ukryj' : 'Pokaż'}
+    </Button>
+  );
+};
+
+const VisibilityChip: FC<ColumnProps> = () => {
+  const record = useRecordContext<Stop>();
+  if (!record) return null;
+  return record.isActive === false ? (
+    <Chip size="small" label="Ukryty" variant="outlined" />
+  ) : (
+    <Chip size="small" label="Na stronie" color="success" variant="outlined" />
+  );
+};
+
+const scheduleFilters = [
+  <SelectInput
+    key="widocznosc"
+    source="isActive"
+    label="Widoczność"
+    choices={[
+      { id: true, name: 'Na stronie' },
+      { id: false, name: 'Ukryte' },
+    ]}
+    alwaysOn
+  />,
+];
+
 export const BreadVanScheduleList = () => (
   <>
   <BreadVanTabs />
-  <List resource="bread-van/locations" title="Chlebowóz" pagination={false}>
+  <List resource="bread-van/locations" title="Chlebowóz" pagination={false} filters={scheduleFilters}>
     <Box sx={{ px: 2, pt: 2 }}>
       <Alert severity="info" variant="outlined">
-        Jeden przystanek na dzień tygodnia. Dzień, w którym chlebowóz nie kursuje, po prostu usuń z listy – na stronie
-        pojawi się przy nim informacja „Chlebowóz odpoczywa”.
+        Jednego dnia może być kilka przystanków – widoczne nie mogą nakładać się godzinami. Gdy trasa się zmienia,
+        stare przystanki <strong>ukryj</strong> zamiast je usuwać: znikną ze strony i z rezerwacji, ale zostaną na liście,
+        żeby można je było później przywrócić jednym kliknięciem. Dzień bez widocznych przystanków jest na stronie oznaczony
+        „Chlebowóz odpoczywa”.
       </Alert>
     </Box>
     <MobileList
       primaryText={(s) => s.address}
-      secondaryText={(s) => `${weekdayName(s.dayOfTheWeek)} · ${s.startTime}–${s.endTime}`}
+      secondaryText={(s) =>
+        `${weekdayName(s.dayOfTheWeek)} · ${s.startTime}–${s.endTime}${s.isActive === false ? ' · ukryty' : ''}`
+      }
+      tertiaryText={() => <VisibilityToggle />}
       rowClick="edit"
     >
-    <Datagrid rowClick="edit">
+    <Datagrid
+      rowClick="edit"
+      bulkActionButtons={false}
+      // ukryty przystanek przyciemniony – poza przyciskiem „Pokaż”, który ma wyglądać na aktywny
+      rowSx={(record) => ({ '& td:not(:last-of-type)': { opacity: record.isActive === false ? 0.55 : 1 } })}
+    >
       <WeekdayTextField source="dayOfTheWeek" label="Dzień tygodnia" />
       <TextField source="startTime" />
       <TextField source="endTime" />
       <TextField source="address" />
-      <TextField source="googleMapsUrl" />
+      <VisibilityChip label="Widoczność" />
+      <VisibilityToggle label="" />
     </Datagrid>
     </MobileList>
   </List>
   </>
 );
 
+/** Zapis + usuwanie z ostrzeżeniem (lepiej ukryć – trasa może wrócić) */
+const ScheduleToolbar = () => {
+  const record = useRecordContext<Stop>();
+  return (
+    <Toolbar sx={{ justifyContent: 'space-between' }}>
+      <SaveButton />
+      {record?.id && (
+        <DeleteWithConfirmButton
+          confirmTitle="Usunąć przystanek na stałe?"
+          confirmContent="Jeśli chlebowóz może tu kiedyś wrócić, lepiej wyłącz „Pokazuj na stronie” – przystanek zniknie ze strony i z rezerwacji, ale zostanie w panelu. Usunięcia nie da się cofnąć."
+        />
+      )}
+    </Toolbar>
+  );
+};
+
 const ScheduleForm = () => (
-  <SimpleForm>
+  <SimpleForm toolbar={<ScheduleToolbar />}>
     <FormUnsavedChanges />
+    <BooleanInput
+      source="isActive"
+      label="Pokazuj na stronie"
+      defaultValue={true}
+      helperText="Wyłączony – przystanek nie pojawia się na stronie ani w rezerwacjach, ale zostaje tutaj na później"
+    />
     <SelectInput
       source="dayOfTheWeek"
       choices={weekdayOption}

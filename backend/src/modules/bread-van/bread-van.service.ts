@@ -23,9 +23,13 @@ export class BreadVanService {
 
   // ===== LOCATIONS =====
 
-  findAllLocations(): Prisma.PrismaPromise<BreadVanLocation[]> {
+  /** Przystanki w kolejności tygodnia i godzin; dla strony tylko widoczne, dla panelu – wszystkie */
+  findAllLocations(
+    includeHidden = false,
+  ): Prisma.PrismaPromise<BreadVanLocation[]> {
     return this.prisma.breadVanLocation.findMany({
-      orderBy: { dayOfTheWeek: 'asc' },
+      where: includeHidden ? undefined : { isActive: true },
+      orderBy: [{ dayOfTheWeek: 'asc' }, { startTime: 'asc' }],
     });
   }
 
@@ -42,39 +46,51 @@ export class BreadVanService {
   async createLocation(
     data: CreateBreadVanLocationDto,
   ): Promise<BreadVanLocation> {
-    // WYMAGANIE 2: max 1 rekord na dany dayOfTheWeek
-    const existing = await this.prisma.breadVanLocation.findFirst({
-      where: { dayOfTheWeek: data.dayOfTheWeek },
-    });
+    await this.ensureNoOverlap({ ...data, isActive: data.isActive ?? true });
+    return this.prisma.breadVanLocation.create({ data });
+  }
 
-    if (existing) {
+  /**
+   * Jednego dnia może być kilka przystanków, ale widoczne nie mogą nakładać się godzinami
+   * (chlebowóz nie stoi w dwóch miejscach naraz). Ukryte przystanki nie są sprawdzane.
+   */
+  private async ensureNoOverlap(
+    stop: Pick<
+      BreadVanLocation,
+      'dayOfTheWeek' | 'startTime' | 'endTime' | 'isActive'
+    >,
+    id?: string,
+  ) {
+    if (stop.endTime <= stop.startTime) {
       throw new BadRequestException(
-        'Lokalizacja dla tego dnia tygodnia już istnieje.',
+        'Godzina zakończenia postoju musi być późniejsza niż rozpoczęcia.',
       );
     }
-
-    return this.prisma.breadVanLocation.create({ data });
+    if (!stop.isActive) return;
+    const sameDay = await this.prisma.breadVanLocation.findMany({
+      where: {
+        dayOfTheWeek: stop.dayOfTheWeek,
+        isActive: true,
+        ...(id ? { NOT: { id } } : {}),
+      },
+    });
+    const clash = sameDay.find(
+      (other) =>
+        stop.startTime < other.endTime && other.startTime < stop.endTime,
+    );
+    if (clash) {
+      throw new BadRequestException(
+        `Godziny nakładają się z innym widocznym przystankiem tego dnia: ${clash.address} (${clash.startTime}–${clash.endTime}). Zmień godziny albo ukryj jeden z przystanków.`,
+      );
+    }
   }
 
   async editLocation(
     id: string,
     data: UpdateBreadVanLocationDto,
   ): Promise<BreadVanLocation> {
-    // jeśli zmieniasz dayOfTheWeek – też pilnujemy unikalności
-    if (data.dayOfTheWeek) {
-      const existing = await this.prisma.breadVanLocation.findFirst({
-        where: {
-          dayOfTheWeek: data.dayOfTheWeek,
-          NOT: { id },
-        },
-      });
-
-      if (existing) {
-        throw new BadRequestException(
-          'Lokalizacja dla tego dnia tygodnia już istnieje.',
-        );
-      }
-    }
+    const current = await this.findOneLocation(id);
+    await this.ensureNoOverlap({ ...current, ...data }, id);
 
     return this.prisma.breadVanLocation.update({
       where: { id },
