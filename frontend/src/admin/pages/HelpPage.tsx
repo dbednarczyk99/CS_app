@@ -170,7 +170,11 @@ const TOPICS: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Jak ustawić trasę chlebowozu?',
-        a: '„Chlebowóz” → zakładka „Trasa”: jeden przystanek na dzień tygodnia (dzień, godziny, adres). Dzień, w którym chlebowóz nie kursuje, usuń z listy – na stronie pojawi się „Chlebowóz odpoczywa”. Gdy ten sam przystanek jest w kilka dni, wpisz za każdym razem ten sam adres i położenie.',
+        a: '„Chlebowóz” → zakładka „Trasa”: każdy postój to osobny przystanek (dzień, godziny, adres). Jednego dnia może być kilka przystanków – widoczne nie mogą nakładać się godzinami. Dzień bez widocznych przystanków jest na stronie oznaczony „Chlebowóz odpoczywa”. Gdy ten sam przystanek jest w kilka dni, wpisz za każdym razem ten sam adres i położenie.',
+      },
+      {
+        q: 'Trasa chlebowozu się zmienia – usunąć stare przystanki?',
+        a: 'Lepiej je ukryć: na liście „Trasa” kliknij „Ukryj” przy przystanku (albo w formularzu wyłącz „Pokazuj na stronie”). Ukryty przystanek znika ze strony, z mapy i z rezerwacji, ale zostaje na liście (przyciemniony) – gdy chlebowóz wróci na starą trasę, kliknij „Pokaż”. Filtr „Widoczność” nad listą pokazuje tylko przystanki na stronie albo tylko ukryte. Usuń przystanek tylko wtedy, gdy na pewno nie wróci.',
       },
       {
         q: 'Ocena piekarni w Google',
